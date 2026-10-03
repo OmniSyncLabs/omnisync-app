@@ -1,0 +1,430 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import Link from "next/link";
+
+export default function SignupPage() {
+  const router = useRouter();
+  const params = useParams();
+  const locale = params?.locale || "tr";
+
+  // Akış Adımları: 1 = Hedef, 2 = Zaman, 3 = Kayıt Formu, 4 = %20 Teklif Ekranı
+  const [step, setStep] = useState(1);
+
+  // Anket ve Kullanıcı Verileri
+  const [goal, setGoal] = useState("");
+  const [timeCommitment, setTimeCommitment] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  // Pop-up ve Geri Sayım State'leri
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 dakika (300 saniye)
+  const [offerExpired, setOfferExpired] = useState(false);
+
+  // 5 Dakikalık Geri Sayım Sayacı Mantığı
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (showExitModal && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      setOfferExpired(true);
+    }
+    return () => clearInterval(timer);
+  }, [showExitModal, timeLeft]);
+
+  // Saniyeyi Dakika:Saniye Formatına Çevirme
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  // 3. Adımda Gerçek Kayıt İşlemi
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg("");
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            onboarding_goal: goal,
+            onboarding_time: timeCommitment,
+            plan: "free", // Varsayılan olarak başlangıçta free atıyoruz
+          },
+        },
+      });
+
+      if (error) {
+        if (error.message.includes("User already registered")) {
+          setErrorMsg("Bu e-posta adresi zaten kayıtlı!");
+        } else {
+          setErrorMsg(error.message);
+        }
+        setLoading(false);
+        return;
+      }
+
+      if (data?.user) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("omni_user_name", fullName);
+          localStorage.setItem("omni_user_email", email);
+        }
+        setLoading(false);
+        // Kayıt başarılı -> 4. Adım olan %20 teklif ekranına geç
+        setStep(4);
+      }
+    } catch (err: any) {
+      setErrorMsg("Ağ hatası oluştu. Lütfen bağlantınızı kontrol edin.");
+      setLoading(false);
+    }
+  };
+
+  // Seçilen Planı Supabase & LocalStorage'a Kaydedip Dashboard'a Geçme
+  const handleSelectPlan = async (selectedPlan: "free" | "pro" | "plus") => {
+    try {
+      await supabase.auth.updateUser({
+        data: { plan: selectedPlan },
+      });
+    } catch (e) {
+      console.error("Plan güncelleme hatası:", e);
+    }
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("omni_user_plan", selectedPlan);
+    }
+
+    router.push(`/${locale}/dashboard`);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-4 relative overflow-hidden">
+      <div className="w-full max-w-lg bg-slate-900/90 backdrop-blur border border-slate-800 rounded-2xl p-8 shadow-2xl z-10">
+        
+        {/* LOGO VE BAŞLIK */}
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            OmniSync
+          </h1>
+          {step < 4 && (
+            <div className="flex justify-center gap-2 mt-3">
+              {[1, 2, 3].map((s) => (
+                <div
+                  key={s}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    s === step ? "w-8 bg-cyan-400" : s < step ? "w-4 bg-cyan-600" : "w-4 bg-slate-800"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* HATA MESAJI */}
+        {errorMsg && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm font-medium border-l-4 border-l-red-500">
+            {errorMsg}
+          </div>
+        )}
+
+        {/* ADIM 1: HEDEF SEÇİMİ */}
+        {step === 1 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-center text-slate-100 mb-2">
+              OmniSync ile ana hedefin nedir?
+            </h2>
+            <p className="text-xs text-slate-400 text-center mb-6">
+              Sana özel bir deneyim hazırlayabilmemiz için birini seç.
+            </p>
+            {[
+              "Günlük disiplin ve düzen kazanmak",
+              "Odaklanmayı artırmak ve ertelemeyi bırakmak",
+              "Spor ve kişisel hedeflerimi takip etmek",
+              "Zamanı daha verimli yönetmek",
+            ].map((option) => (
+              <button
+                key={option}
+                onClick={() => {
+                  setGoal(option);
+                  setStep(2);
+                }}
+                className="w-full p-4 bg-slate-950 border border-slate-800 hover:border-cyan-500 rounded-xl text-left text-sm font-medium transition flex items-center justify-between group"
+              >
+                <span>{option}</span>
+                <span className="text-cyan-400 group-hover:translate-x-1 transition-transform">→</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* ADIM 2: ZAMAN AYIRMA */}
+        {step === 2 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-center text-slate-100 mb-2">
+              Günde bu hedefe ne kadar zaman ayırabilirsin?
+            </h2>
+            <p className="text-xs text-slate-400 text-center mb-6">
+              Ritmini adım adım inşa edeceğiz.
+            </p>
+            {[
+              "Günde 10-15 Dakika (Hızlı ve etkili)",
+              "Günde 30 Dakika (Dengeli odaklanma)",
+              "Günde 1 Saat+ (Yoğun ve kararlı çalışma)",
+            ].map((option) => (
+              <button
+                key={option}
+                onClick={() => {
+                  setTimeCommitment(option);
+                  setStep(3);
+                }}
+                className="w-full p-4 bg-slate-950 border border-slate-800 hover:border-cyan-500 rounded-xl text-left text-sm font-medium transition flex items-center justify-between group"
+              >
+                <span>{option}</span>
+                <span className="text-cyan-400 group-hover:translate-x-1 transition-transform">→</span>
+              </button>
+            ))}
+            <button
+              onClick={() => setStep(1)}
+              className="text-xs text-slate-500 hover:text-slate-300 w-full text-center mt-4"
+            >
+              ← Önceki Soruya Dön
+            </button>
+          </div>
+        )}
+
+        {/* ADIM 3: KAYIT FORMU */}
+        {step === 3 && (
+          <form onSubmit={handleSignup} className="space-y-4">
+            <h2 className="text-xl font-semibold text-center text-slate-100 mb-2">
+              Harika! Hesabını oluşturalım
+            </h2>
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                Ad Soyad
+              </label>
+              <input
+                type="text"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Ahmet Kaan"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:border-cyan-500 text-slate-100 text-sm transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                E-Posta Adresi
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ahmet@example.com"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:border-cyan-500 text-slate-100 text-sm transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                Şifre
+              </label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:border-cyan-500 text-slate-100 text-sm transition"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-cyan-500/25 transition disabled:opacity-50 mt-2"
+            >
+              {loading ? "Planınız Hazırlanıyor..." : "Kişisel Planımı Oluştur"}
+            </button>
+          </form>
+        )}
+
+        {/* ADIM 4: PRO & PLUS PLANLARI (%20 İNDİRİM) */}
+        {step === 4 && (
+          <div className="relative pt-2">
+            {/* ÇARPI (CLOSE) BUTONU */}
+            <button
+              onClick={() => setShowExitModal(true)}
+              className="absolute -top-4 -right-2 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition"
+              title="Kapat"
+            >
+              ✕
+            </button>
+
+            <div className="text-center mb-6">
+              <span className="inline-block px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-full text-cyan-400 text-xs font-semibold mb-2">
+                🎉 Hoş Geldin Hediyesi!
+              </span>
+              <h2 className="text-2xl font-bold text-white">
+                İlk Ayına Özel <span className="text-cyan-400">%20 İndirim</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Seçtiğin hedeflere ulaşmak için en uygun planı seç.
+              </p>
+            </div>
+
+            {/* PLAN KARTLARI */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {/* PRO PLAN */}
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-lg text-slate-200">Pro Plan</h3>
+                  <p className="text-xs text-slate-400 mt-1">Kişisel gelişim için ideal</p>
+                  <div className="my-3">
+                    <span className="line-through text-slate-500 text-xs mr-2">₺199/ay</span>
+                    <span className="text-xl font-bold text-cyan-400">₺159/ay</span>
+                  </div>
+                  <ul className="text-xs text-slate-300 space-y-1.5 mb-4">
+                    <li>✓ Tüm Alışkanlık Takipçileri</li>
+                    <li>✓ Sınırsız Hatırlatıcı</li>
+                    <li>✓ Detaylı İstatistikler</li>
+                  </ul>
+                </div>
+                <button
+                  onClick={() => handleSelectPlan("pro")}
+                  className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold rounded-lg text-xs transition"
+                >
+                  Pro'ya Geç
+                </button>
+              </div>
+
+              {/* PLUS PLAN (ÖNE ÇIKAN) */}
+              <div className="p-4 bg-slate-950 border-2 border-cyan-500 rounded-xl relative flex flex-col justify-between shadow-lg shadow-cyan-500/10">
+                <span className="absolute -top-2.5 right-3 bg-cyan-500 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  EN POPÜLER
+                </span>
+                <div>
+                  <h3 className="font-bold text-lg text-cyan-400">Plus Plan</h3>
+                  <p className="text-xs text-slate-400 mt-1">Maksimum verim & AI Desteği</p>
+                  <div className="my-3">
+                    <span className="line-through text-slate-500 text-xs mr-2">₺299/ay</span>
+                    <span className="text-xl font-bold text-cyan-400">₺239/ay</span>
+                  </div>
+                  <ul className="text-xs text-slate-300 space-y-1.5 mb-4">
+                    <li>✓ Pro Planın Tüm Özellikleri</li>
+                    <li>✓ AI Koçluk ve Analiz</li>
+                    <li>✓ Öncelikli Destek</li>
+                  </ul>
+                </div>
+                <button
+                  onClick={() => handleSelectPlan("plus")}
+                  className="w-full py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold rounded-lg text-xs transition"
+                >
+                  Plus'a Geç
+                </button>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-center text-slate-500">
+              İstediğin zaman iptal edebilirsin. Risk yok.
+            </p>
+          </div>
+        )}
+
+        <div className="mt-6 text-center text-xs text-slate-400">
+          Zaten hesabınız var mı?{" "}
+          <Link href={`/${locale}`} className="text-cyan-400 hover:underline font-medium">
+            Giriş Yap
+          </Link>
+        </div>
+      </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* İKNA POP-UP'I (EXIT-INTENT MODAL - %50 İNDİRİM & 5 DK TIMER) */}
+      {/* ------------------------------------------------------------- */}
+      {showExitModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-slate-900 border-2 border-red-500/50 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl relative">
+            
+            {!offerExpired ? (
+              <>
+                {/* TIMER HEADER */}
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-red-500/10 border border-red-500/30 rounded-full text-red-400 text-xs font-bold mb-4 animate-pulse">
+                  <span>⏳ Özel Fırsatın Bitiş Süresi:</span>
+                  <span className="text-sm font-mono">{formatTime(timeLeft)}</span>
+                </div>
+
+                <h3 className="text-2xl font-extrabold text-white mb-2">
+                  Bekle! Gitmeden Önce <span className="text-red-400">%50 İndirimini</span> Al!
+                </h3>
+                
+                <p className="text-xs text-slate-300 mb-6">
+                  Ritmini yakalaman için sana özel son bir şans sunuyoruz. İlk ay yarı fiyatına Plus Plan deneyimi!
+                </p>
+
+                {/* %50 İNDİRİMLİ FİYAT */}
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-6">
+                  <div className="text-xs text-slate-400">Plus Plan İlk Ay</div>
+                  <div className="flex items-center justify-center gap-2 mt-1">
+                    <span className="line-through text-slate-500 text-sm">₺299/ay</span>
+                    <span className="text-3xl font-black text-red-400">₺149/ay</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleSelectPlan("plus")}
+                    className="w-full py-3.5 bg-gradient-to-r from-red-500 to-amber-500 hover:from-red-400 hover:to-amber-400 text-white font-bold rounded-xl shadow-lg shadow-red-500/20 transition text-sm"
+                  >
+                    %50 İndirimi Kullan ve Başla
+                  </button>
+
+                  <button
+                    onClick={() => handleSelectPlan("free")}
+                    className="w-full py-2.5 text-xs text-slate-400 hover:text-slate-200 transition"
+                  >
+                    Teşekkürler, ücretsiz (Basic) planla devam etmek istiyorum
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* SÜRE BİTTİĞİNDE ÇIKACAK BİLGİLENDİRME */
+              <div className="py-4">
+                <div className="text-4xl mb-3">💙</div>
+                <h3 className="text-xl font-bold text-white mb-2">
+                  Fırsat Süresi Doldu
+                </h3>
+                <p className="text-xs text-slate-300 mb-6 leading-relaxed">
+                  İndirimi kaçırdığın için üzgünüz ama sorun değil! OmniSync'i ücretsiz keşfetmeye her zaman devam edebilirsin. İstediğin zaman hesabını yükseltebilirsin.
+                </p>
+                <button
+                  onClick={() => handleSelectPlan("free")}
+                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl text-sm transition"
+                >
+                  Ücretsiz Sürüm ile Devam Et
+                </button>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
