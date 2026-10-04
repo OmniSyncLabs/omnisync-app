@@ -28,6 +28,11 @@ export default function UpgradeButton({
         }
 
         setCheckoutUrl(finalUrl);
+
+        // Lemon Squeezy JS kütüphanesini sayfadaki butonlar için aktifleştiriyoruz
+        if (typeof window !== 'undefined' && (window as any).createLemonSqueezy) {
+          (window as any).createLemonSqueezy();
+        }
       } catch (error) {
         console.error('Checkout adresi hazırlanırken hata oluştu:', error);
       }
