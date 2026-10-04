@@ -58,20 +58,20 @@ export default function SignupPage() {
   // Google ile Giriş / Kayıt Fonksiyonu (Yönlendirmeyi Adım 4'e veya geçiş kontrolüne bağlıyoruz)
   const handleGoogleLogin = async () => {
     try {
-      // Google OAuth sonrasında kullanıcıyı doğrudan dashboard yerine, 
-      // kaydın tamamlandığını anlamamız için ara bir kontrol sayfasına veya doğrudan step 4 mantığına yönlendiriyoruz.
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/${locale}/signup?auth=google_success`,
-          queryParams: { prompt: 'select_account' },
+          queryParams: {
+            // Google'a "Kullanıcıya her defasında hesap seçtir ve izinleri yeniden sor" diyoruz:
+           prompt: 'select_account',
+            access_type: 'offline',
+          },
         },
       });
-      if (error) {
-        setErrorMsg(error.message);
-      }
+      if (error) console.error(error.message);
     } catch (err: any) {
-      setErrorMsg("Google ile giriş yapılırken bir hata oluştu.");
+      console.error(err);
     }
   };
 
