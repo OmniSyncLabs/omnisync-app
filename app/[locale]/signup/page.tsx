@@ -77,11 +77,31 @@ export default function SignupPage() {
 
   // Sayfa yüklendiğinde Google dönüşünü yakala ve Adım 4'e at
   useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    if (queryParams.get("auth") === "google_success") {
-      setStep(4);
-    }
-  }, []);
+    const checkUserAndRedirect = async () => {
+      const params = new URLSearchParams(window.location.search);
+
+      if (params.get("auth") === "google_success") {
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+          const createdAt = new Date(user.created_at).getTime();
+          const now = new Date().getTime();
+          // Hesap son 2 dakika içinde mi oluşturulmuş? (Yeni kayıt kontrolü)
+          const isNewUser = (now - createdAt) < 2 * 60 * 1000;
+
+          if (isNewUser) {
+            // YENİ KULLANICI -> 4. Adımdaki İndirim Pop-up ekranına al
+            setStep(4);
+          } else {
+            // ZATEN KAYITLI ESKİ KULLANICI -> Doğrudan Dashboard'a yönlendir
+            window.location.href = `/${locale}/dashboard`;
+          }
+        }
+      }
+    };
+
+    checkUserAndRedirect();
+  }, [locale]);
 
   // 3. Adımda Gerçek Kayıt İşlemi
   const handleSignup = async (e: React.FormEvent) => {
