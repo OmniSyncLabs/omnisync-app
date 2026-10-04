@@ -27,6 +27,13 @@ export default function SignupPage() {
   const [showExitModal, setShowExitModal] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300); // 5 dakika (300 saniye)
   const [offerExpired, setOfferExpired] = useState(false);
+  // Google girişinden dönüşü yakalayıp 4. adıma geçirme nöbetçisi
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("auth") === "google_success") {
+      setStep(4);
+    }
+  }, []);
 
   // 5 Dakikalık Geri Sayım Sayacı Mantığı
   useEffect(() => {
@@ -48,13 +55,16 @@ export default function SignupPage() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Google ile Giriş / Kayıt Fonksiyonu
+  // Google ile Giriş / Kayıt Fonksiyonu (Yönlendirmeyi Adım 4'e veya geçiş kontrolüne bağlıyoruz)
   const handleGoogleLogin = async () => {
     try {
+      // Google OAuth sonrasında kullanıcıyı doğrudan dashboard yerine, 
+      // kaydın tamamlandığını anlamamız için ara bir kontrol sayfasına veya doğrudan step 4 mantığına yönlendiriyoruz.
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/${locale}/dashboard`,
+          redirectTo: `${window.location.origin}/${locale}/signup?auth=google_success`,
+          queryParams: { prompt: 'select_account' },
         },
       });
       if (error) {
@@ -64,6 +74,14 @@ export default function SignupPage() {
       setErrorMsg("Google ile giriş yapılırken bir hata oluştu.");
     }
   };
+
+  // Sayfa yüklendiğinde Google dönüşünü yakala ve Adım 4'e at
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    if (queryParams.get("auth") === "google_success") {
+      setStep(4);
+    }
+  }, []);
 
   // 3. Adımda Gerçek Kayıt İşlemi
   const handleSignup = async (e: React.FormEvent) => {
@@ -80,7 +98,7 @@ export default function SignupPage() {
             full_name: fullName,
             onboarding_goal: goal,
             onboarding_time: timeCommitment,
-            plan: "free", // Varsayılan olarak başlangıçta free atıyoruz
+            plan: "free",
           },
         },
       });
@@ -317,7 +335,7 @@ export default function SignupPage() {
           </div>
         )}
 
-        {/* ADIM 4: PRO & PLUS PLANLARI (%20 İNDİRİM) */}
+        {/* ADIM 4: PRO & PLUS PLANLARI (%20 İNDİRİM & BASIC DETAYI) */}
         {step === 4 && (
           <div className="relative pt-2">
             {/* ÇARPI (CLOSE) BUTONU */}
@@ -329,7 +347,7 @@ export default function SignupPage() {
               ✕
             </button>
 
-            <div className="text-center mb-6">
+            <div className="text-center mb-5">
               <span className="inline-block px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-full text-cyan-400 text-xs font-semibold mb-2">
                 🎉 Hoş Geldin Hediyesi!
               </span>
@@ -337,60 +355,73 @@ export default function SignupPage() {
                 İlk Ayına Özel <span className="text-cyan-400">%20 İndirim</span>
               </h2>
               <p className="text-xs text-slate-400 mt-1">
-                Seçtiğin hedeflere ulaşmak için en uygun planı seç.
+                Hedeflerine en hızlı şekilde ulaşman için paketini seç.
               </p>
             </div>
 
-            {/* PLAN KARTLARI */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {/* PRO PLAN */}
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex flex-col justify-between">
-                <div>
-                  <h3 className="font-bold text-lg text-slate-200">Pro Plan</h3>
-                  <p className="text-xs text-slate-400 mt-1">Kişisel gelişim için ideal</p>
-                  <div className="my-3">
-                    <span className="line-through text-slate-500 text-xs mr-2">₺199/ay</span>
-                    <span className="text-xl font-bold text-cyan-400">₺159/ay</span>
-                  </div>
-                  <ul className="text-xs text-slate-300 space-y-1.5 mb-4">
-                    <li>✓ Tüm Alışkanlık Takipçileri</li>
-                    <li>✓ Sınırsız Hatırlatıcı</li>
-                    <li>✓ Detaylı İstatistikler</li>
-                  </ul>
-                </div>
-                <button
-                  onClick={() => handleSelectPlan("pro")}
-                  className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold rounded-lg text-xs transition"
-                >
-                  Pro'ya Geç
-                </button>
-              </div>
-
-              {/* PLUS PLAN (ÖNE ÇIKAN) */}
-              <div className="p-4 bg-slate-950 border-2 border-cyan-500 rounded-xl relative flex flex-col justify-between shadow-lg shadow-cyan-500/10">
+            {/* PLAN KARTLARI (PRO, PLUS ve BASIC SEÇENEĞİ - Madde 3 Çözümü) */}
+            <div className="grid grid-cols-1 gap-3 mb-5">
+              
+              {/* PLUS PLAN (EN POPÜLER) */}
+              <div className="p-3.5 bg-slate-950 border-2 border-cyan-500 rounded-xl relative flex items-center justify-between shadow-lg shadow-cyan-500/10">
                 <span className="absolute -top-2.5 right-3 bg-cyan-500 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded-full">
                   EN POPÜLER
                 </span>
                 <div>
-                  <h3 className="font-bold text-lg text-cyan-400">Plus Plan</h3>
-                  <p className="text-xs text-slate-400 mt-1">Maksimum verim & AI Desteği</p>
-                  <div className="my-3">
-                    <span className="line-through text-slate-500 text-xs mr-2">₺299/ay</span>
-                    <span className="text-xl font-bold text-cyan-400">₺239/ay</span>
+                  <h3 className="font-bold text-sm text-cyan-400">Plus Plan (AI Destekli)</h3>
+                  <p className="text-[11px] text-slate-400">Sınırsız koçluk ve detaylı analizler</p>
+                  <div className="mt-1">
+                    <span className="line-through text-slate-500 text-[11px] mr-2">₺299/ay</span>
+                    <span className="text-base font-bold text-cyan-400">₺239/ay</span>
                   </div>
-                  <ul className="text-xs text-slate-300 space-y-1.5 mb-4">
-                    <li>✓ Pro Planın Tüm Özellikleri</li>
-                    <li>✓ AI Koçluk ve Analiz</li>
-                    <li>✓ Öncelikli Destek</li>
-                  </ul>
                 </div>
                 <button
                   onClick={() => handleSelectPlan("plus")}
-                  className="w-full py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold rounded-lg text-xs transition"
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold rounded-lg text-xs transition shadow-md"
                 >
-                  Plus'a Geç
+                  Plus'ı Seç
                 </button>
               </div>
+
+              {/* PRO PLAN */}
+              <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-sm text-slate-200">Pro Plan</h3>
+                  <p className="text-[11px] text-slate-400">Gelişmiş alışkanlık ve istatistikler</p>
+                  <div className="mt-1">
+                    <span className="line-through text-slate-500 text-[11px] mr-2">₺199/ay</span>
+                    <span className="text-base font-bold text-cyan-400">₺159/ay</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleSelectPlan("pro")}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold rounded-lg text-xs transition"
+                >
+                  Pro'yu Seç
+                </button>
+              </div>
+
+              {/* BASIC PLAN (ÜCRETSİZ - Madde 3 Gereği Özellikleri Net Gösteriliyor) */}
+              <div className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+                <div className="flex items-center justify-between mb-1">
+                  <div>
+                    <h3 className="font-semibold text-xs text-slate-300">Temel Sürüm (Basic)</h3>
+                    <p className="text-[10px] text-slate-500">Standart alışkanlık takibi ve temel özellikler</p>
+                  </div>
+                  <button
+                    onClick={() => handleSelectPlan("free")}
+                    className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white font-medium rounded-lg text-[11px] transition border border-slate-800"
+                  >
+                    Ücretsiz Devam Et
+                  </button>
+                </div>
+                <div className="text-[10px] text-slate-400 mt-2 pt-2 border-t border-slate-900 flex gap-4">
+                  <span>✓ Standart Takip</span>
+                  <span>✓ Temel Hatırlatıcılar</span>
+                  <span>✕ AI Koçluk Yok</span>
+                </div>
+              </div>
+
             </div>
 
             <p className="text-[11px] text-center text-slate-500">

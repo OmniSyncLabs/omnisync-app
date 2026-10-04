@@ -75,7 +75,7 @@ export default function DashboardPage() {
     privacy: isTr ? "Gizlilik & Güvenlik" : "Privacy & Security",
     helpSupport: isTr ? "Yardım & Destek" : "Help & Support",
 
-    // PRO & PLUS PLAN KARTLARI ÇEVİRİLERİ (FIGMA TR/EN)
+    // PRO & PLUS PLAN KARTLARI ÇEVİRİLERİ
     membershipHeader: isTr ? "ABONELİK PAKETLERİNİZ" : "YOUR MEMBERSHIP",
     proTitle: "PRO",
     plusTitle: "PLUS",
@@ -128,6 +128,7 @@ export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string>("demo@example.com");
   const [userPlan, setUserPlan] = useState<string>("free");
   const [userGoal, setUserGoal] = useState<string>("");
+  const [userAvatar, setUserAvatar] = useState<string>(""); // Profil Fotoğrafı State'i
   const [loading, setLoading] = useState<boolean>(true);
 
   const [editName, setEditName] = useState<string>("");
@@ -149,7 +150,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "habits" | "analytics" | "group" | "settings">("overview");
 
   const [focusLevel, setFocusLevel] = useState<number>(3);
-  const [hrvScore, setHrvScore] = useState<number>(68);
+  const [hrvScore, setHrvScore] = useState<number>(68); // bpm birimiyle takip ediliyor
 
   // Rutinler Listesi
   const [habits, setHabits] = useState([
@@ -166,16 +167,16 @@ export default function DashboardPage() {
 
   // 10 Kişilik Arkadaş Grubu Verileri
   const groupMembers = [
-    { id: 1, name: "Yaren Ünlü", status: isTr ? "1.5 Saat Matematik Çalışıyor" : "1.5h Studying Math", focus: "Sev. 5", hrv: "72 ms", online: true },
-    { id: 2, name: "Ali Yılmaz", status: isTr ? "Paragraf Soru Çözümü" : "Solving Reading Tests", focus: "Sev. 4", hrv: "65 ms", online: true },
-    { id: 3, name: "Zeynep Kaya", status: isTr ? "Açık Hava Yürüyüşü" : "Outdoor Walk", focus: "Sev. 2", hrv: "80 ms", online: false },
-    { id: 4, name: "Mert Demir", status: isTr ? "Dinlenme / Mola" : "Rest & Break", focus: "Sev. 1", hrv: "58 ms", online: true },
-    { id: 5, name: "Ece Şahin", status: isTr ? "İngilizce Kelime Ezberi" : "English Vocabulary", focus: "Sev. 3", hrv: "70 ms", online: true },
-    { id: 6, name: "Can Öztürk", status: isTr ? "Fizik Soru Çözümü" : "Physics Practice", focus: "Sev. 5", hrv: "63 ms", online: false },
-    { id: 7, name: "Selin Arslan", status: isTr ? "Kitap Okuma Saati" : "Reading Time", focus: "Sev. 2", hrv: "76 ms", online: true },
-    { id: 8, name: "Burak Yıldız", status: isTr ? "Kodlama & Proje" : "Coding & Project", focus: "Sev. 4", hrv: "69 ms", online: true },
-    { id: 9, name: "Elif Aydın", status: isTr ? "Geometri Tekrarı" : "Geometry Review", focus: "Sev. 4", hrv: "67 ms", online: false },
-    { id: 10, name: "Deniz Kaan", status: isTr ? "Gece Çalışması" : "Night Session", focus: "Sev. 3", hrv: "71 ms", online: true },
+    { id: 1, name: "Yaren Ünlü", status: isTr ? "1.5 Saat Matematik Çalışıyor" : "1.5h Studying Math", focus: "Sev. 5", hrv: "72 bpm", online: true },
+    { id: 2, name: "Ali Yılmaz", status: isTr ? "Paragraf Soru Çözümü" : "Solving Reading Tests", focus: "Sev. 4", hrv: "65 bpm", online: true },
+    { id: 3, name: "Zeynep Kaya", status: isTr ? "Açık Hava Yürüyüşü" : "Outdoor Walk", focus: "Sev. 2", hrv: "80 bpm", online: false },
+    { id: 4, name: "Mert Demir", status: isTr ? "Dinlenme / Mola" : "Rest & Break", focus: "Sev. 1", hrv: "58 bpm", online: true },
+    { id: 5, name: "Ece Şahin", status: isTr ? "İngilizce Kelime Ezberi" : "English Vocabulary", focus: "Sev. 3", hrv: "70 bpm", online: true },
+    { id: 6, name: "Can Öztürk", status: isTr ? "Fizik Soru Çözümü" : "Physics Practice", focus: "Sev. 5", hrv: "63 bpm", online: false },
+    { id: 7, name: "Selin Arslan", status: isTr ? "Kitap Okuma Saati" : "Reading Time", focus: "Sev. 2", hrv: "76 bpm", online: true },
+    { id: 8, name: "Burak Yıldız", status: isTr ? "Kodlama & Proje" : "Coding & Project", focus: "Sev. 4", hrv: "69 bpm", online: true },
+    { id: 9, name: "Elif Aydın", status: isTr ? "Geometri Tekrarı" : "Geometry Review", focus: "Sev. 4", hrv: "67 bpm", online: false },
+    { id: 10, name: "Deniz Kaan", status: isTr ? "Gece Çalışması" : "Night Session", focus: "Sev. 3", hrv: "71 bpm", online: true },
   ];
 
   useEffect(() => {
@@ -189,11 +190,13 @@ export default function DashboardPage() {
         const email = user.email || "demo@example.com";
         const plan = user.user_metadata?.plan || "free";
         const goal = user.user_metadata?.onboarding_goal || "";
+        const avatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || "";
 
         setUserName(name);
         setUserEmail(email);
         setUserPlan(plan);
         setUserGoal(goal);
+        setUserAvatar(avatar);
 
         setEditName(name);
         setEditEmail(email);
@@ -201,10 +204,12 @@ export default function DashboardPage() {
         const savedName = localStorage.getItem("omni_user_name") || "Kullanıcı";
         const savedEmail = localStorage.getItem("omni_user_email") || "demo@example.com";
         const savedPlan = localStorage.getItem("omni_user_plan") || "free";
+        const savedAvatar = localStorage.getItem("omni_user_avatar") || "";
 
         setUserName(savedName);
         setUserEmail(savedEmail);
         setUserPlan(savedPlan);
+        setUserAvatar(savedAvatar);
 
         setEditName(savedName);
         setEditEmail(savedEmail);
@@ -215,6 +220,31 @@ export default function DashboardPage() {
 
     fetchUserData();
   }, []);
+
+  // Profil Fotoğrafı Güncelleme Fonksiyonu
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        setUserAvatar(base64String);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("omni_user_avatar", base64String);
+        }
+        try {
+          await supabase.auth.updateUser({
+            data: { avatar_url: base64String }
+          });
+          setUpdateMsg(isTr ? "Profil fotoğrafı güncellendi!" : "Profile picture updated!");
+          setTimeout(() => setUpdateMsg(""), 3000);
+        } catch (err) {
+          console.error("Avatar kaydetme hatası:", err);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleChangePlan = async (newPlan: "free" | "pro" | "plus") => {
     try {
@@ -281,7 +311,6 @@ export default function DashboardPage() {
     );
   }
 
-  // DÜZELTİLDİ: PAZARTESİ ($x:10$) -> PAZAR ($x:480$) DUVARDAN DUVARE KESİNTİSİZ TAM ÇİZGİ
   const chartPoints = [
     { day: isTr ? "Pzt" : "Mon", score: "6/10", x: 10, y: 90 },
     { day: isTr ? "Sal" : "Tue", score: "8/10", x: 88, y: 50 },
@@ -375,12 +404,20 @@ export default function DashboardPage() {
           </nav>
         </div>
 
-        {/* PROFiL ÖZETİ */}
+        {/* PROFİL ÖZETİ & FOTOĞRAFI */}
         <div className="pt-6 border-t border-slate-800/80">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow-md">
-              {userName.charAt(0).toUpperCase()}
-            </div>
+            <label className="relative cursor-pointer group" title="Profil Fotoğrafını Değiştir">
+              <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+              {userAvatar ? (
+                <img src={userAvatar} alt="Profile" className="w-9 h-9 rounded-full object-cover border-2 border-cyan-500 shadow-md group-hover:opacity-80 transition" />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow-md group-hover:opacity-80 transition">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-cyan-400 border-2 border-slate-900 rounded-full text-[8px] flex items-center justify-center text-slate-950 font-bold">+</span>
+            </label>
             <div className="overflow-hidden">
               <div className="text-xs font-bold text-white truncate">{userName}</div>
               <div className="text-[10px] text-slate-400 truncate">{userEmail}</div>
@@ -469,12 +506,13 @@ export default function DashboardPage() {
                 <div className="text-2xl font-black text-amber-400 mt-2">15 {t.days}</div>
               </div>
 
+              {/* HRV Score (bpm) */}
               <div className="p-5 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
                 <div className="flex justify-between items-center text-slate-400 text-xs font-medium">
                   <span>HRV Score (3-day)</span>
-                  <span>🫀</span>
+                  <span>🧠</span>
                 </div>
-                <div className="text-2xl font-black text-purple-400 mt-2">{hrvScore} ms</div>
+                <div className="text-2xl font-black text-purple-400 mt-2">{hrvScore} bpm</div>
               </div>
 
               <div className="p-5 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
@@ -565,7 +603,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ALIŞKANLIKLAR & AI PLANLAMA + AI TIPS */}
+        {/* ALIŞKANLIKLAR & AI PLANLAMA */}
         {activeTab === "habits" && (
           <div className="space-y-6">
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
@@ -661,8 +699,7 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
-
-        {/* ANALİZ & BIOMETRICS (DUVARDAN DUVARA PAZARTESİ-PAZAR TAM SIFIRLANMIŞ EĞRİ) */}
+        {/* ANALİZ & BIOMETRICS */}
         {activeTab === "analytics" && (
           <div className="space-y-6">
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
@@ -677,7 +714,6 @@ export default function DashboardPage() {
                   <line x1="10" y1="65" x2="480" y2="65" stroke="#1e293b" strokeDasharray="3" />
                   <line x1="10" y1="110" x2="480" y2="110" stroke="#1e293b" strokeDasharray="3" />
 
-                  {/* PAZARTESİ ($x:10$) 'DEN PAZAR ($x:480$) 'E KADAR KESİNTİSİZ ÇİZGİ */}
                   <polyline
                     fill="none"
                     stroke="url(#chartGradient)"
@@ -695,7 +731,6 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
 
-                  {/* HER GÜNÜN HİZASINDAKİ DÜĞÜM NOKTALARI */}
                   {chartPoints.map((pt, i) => (
                     <g key={i}>
                       <circle cx={pt.x} cy={pt.y} r="5" className="fill-cyan-400 stroke-slate-950 stroke-2" />
@@ -706,7 +741,6 @@ export default function DashboardPage() {
                   ))}
                 </svg>
 
-                {/* GÜN ETİKETLERİ */}
                 <div className="flex justify-between text-[11px] text-slate-400 font-semibold mt-4 pt-2 border-t border-slate-800">
                   {chartPoints.map((pt, idx) => (
                     <span key={idx} className="w-8 text-center">{pt.day}</span>
@@ -740,7 +774,6 @@ export default function DashboardPage() {
               </div>
 
               <div className="relative">
-                {/* PRO VEYA BASIC ÜYELER İÇİN BULANIK KATMAN */}
                 {userPlan !== "plus" && (
                   <div className="absolute inset-0 z-20 bg-slate-950/70 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center rounded-xl border border-purple-500/30">
                     <div className="w-14 h-14 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-2xl mb-3 shadow-lg shadow-purple-500/20">
@@ -779,7 +812,7 @@ export default function DashboardPage() {
                           Odak: {member.focus}
                         </span>
                         <span className="text-[10px] text-purple-400 font-mono block mt-1">
-                          🫀 {member.hrv}
+                          🧠 {member.hrv}
                         </span>
                       </div>
                     </div>
@@ -790,7 +823,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* SETTINGS & PREFERENCES (TÜM SEÇENEKLER TEK TEK AÇIK) */}
+        {/* SETTINGS & PREFERENCES */}
         {activeTab === "settings" && (
           <div className="space-y-8 max-w-4xl">
             {updateMsg && (
@@ -868,7 +901,6 @@ export default function DashboardPage() {
             <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-6">
               <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.sec2Title}</h3>
 
-              {/* Sleep Target Hours */}
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <h4 className="text-sm font-bold text-white">{t.sleepTargetTitle}</h4>
@@ -896,7 +928,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Caffeine Cutoff Buffer */}
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <h4 className="text-sm font-bold text-white">{t.caffeineTitle}</h4>
@@ -924,7 +955,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Timezone */}
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <h4 className="text-sm font-bold text-white">{t.timezoneTitle}</h4>
@@ -950,7 +980,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* AI Daily Voice Morning Briefing */}
               <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
                 <div>
                   <h4 className="text-sm font-bold text-white">{t.aiVoiceTitle}</h4>
