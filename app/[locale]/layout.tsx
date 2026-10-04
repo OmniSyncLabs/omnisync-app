@@ -1,6 +1,7 @@
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import Script from 'next/script';
 import { AuthProvider } from '@/lib/auth';
 import './globals.css';
 
@@ -27,6 +28,12 @@ export default async function LocaleLayout({
             {children}
           </NextIntlClientProvider>
         </AuthProvider>
+
+        {/* Lemon Squeezy Overlay Script */}
+        <Script
+          src="https://assets.lemonsqueezy.com/lemon.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
