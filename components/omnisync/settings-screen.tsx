@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { CHRONOTYPES, initialsOf, type Plan, type Profile } from '@/lib/omnisync'
 import { Toggle } from './toggle'
 import { WheelPicker } from './wheel-picker'
+import { supabase } from '@/lib/supabase'
 
 const DEVICES = ['Apple Watch Series 10', 'Oura Ring Gen 4', 'Whoop 5.0', 'Google Pixel Watch', 'Garmin Venu 3', 'Fitbit Charge 6', 'No wearable'].map((d) => ({ value: d, label: d }))
 const SLEEP_TARGETS = Array.from({ length: 13 }, (_, i) => {
@@ -29,6 +30,22 @@ export function SettingsScreen({ profile, plan, onUpgrade, onLogout }: { profile
   const chrono = CHRONOTYPES[profile.chronotype]
   const ChronoIcon = chrono.icon
   const sleepLabel = SLEEP_TARGETS.find((s) => s.value === sleepTarget)?.label
+
+  // Lemon Squeezy doğrudan yönlendirme fonksiyonu
+  const handleDirectUpgrade = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      let checkoutUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+
+      if (user) {
+        checkoutUrl += `?checkout[email]=${encodeURIComponent(user.email || '')}&checkout[custom][user_id]=${user.id}`;
+      }
+
+      window.location.href = checkoutUrl;
+    } catch (error) {
+      window.location.href = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -125,7 +142,7 @@ export function SettingsScreen({ profile, plan, onUpgrade, onLogout }: { profile
         <p className="mt-3 text-xl font-bold">
           Active Plan: {plan === 'basic' ? 'Basic ($0)' : plan === 'pro' ? 'Pro ($5/mo)' : 'Plus ($8/mo)'}
         </p>
-        <button type="button" onClick={onUpgrade} className="mt-4 h-12 w-full rounded-2xl bg-gradient-to-r from-primary to-sky-400 font-semibold text-primary-foreground">
+        <button type="button" onClick={handleDirectUpgrade} className="mt-4 h-12 w-full rounded-2xl bg-gradient-to-r from-primary to-sky-400 font-semibold text-primary-foreground cursor-pointer">
           {plan === 'basic' ? 'Upgrade Subscription' : 'Manage Subscription'}
         </button>
       </section>
