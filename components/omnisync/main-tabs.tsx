@@ -8,6 +8,7 @@ import { HomeScreen } from './home-screen'
 import { ScheduleScreen } from './schedule-screen'
 import { BiometricsScreen } from './biometrics-screen'
 import { SettingsScreen } from './settings-screen'
+import { supabase } from '@/lib/supabase'
 
 const TABS = [
   { label: 'Home', icon: Home },
@@ -21,12 +22,27 @@ export function MainTabs({ profile, plan, onUpgrade, onLogout }: { profile: Prof
   const pendingTarget = useRef<number | null>(null)
   const [active, setActive] = useState(0)
 
+  // Doğrudan Lemon Squeezy yönlendirmesi
+  const handleDirectUpgrade = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      let checkoutUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+
+      if (user) {
+        checkoutUrl += `?checkout[email]=${encodeURIComponent(user.email || '')}&checkout[custom][user_id]=${user.id}`;
+      }
+
+      window.location.href = checkoutUrl;
+    } catch (error) {
+      window.location.href = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+    }
+  };
+
   function handleScroll() {
     const el = trackRef.current
     if (!el) return
     const index = Math.round(el.scrollLeft / el.clientWidth)
     if (pendingTarget.current !== null) {
-      // Keep the clicked tab highlighted while the smooth scroll passes intermediate screens.
       if (index === pendingTarget.current && Math.abs(el.scrollLeft - index * el.clientWidth) < 2) pendingTarget.current = null
       return
     }
@@ -45,8 +61,8 @@ export function MainTabs({ profile, plan, onUpgrade, onLogout }: { profile: Prof
   const screens = [
     <HomeScreen key="home" profile={profile} />,
     <ScheduleScreen key="schedule" />,
-    <BiometricsScreen key="bio" plan={plan} onUpgrade={onUpgrade} />,
-    <SettingsScreen key="settings" profile={profile} plan={plan} onUpgrade={onUpgrade} onLogout={onLogout} />,
+    <BiometricsScreen key="bio" plan={plan} onUpgrade={handleDirectUpgrade} />,
+    <SettingsScreen key="settings" profile={profile} plan={plan} onUpgrade={handleDirectUpgrade} onLogout={onLogout} />,
   ]
 
   return (
