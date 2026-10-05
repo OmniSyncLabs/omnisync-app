@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ArrowRight, Check, Clock, Sparkles, Star, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PLAN_PRICES, type Plan } from '@/lib/omnisync'
+import { supabase } from '@/lib/supabase'
 
 const OFFER_DURATION_MS = 10 * 60 * 1000
 
@@ -21,8 +22,32 @@ const PLUS_FEATURES = [
   'Exportable HRV & Health PDF Reports',
 ]
 
+// Lemon Squeezy satın alma sayfasına yönlendirme fonksiyonu
+async function handleLemonCheckout(plan: 'pro' | 'plus') {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Pro ürününün Lemon Squeezy linki
+    const rawUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+    let finalUrl = rawUrl;
+
+    if (user) {
+      finalUrl += `?checkout[email]=${encodeURIComponent(user.email || '')}&checkout[custom][user_id]=${user.id}`;
+    }
+
+    window.location.href = finalUrl;
+  } catch (error) {
+    console.error('Ödeme sayfasına gidilirken hata oluştu:', error);
+  }
+}
+
 export function Paywall({ onClose, onSubscribe }: { onClose: () => void; onSubscribe: (plan: Exclude<Plan, 'basic'>) => void }) {
   const [phase, setPhase] = useState<'offer' | 'discount'>('offer')
+
+  const handleSelect = (plan: 'pro' | 'plus') => {
+    onSubscribe(plan);
+    handleLemonCheckout(plan);
+  };
 
   return (
     <div
@@ -52,13 +77,13 @@ export function Paywall({ onClose, onSubscribe }: { onClose: () => void; onSubsc
             <p className="text-sm text-muted-foreground">More insight. Less friction. Your pace.</p>
           </div>
           <div className="mt-6 flex flex-col gap-4">
-            <PlanCard plan="pro" price={PLAN_PRICES.pro} onSelect={onSubscribe} />
-            <PlanCard plan="plus" price={PLAN_PRICES.plus} onSelect={onSubscribe} />
+            <PlanCard plan="pro" price={PLAN_PRICES.pro} onSelect={handleSelect} />
+            <PlanCard plan="plus" price={PLAN_PRICES.plus} onSelect={handleSelect} />
           </div>
           <p className="mt-5 text-center text-xs text-muted-foreground">Cancel anytime. 7-day free trial on Pro & Plus.</p>
         </>
       ) : (
-        <DiscountOffer onSubscribe={onSubscribe} onClose={onClose} />
+        <DiscountOffer onSubscribe={handleSelect} onClose={onClose} />
       )}
     </div>
   )
