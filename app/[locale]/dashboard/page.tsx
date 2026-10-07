@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter, useParams } from "next/navigation";
@@ -30,8 +29,8 @@ export default function DashboardPage() {
     focusLevelText: isTr ? "Zihinsel Odak Seviyesi" : "Mental Focus Level",
     days: isTr ? "Gün" : "Days",
     addHabitTitle: isTr ? "Yapay Zeka ile Otomatik Zamanlanan Görev Ekle" : "Add Task Auto-Scheduled by AI",
-    addHabitBtn: isTr ? "✨ Yapay Zeka ile Otomatik Ekle" : "✨ Add with AI Scheduler",
-    addingAI: isTr ? "🤖 Yapay Zeka Günün En İdeal Saatine Yerleştiriyor..." : "🤖 AI is Scheduling to Peak Focus Hours...",
+    addHabitBtn: isTr ? "Yapay Zeka ile Otomatik Ekle" : "Add with AI Scheduler",
+    addingAl: isTr ? "Yapay Zeka Günün En İdeal Saatine Yerleştiriyor..." : "AI is Scheduling to Peak Focus Hours...",
     taskTitlePlaceholder: isTr ? "Görev Adı (Örn: 1.5 Saat Fizik Denemesi Çöz)" : "Task Title (e.g. 1.5h Physics Exam)",
     category: isTr ? "Kategori" : "Category",
     productivity: isTr ? "Verimlilik" : "Productivity",
@@ -46,40 +45,34 @@ export default function DashboardPage() {
     level5: isTr ? "Sev. 5 (Maksimum Odak)" : "Lvl 5 (Peak Focus)",
     groupTitle: isTr ? "10 Kişilik Odak Grubu Takibi" : "Social Party Focus Rooms & Live Sync",
     groupSub: isTr ? "Arkadaş grubunun gün içindeki canlı durumunu, odak seviyelerini ve rutinlerini incele." : "Track your friend group's live focus status, HRV, and active routines.",
-    lockedTitle: isTr ? "🔒 Bu Özellik Plus Üyeliğe Özeldir" : "🔒 Feature Locked to Plus Members",
+    lockedTitle: isTr ? "Bu Özellik Plus Üyeliğe Özeldir" : "Feature Locked to Plus Members",
     lockedSub: isTr ? "Canlı grup odalarını ve arkadaşınızın anlık odak durumunu görmek için Plus planına yükseltin." : "Upgrade to Plus membership to view live focus rooms and real-time group sync.",
-    getPlus: isTr ? "👑 Plus Üyeliğe Geç" : "👑 Upgrade to Plus",
-
-    // SETTINGS / AYARLAR EKRANI ÇEVİRİLERİ
+    getPlus: isTr ? "Plus Üyeliğe Geç" : "Upgrade to Plus",
     sec1Title: isTr ? "01 Biyometrik & Sağlık Senkronizasyonu" : "01 Biometric & Health Sync",
     appleHealth: isTr ? "Apple Health / Google Fit Entegrasyonu" : "Apple Health / Google Fit Integration",
-    appleHealthSub: isTr ? "Aktif · Sağlık verisi senkronize ediliyor" : "Active · Health sync enabled",
+    appleHealthSub: isTr ? "Aktif Sağlık verisi senkronize ediliyor" : "Active Health sync enabled",
     autoFocus: isTr ? "Otomatik Odak Modu Senkronizasyonu" : "Auto Focus Mode Sync",
     autoFocusSub: isTr ? "Rahatsız Etmeyin modunu odak saatleriyle eşitle" : "Sync Do Not Disturb with focus windows",
     wearableTitle: isTr ? "Birincil Giyilebilir Cihaz" : "Primary Wearable Device",
     swipeScroll: isTr ? "Seçmek için kaydırın veya seçin" : "Swipe, drag or scroll to choose",
-
     sec2Title: isTr ? "02 Sirkadiyen Ritim & Rutin Tercihleri" : "02 Circadian & Routine Preferences",
     sleepTargetTitle: isTr ? "Hedef Uyku Süresi" : "Sleep Target Hours",
     caffeineTitle: isTr ? "Kafein Kesme Limiti (Uykudan Önce)" : "Caffeine Cutoff Buffer",
     hoursBeforeSleep: isTr ? "Saat Öncesi" : "Hours before sleep",
     timezoneTitle: isTr ? "Zaman Dilimi (Timezone)" : "Timezone",
     aiVoiceTitle: isTr ? "Sesli Günlük AI Sabah Özeti" : "AI Daily Voice Morning Briefing",
-    aiVoiceSub: isTr ? "08:00 · Günün planı sesli senkronize edilir" : "8:00 AM · Your day, in sync",
-
+    aiVoiceSub: isTr ? "08:00 Günün planı sesli senkronize edilir" : "8:00 AM Your day, in sync",
     sec3Title: isTr ? "03 Hesap & Güvenlik" : "03 Account & Security",
     linkedAccounts: isTr ? "Bağlı Hesaplar" : "Linked accounts",
     connectedAs: isTr ? "Google bağlantısı:" : "Google: connected as",
-    demoSession: isTr ? "Demo oturumu · Canlı kimlik doğrulama servisi pasif" : "Demo session · No live authentication service",
+    demoSession: isTr ? "Demo oturumu Canlı kimlik doğrulama servisi pasif" : "Demo session. No live authentication service",
     notifications: isTr ? "Bildirim Tercihleri" : "Notifications",
     privacy: isTr ? "Gizlilik & Güvenlik" : "Privacy & Security",
     helpSupport: isTr ? "Yardım & Destek" : "Help & Support",
-
-    // PRO & PLUS PLAN KARTLARI ÇEVİRİLERİ
     membershipHeader: isTr ? "ABONELİK PAKETLERİNİZ" : "YOUR MEMBERSHIP",
     proTitle: "PRO",
     plusTitle: "PLUS",
-    mostPopular: isTr ? "★ EN POPÜLER" : "★ MOST POPULAR",
+    mostPopular: isTr ? "EN POPÜLER" : "★ MOST POPULAR",
     perMonth: isTr ? "/ ay" : "/ month",
     billedAnnuallyPro: isTr ? "Yıllık faturalandırılır ($48/yıl)" : "Billed annually ($48/year)",
     billedAnnuallyPlus: isTr ? "Yıllık faturalandırılır ($76.8/yıl)" : "Billed annually ($76.8/year)",
@@ -87,16 +80,12 @@ export default function DashboardPage() {
     plusHeader: isTr ? "→ Pro paketteki her şey, ayrıca:" : "→ Everything in Pro, plus:",
     trialBtn: isTr ? "7 Günlük Ücretsiz Denemeyi Başlat" : "Start 7-Day Free Trial",
     getPlusBtn: isTr ? "Plus Üyeliği Al" : "Get Plus Membership",
-
-    // PRO ÖZELLİKLERİ
     proF1: isTr ? "10 adede kadar otomatik zamanlanmış etkinlik & takvim eşitleme" : "Up to 10 auto-scheduled events & calendar sync",
     proF2: isTr ? "Otomatik DND & Odak Modu Eşitleme (Saat/Telefon)" : "Auto DND & Focus Mode Sync (Watch/Phone)",
     proF3: isTr ? "Günlük AI Sesli Sabah Özeti" : "Daily AI Voice Morning Briefing",
     proF4: isTr ? "Tükenmişlik Erken Uyarı Sistemi (3 günlük HRV)" : "Burnout Early Warning System (3-day HRV)",
     proF5: isTr ? "Sınırsız Pro AI Danışmanı" : "Unlimited Pro AI Advisor",
     proF6: isTr ? "Çoklu cihaz eşitleme (2+ cihaz)" : "Multi-device sync (2+ devices)",
-
-    // PLUS ÖZELLİKLERİ
     plusF1: isTr ? "100 etkinliğe kadar / sınırsız güç görevleri" : "Up to 100 events / unlimited power tasks",
     plusF2: isTr ? "Bio-Sync Partner Eşleşmesi" : "Bio-Sync Partner Matching",
     plusF3: isTr ? "Social Party Odak Odaları & Canlı Rutin Eşitleme" : "Social Party Focus Rooms & Live Routine Sync",
@@ -104,40 +93,25 @@ export default function DashboardPage() {
     plusF5: isTr ? "Dışa aktarılabilir HRV & Sağlık PDF Raporları" : "Exportable HRV & Health PDF Reports",
   };
 
-  // AI İPUÇLARI (AI TIPS MAPPING)
   const aiTipsMap = {
-    1: isTr 
-      ? "💡 AI Tavsiyesi: Zihinsel enerjin bugün düşük seviyede. Ağır matematik veya deneme çözümleri yerine 15-20 dakikalık hafif yürüyüş ve kitap okuma gibi düşük beyin yükü gerektiren rutinlere odaklan."
-      : "💡 AI Tip: Mental energy is low today. Focus on light activities like 15-minute walks or light reading rather than heavy problem solving.",
-    2: isTr 
-      ? "💡 AI Tavsiyesi: Hafif-orta zihinsel moddasın. Bugün rutin tekrar dersleri ve kelime ezberleri için harika bir gün. Zor sınav çözümlerini yarın sabah peak saatine ertele."
-      : "💡 AI Tip: Light-moderate focus state. Ideal for vocabulary reviews and routine revision. Save intense practice tests for tomorrow morning.",
-    3: isTr 
-      ? "💡 AI Tavsiyesi: Dengeli odak seviyesindesin. Pomodoro tekniği (25 dk çalışma + 5 dk mola) ile 1.5 saatlik verimli ders veya proje oturumunu kolayca tamamlayabilirsin."
-      : "💡 AI Tip: Balanced focus state. Use Pomodoro (25m study + 5m rest) to comfortably complete 1.5-hour study blocks.",
-    4: isTr 
-      ? "💡 AI Tavsiyesi: Yüksek zihinsel performans modundasın! Beyin karmaşık mantık yürütmeye ve ağır problem çözmeye hazır. Zorlandığın en kritik 2 görevi hemen şimdi hallet."
-      : "💡 AI Tip: High cognitive performance! Your brain is primed for complex logic and problem solving. Tackle your top 2 hardest tasks right now.",
-    5: isTr 
-      ? "💡 AI Tavsiyesi: 🔥 MAKSİMUM DERİN ODAK (FLOW STATE)! Zihinsel kapasiten zirvede. Bildirimleri kapat, DND moduna geç ve en az 2 saatlik kesintisiz deneme sınavı veya zorlu kodlama seansını başlat."
-      : "💡 AI Tip: 🔥 PEAK FLOW STATE! Mental capacity is at its max. Enable DND mode and initiate a 2-hour uninterrupted deep study block.",
+    1: isTr ? "AI Tavsiyesi: Zihinsel enerjin bugün düşük seviyede. Ağır matematik veya deneme çözümleri yerine 15-20 dakikalık hafif yürüyüş ve kitap okuma gibi düşük beyin yükü gerektiren rutinlere odaklan." : "AI Tip: Mental energy is low today. Focus on light activities like 15-minute walks or light reading rather than heavy problem solving.",
+    2: isTr ? "AI Tavsiyesi: Hafif-orta zihinsel moddasın. Bugün rutin tekrar dersleri ve kelime ezberleri için harika bir gün. Zor sınav çözümlerini yarın sabah peak saatine ertele." : "AI Tip: Light-moderate focus state. Ideal for vocabulary reviews and routine revision. Save intense practice tests for tomorrow morning.",
+    3: isTr ? "AI Tavsiyesi: Dengeli odak seviyesindesin. Pomodoro tekniği (25 dk çalışma + 5 dk mola) ile 1.5 saatlik verimli ders veya proje oturumunu kolayca tamamlayabilirsin." : "AI Tip: Balanced focus state. Use Pomodoro (25m study + 5m rest) to comfortably complete 1.5-hour study blocks.",
+    4: isTr ? "AI Tavsiyesi: Yüksek zihinsel performans modundasın! Beyin karmaşık mantık yürütmeye ve ağır problem çözmeye hazır. Zorlandığın en kritik 2 görevi hemen şimdi hallet." : "AI Tip: High cognitive performance! Your brain is primed for complex logic and problem solving. Tackle your top 2 hardest tasks right now.",
+    5: isTr ? "AI Tavsiyesi: MAKSİMUM DERİN ODAK (FLOW STATE)! Zihinsel kapasiten zirvede. Bildirimleri kapat, DND moduna geç ve en az 2 saatlik kesintisiz deneme sınavı veya zorlu kodlama seansını başlat." : "AI Tip: PEAK FLOW STATE! Mental capacity is at its max. Enable DND mode and initiate a 2-hour uninterrupted deep study block.",
   };
 
-  // State'ler
   const [userName, setUserName] = useState<string>("Kullanıcı");
   const [userEmail, setUserEmail] = useState<string>("demo@example.com");
   const [userPlan, setUserPlan] = useState<string>("free");
   const [userGoal, setUserGoal] = useState<string>("");
-  const [userAvatar, setUserAvatar] = useState<string>(""); // Profil Fotoğrafı State'i
+  const [userAvatar, setUserAvatar] = useState<string>(""); 
   const [loading, setLoading] = useState<boolean>(true);
-
   const [editName, setEditName] = useState<string>("");
   const [editEmail, setEditEmail] = useState<string>("");
   const [updateMsg, setUpdateMsg] = useState<string>("");
-
   const [isAnnual, setIsAnnual] = useState<boolean>(false);
 
-  // Figma Ayarlar State'leri
   const [healthSync, setHealthSync] = useState<boolean>(true);
   const [autoFocusSync, setAutoFocusSync] = useState<boolean>(true);
   const [aiVoiceBriefing, setAiVoiceBriefing] = useState<boolean>(true);
@@ -145,14 +119,11 @@ export default function DashboardPage() {
   const [caffeineBuffer, setCaffeineBuffer] = useState<string>("8.0 Hours before sleep");
   const [timezone, setTimezone] = useState<string>("Europe/Istanbul");
   const [wearableDevice, setWearableDevice] = useState<string>("Apple Watch Series 9");
-
   const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<"overview" | "habits" | "analytics" | "group" | "settings">("overview");
-
   const [focusLevel, setFocusLevel] = useState<number>(3);
-  const [hrvScore, setHrvScore] = useState<number>(68); // bpm birimiyle takip ediliyor
+  const [hrvScore, setHrvScore] = useState<number>(68);
 
-  // Rutinler Listesi
   const [habits, setHabits] = useState([
     { id: 1, title: isTr ? "Hafif Yürüyüş & Esneme" : "Light Walk & Stretch", category: isTr ? "Spor" : "Sports", level: 2, suggestedTime: "17:00", completed: true, streak: 12 },
     { id: 2, title: isTr ? "1.5 Saat Deneme Sınavı Çözümü" : "1.5h Practice Exam", category: isTr ? "Verimlilik" : "Productivity", level: 5, suggestedTime: "09:00 - Peak Focus Hours", completed: false, streak: 5 },
@@ -165,7 +136,6 @@ export default function DashboardPage() {
   const [newHabitLevel, setNewHabitLevel] = useState<number>(3);
   const [aiScheduling, setAiScheduling] = useState<boolean>(false);
 
-  // 10 Kişilik Arkadaş Grubu Verileri
   const groupMembers = [
     { id: 1, name: "Yaren Ünlü", status: isTr ? "1.5 Saat Matematik Çalışıyor" : "1.5h Studying Math", focus: "Sev. 5", hrv: "72 bpm", online: true },
     { id: 2, name: "Ali Yılmaz", status: isTr ? "Paragraf Soru Çözümü" : "Solving Reading Tests", focus: "Sev. 4", hrv: "65 bpm", online: true },
@@ -182,22 +152,18 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       setLoading(true);
-
       const { data: { user } } = await supabase.auth.getUser();
-
       if (user) {
         const name = user.user_metadata?.full_name || "Kullanıcı";
         const email = user.email || "demo@example.com";
         const plan = user.user_metadata?.plan || "free";
         const goal = user.user_metadata?.onboarding_goal || "";
         const avatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || "";
-
         setUserName(name);
         setUserEmail(email);
         setUserPlan(plan);
         setUserGoal(goal);
         setUserAvatar(avatar);
-
         setEditName(name);
         setEditEmail(email);
       } else {
@@ -205,23 +171,18 @@ export default function DashboardPage() {
         const savedEmail = localStorage.getItem("omni_user_email") || "demo@example.com";
         const savedPlan = localStorage.getItem("omni_user_plan") || "free";
         const savedAvatar = localStorage.getItem("omni_user_avatar") || "";
-
         setUserName(savedName);
         setUserEmail(savedEmail);
         setUserPlan(savedPlan);
         setUserAvatar(savedAvatar);
-
         setEditName(savedName);
         setEditEmail(savedEmail);
       }
-
       setLoading(false);
     };
-
     fetchUserData();
   }, []);
 
-  // Profil Fotoğrafı Güncelleme Fonksiyonu
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -247,16 +208,33 @@ export default function DashboardPage() {
   };
 
   const handleChangePlan = async (newPlan: "free" | "pro" | "plus") => {
+    // "Continue with Basic" butonuna basılırsa sahte olarak ücretsiz plana çekilsin
+    if (newPlan === "free") {
+      try {
+        await supabase.auth.updateUser({
+          data: { plan: newPlan },
+        });
+        setUserPlan(newPlan);
+        localStorage.setItem("omni_user_plan", newPlan);
+        setShowUpgradeModal(false);
+        setUpdateMsg(isTr ? `Planınız ${newPlan.toUpperCase()} olarak güncellendi!` : `Plan updated to ${newPlan.toUpperCase()}!`);
+      } catch (e) {
+        console.error("Plan güncelleme hatası:", e);
+      }
+      return;
+    }
+
+    // PRO VEYA PLUS İÇİN LİMON SQUEEZY'YE DOĞRUDAN YÖNLENDİRME
     try {
-      await supabase.auth.updateUser({
-        data: { plan: newPlan },
-      });
-      setUserPlan(newPlan);
-      localStorage.setItem("omni_user_plan", newPlan);
-      setShowUpgradeModal(false);
-      setUpdateMsg(isTr ? `Planınız ${newPlan.toUpperCase()} olarak güncellendi!` : `Plan updated to ${newPlan.toUpperCase()}!`);
-    } catch (e) {
-      console.error("Plan güncelleme hatası:", e);
+      const { data: { user } } = await supabase.auth.getUser();
+      let checkoutUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+
+      if (user) {
+        checkoutUrl += `?checkout[email]=${encodeURIComponent(user.email || '')}&checkout[custom][user_id]=${user.id}`;
+      }
+      window.location.href = checkoutUrl;
+    } catch (error) {
+      window.location.href = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
     }
   };
 
@@ -274,18 +252,15 @@ export default function DashboardPage() {
     );
   };
 
-  const handleAddHabitAI = (e: React.FormEvent) => {
+  const handleAddHabitAl = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
-
     setAiScheduling(true);
-
     setTimeout(() => {
       let calculatedTime = "14:00";
       if (newHabitLevel >= 4) {
         calculatedTime = "09:00 - Peak Focus Hours";
       }
-
       setHabits([
         ...habits,
         {
@@ -296,7 +271,7 @@ export default function DashboardPage() {
           suggestedTime: calculatedTime,
           completed: false,
           streak: 1,
-        },
+        }
       ]);
       setNewHabitTitle("");
       setAiScheduling(false);
@@ -323,7 +298,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row font-sans relative">
-      
       {/* SIDEBAR / SOL MENÜ */}
       <aside className="w-full md:w-64 bg-slate-900/80 border-r border-slate-800/80 p-6 flex flex-col justify-between">
         <div>
@@ -336,70 +310,45 @@ export default function DashboardPage() {
                 {isTr ? "Kişisel Ritim & AI Disiplin" : "Personal Rhythm & AI Focus"}
               </p>
             </div>
-
             {/* DİL DEĞİŞTİRME BUTONU */}
             <button
               onClick={() => router.push(`/${isTr ? "en" : "tr"}/dashboard`)}
               className="px-2 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[10px] font-bold text-cyan-400 rounded-md transition shadow cursor-pointer"
             >
-              {isTr ? "🇬🇧 EN" : "🇹🇷 TR"}
+              {isTr ? "EN" : "TR"}
             </button>
           </div>
 
           <nav className="space-y-1.5">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${
-                activeTab === "overview"
-                  ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
-              }`}
+              className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "overview" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
-              <span>📊</span> {t.overview}
+              <span> </span> {t.overview}
             </button>
-
             <button
               onClick={() => setActiveTab("habits")}
-              className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${
-                activeTab === "habits"
-                  ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
-              }`}
+              className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "habits" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
-              <span>🎯</span> {t.habits}
+              <span></span> {t.habits}
             </button>
-
             <button
               onClick={() => setActiveTab("analytics")}
-              className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${
-                activeTab === "analytics"
-                  ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
-              }`}
+              className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "analytics" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
-              <span>📈</span> {t.analytics}
+              <span></span> {t.analytics}
             </button>
-
             <button
               onClick={() => setActiveTab("group")}
-              className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${
-                activeTab === "group"
-                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-lg shadow-amber-500/5"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
-              }`}
+              className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "group" ? "bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-lg shadow-amber-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
-              <span>👥</span> {t.group}
+              <span></span> {t.group}
             </button>
-
             <button
               onClick={() => setActiveTab("settings")}
-              className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${
-                activeTab === "settings"
-                  ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
-              }`}
+              className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "settings" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
-              <span>⚙️</span> {t.settings}
+              <span></span> {t.settings}
             </button>
           </nav>
         </div>
@@ -434,7 +383,6 @@ export default function DashboardPage() {
 
       {/* İÇERİK ALANI */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto space-y-8">
-        
         {/* HEADER */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800/80 gap-4">
           <div>
@@ -449,22 +397,21 @@ export default function DashboardPage() {
               {t.welcome} <span className="text-cyan-400 font-semibold">{userName}</span>, {t.subTitle}
             </p>
           </div>
-
           <button
             onClick={() => setShowUpgradeModal(true)}
             className="cursor-pointer hover:opacity-90 transition text-left"
           >
             {userPlan === "plus" ? (
               <span className="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-full shadow-lg shadow-purple-500/20 flex items-center gap-1.5 border border-purple-400/30">
-                <span>👑</span> Plus Member
+                <span></span> Plus Member
               </span>
             ) : userPlan === "pro" ? (
               <span className="px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 font-bold text-xs rounded-full shadow-lg shadow-cyan-500/10 flex items-center gap-1.5">
-                <span>⚡</span> Pro Member
+                <span> 4 </span> Pro Member
               </span>
             ) : (
               <span className="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-400 font-medium text-xs rounded-full flex items-center gap-1">
-                <span>✨</span> Basic ($0)
+                <span></span> Basic ($0)
               </span>
             )}
           </button>
@@ -482,43 +429,38 @@ export default function DashboardPage() {
                   <p className="text-base font-bold text-slate-100 mt-1">"{userGoal}"</p>
                 </div>
                 <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-2xl">
-                  🎯
                 </div>
               </div>
             )}
-
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-5 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
                 <div className="flex justify-between items-center text-slate-400 text-xs font-medium">
                   <span>{t.completedRoutines}</span>
-                  <span>✅</span>
+                  <span></span>
                 </div>
                 <div className="text-2xl font-black text-cyan-400 mt-2">
                   {habits.filter((h) => h.completed).length} / {habits.length}
                 </div>
               </div>
-
               <div className="p-5 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
                 <div className="flex justify-between items-center text-slate-400 text-xs font-medium">
                   <span>{t.activeStreak}</span>
-                  <span>🔥</span>
+                  <span></span>
                 </div>
                 <div className="text-2xl font-black text-amber-400 mt-2">15 {t.days}</div>
               </div>
-
-              {/* HRV Score (bpm) */}
               <div className="p-5 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
                 <div className="flex justify-between items-center text-slate-400 text-xs font-medium">
                   <span>HRV Score (3-day)</span>
-                  <span>🧠</span>
+                  <span></span>
                 </div>
                 <div className="text-2xl font-black text-purple-400 mt-2">{hrvScore} bpm</div>
               </div>
-
               <div className="p-5 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
                 <div className="flex justify-between items-center text-slate-400 text-xs font-medium">
                   <span>{t.focusLevelText}</span>
-                  <span>🧠</span>
+                  <span></span>
                 </div>
                 <div className="text-2xl font-black text-indigo-400 mt-2">Sev. {focusLevel}/5</div>
               </div>
@@ -534,25 +476,16 @@ export default function DashboardPage() {
                     {isTr ? "Tümünü Yönet →" : "Manage All →"}
                   </button>
                 </div>
-
+                
                 <div className="space-y-3">
                   {habits.map((habit) => (
                     <div
                       key={habit.id}
                       onClick={() => toggleHabit(habit.id)}
-                      className={`p-4 rounded-xl border transition cursor-pointer flex items-center justify-between ${
-                        habit.completed
-                          ? "bg-slate-950/60 border-emerald-500/30 text-slate-400 line-through"
-                          : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-200"
-                      }`}
+                      className={`p-4 rounded-xl border transition cursor-pointer flex items-center justify-between ${habit.completed ? "bg-slate-950/60 border-emerald-500/30 text-slate-400 line-through" : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-200"}`}
                     >
                       <div className="flex items-center gap-3">
-                        <div
-                          className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold border ${
-                            habit.completed ? "bg-emerald-500 border-emerald-400 text-slate-950" : "border-slate-700 bg-slate-900 text-transparent"
-                          }`}
-                        >
-                          ✓
+                        <div className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold border ${habit.completed ? "bg-emerald-500 border-emerald-400 text-slate-950" : "border-slate-700 bg-slate-900 text-transparent"}`}>
                         </div>
                         <div>
                           <div className="text-xs font-semibold">{habit.title}</div>
@@ -564,12 +497,12 @@ export default function DashboardPage() {
                               Beyin Yükü: Sev. {habit.level}
                             </span>
                             <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-mono">
-                              ⏰ {habit.suggestedTime}
+                              {habit.suggestedTime}
                             </span>
                           </div>
                         </div>
                       </div>
-                      <div className="text-xs font-bold text-amber-400">🔥 {habit.streak} {t.days}</div>
+                      <div className="text-xs font-bold text-amber-400"> {habit.streak} {t.days}</div>
                     </div>
                   ))}
                 </div>
@@ -577,9 +510,9 @@ export default function DashboardPage() {
 
               <div className="space-y-6">
                 <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
-                  <h3 className="text-base font-bold text-white mb-2">💳 YOUR MEMBERSHIP</h3>
+                  <h3 className="text-base font-bold text-white mb-2"> YOUR MEMBERSHIP</h3>
                   <p className="text-xs text-slate-400 mb-4">{userEmail}</p>
-
+                  
                   <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs space-y-2 mb-4">
                     <div className="flex justify-between">
                       <span className="text-slate-400">{t.activePlan}:</span>
@@ -590,7 +523,6 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   </div>
-
                   <button
                     onClick={() => setShowUpgradeModal(true)}
                     className="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold rounded-xl text-xs transition shadow-lg shadow-cyan-500/20 cursor-pointer"
@@ -609,7 +541,7 @@ export default function DashboardPage() {
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-base font-bold text-white">🧠 {t.focusLevelText}</h3>
+                  <h3 className="text-base font-bold text-white">{t.focusLevelText}</h3>
                   <p className="text-xs text-slate-400 mt-0.5">
                     {isTr ? "Yapay zeka planlaması bu seviyeye göre dinamik şekillenir." : "AI scheduling adapts dynamically based on this focus rating."}
                   </p>
@@ -618,27 +550,20 @@ export default function DashboardPage() {
                   Sev. {focusLevel}
                 </span>
               </div>
-
               <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((lvl) => (
                   <button
                     key={lvl}
                     onClick={() => setFocusLevel(lvl)}
-                    className={`flex-1 py-3 rounded-xl border text-xs font-bold transition cursor-pointer ${
-                      focusLevel === lvl
-                        ? "bg-cyan-500 border-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
-                    }`}
+                    className={`flex-1 py-3 rounded-xl border text-xs font-bold transition cursor-pointer ${focusLevel === lvl ? "bg-cyan-500 border-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20" : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"}`}
                   >
                     Seviye {lvl}
                   </button>
                 ))}
               </div>
-
-              {/* DİNAMİK AI TIPS KUTUSU */}
               <div className="p-4 bg-gradient-to-r from-cyan-950/60 via-slate-950 to-indigo-950/60 border border-cyan-500/40 rounded-xl shadow-md">
                 <div className="flex items-start gap-3">
-                  <span className="text-xl">🤖</span>
+                  <span className="text-xl"></span>
                   <div>
                     <h4 className="text-xs font-black text-cyan-400 uppercase tracking-wider mb-1">
                       {isTr ? "AI Ritim & Performans İpucu" : "AI Rhythm & Performance Tip"}
@@ -653,10 +578,10 @@ export default function DashboardPage() {
 
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-lg">🤖</span>
+                <span className="text-lg"> </span>
                 <h3 className="text-base font-bold text-white">{t.addHabitTitle}</h3>
               </div>
-              <form onSubmit={handleAddHabitAI} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <form onSubmit={handleAddHabitAl} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <input
                   type="text"
                   placeholder={t.taskTitlePlaceholder}
@@ -664,7 +589,6 @@ export default function DashboardPage() {
                   onChange={(e) => setNewHabitTitle(e.target.value)}
                   className="sm:col-span-2 px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-cyan-500 transition"
                 />
-                
                 <select
                   value={newHabitCategory}
                   onChange={(e) => setNewHabitCategory(e.target.value)}
@@ -675,7 +599,6 @@ export default function DashboardPage() {
                   <option value="Sağlık">{t.health}</option>
                   <option value="Kişisel">{t.personal}</option>
                 </select>
-
                 <select
                   value={newHabitLevel}
                   onChange={(e) => setNewHabitLevel(Number(e.target.value))}
@@ -687,33 +610,31 @@ export default function DashboardPage() {
                   <option value={4}>{t.level4}</option>
                   <option value={5}>{t.level5}</option>
                 </select>
-
                 <button
                   type="submit"
                   disabled={aiScheduling}
                   className="sm:col-span-4 py-3.5 bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-cyan-500/20 transition hover:opacity-95 disabled:opacity-50 mt-1 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  {aiScheduling ? <span>{t.addingAI}</span> : <span>{t.addHabitBtn}</span>}
+                  {aiScheduling ? <span>{t.addingAl}</span> : <span>{t.addHabitBtn}</span>}
                 </button>
               </form>
             </div>
           </div>
         )}
+
         {/* ANALİZ & BIOMETRICS */}
         {activeTab === "analytics" && (
           <div className="space-y-6">
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
-              <h3 className="text-base font-bold text-white mb-1">📈 Performance & HRV Trend Chart</h3>
+              <h3 className="text-base font-bold text-white mb-1">Performance & HRV Trend Chart</h3>
               <p className="text-xs text-slate-400 mb-6">
                 {isTr ? "Pazartesi ve Pazar dahil günlerin hizasına tam oturan kesintisiz çizgi grafiği." : "Seamless line chart spanning from Mon to Sun."}
               </p>
-              
               <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-6 relative overflow-hidden">
                 <svg className="w-full h-44 overflow-visible" viewBox="0 0 490 140">
                   <line x1="10" y1="20" x2="480" y2="20" stroke="#1e293b" strokeDasharray="3" />
                   <line x1="10" y1="65" x2="480" y2="65" stroke="#1e293b" strokeDasharray="3" />
                   <line x1="10" y1="110" x2="480" y2="110" stroke="#1e293b" strokeDasharray="3" />
-
                   <polyline
                     fill="none"
                     stroke="url(#chartGradient)"
@@ -722,7 +643,6 @@ export default function DashboardPage() {
                     strokeLinejoin="round"
                     points={chartPoints.map((p) => `${p.x},${p.y}`).join(" ")}
                   />
-
                   <defs>
                     <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#22d3ee" />
@@ -730,7 +650,6 @@ export default function DashboardPage() {
                       <stop offset="100%" stopColor="#10b981" />
                     </linearGradient>
                   </defs>
-
                   {chartPoints.map((pt, i) => (
                     <g key={i}>
                       <circle cx={pt.x} cy={pt.y} r="5" className="fill-cyan-400 stroke-slate-950 stroke-2" />
@@ -740,7 +659,6 @@ export default function DashboardPage() {
                     </g>
                   ))}
                 </svg>
-
                 <div className="flex justify-between text-[11px] text-slate-400 font-semibold mt-4 pt-2 border-t border-slate-800">
                   {chartPoints.map((pt, idx) => (
                     <span key={idx} className="w-8 text-center">{pt.day}</span>
@@ -758,7 +676,7 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">👑</span>
+                    <span className="text-xl"></span>
                     <h3 className="text-lg font-bold text-white">{t.groupTitle}</h3>
                   </div>
                   <p className="text-xs text-slate-400 mt-1">{t.groupSub}</p>
@@ -768,7 +686,7 @@ export default function DashboardPage() {
                     onClick={() => setShowUpgradeModal(true)}
                     className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-500/20 hover:opacity-90 transition cursor-pointer"
                   >
-                    👑 Get Plus Membership
+                    Get Plus Membership
                   </button>
                 )}
               </div>
@@ -777,7 +695,6 @@ export default function DashboardPage() {
                 {userPlan !== "plus" && (
                   <div className="absolute inset-0 z-20 bg-slate-950/70 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center rounded-xl border border-purple-500/30">
                     <div className="w-14 h-14 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-2xl mb-3 shadow-lg shadow-purple-500/20">
-                      🔒
                     </div>
                     <h4 className="text-base font-bold text-white mb-1">{t.lockedTitle}</h4>
                     <p className="text-xs text-slate-400 max-w-md mb-5">{t.lockedSub}</p>
@@ -789,7 +706,6 @@ export default function DashboardPage() {
                     </button>
                   </div>
                 )}
-
                 <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${userPlan !== "plus" ? "select-none filter blur-sm opacity-40 pointer-events-none" : ""}`}>
                   {groupMembers.map((member) => (
                     <div key={member.id} className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
@@ -812,7 +728,7 @@ export default function DashboardPage() {
                           Odak: {member.focus}
                         </span>
                         <span className="text-[10px] text-purple-400 font-mono block mt-1">
-                          🧠 {member.hrv}
+                          {member.hrv}
                         </span>
                       </div>
                     </div>
@@ -831,11 +747,10 @@ export default function DashboardPage() {
                 {updateMsg}
               </div>
             )}
-
+            
             {/* 01 Biometric & Health Sync */}
             <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-6">
               <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.sec1Title}</h3>
-
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-bold text-white">{t.appleHealth}</h4>
@@ -843,16 +758,11 @@ export default function DashboardPage() {
                 </div>
                 <button
                   onClick={() => setHealthSync(!healthSync)}
-                  className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${
-                    healthSync ? "bg-cyan-500" : "bg-slate-800"
-                  }`}
+                  className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${healthSync ? "bg-cyan-500" : "bg-slate-800"}`}
                 >
-                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${
-                    healthSync ? "translate-x-6" : "translate-x-0"
-                  }`} />
+                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${healthSync ? "translate-x-6" : "translate-x-0"}`} />
                 </button>
               </div>
-
               <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
                 <div>
                   <h4 className="text-sm font-bold text-white">{t.autoFocus}</h4>
@@ -860,16 +770,11 @@ export default function DashboardPage() {
                 </div>
                 <button
                   onClick={() => setAutoFocusSync(!autoFocusSync)}
-                  className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${
-                    autoFocusSync ? "bg-cyan-500" : "bg-slate-800"
-                  }`}
+                  className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${autoFocusSync ? "bg-cyan-500" : "bg-slate-800"}`}
                 >
-                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${
-                    autoFocusSync ? "translate-x-6" : "translate-x-0"
-                  }`} />
+                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${autoFocusSync ? "translate-x-6" : "translate-x-0"}`} />
                 </button>
               </div>
-
               <div className="pt-4 border-t border-slate-800/80">
                 <div className="flex justify-between items-center mb-3">
                   <h4 className="text-sm font-bold text-white">{t.wearableTitle}</h4>
@@ -900,7 +805,6 @@ export default function DashboardPage() {
             {/* 02 Circadian & Routine Preferences */}
             <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-6">
               <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.sec2Title}</h3>
-
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <h4 className="text-sm font-bold text-white">{t.sleepTargetTitle}</h4>
@@ -927,7 +831,6 @@ export default function DashboardPage() {
                   <p className="text-[10px] text-slate-500 mt-2">{t.swipeScroll}</p>
                 </div>
               </div>
-
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <h4 className="text-sm font-bold text-white">{t.caffeineTitle}</h4>
@@ -954,7 +857,6 @@ export default function DashboardPage() {
                   <p className="text-[10px] text-slate-500 mt-2">{t.swipeScroll}</p>
                 </div>
               </div>
-
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <h4 className="text-sm font-bold text-white">{t.timezoneTitle}</h4>
@@ -979,7 +881,6 @@ export default function DashboardPage() {
                   </select>
                 </div>
               </div>
-
               <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
                 <div>
                   <h4 className="text-sm font-bold text-white">{t.aiVoiceTitle}</h4>
@@ -987,13 +888,9 @@ export default function DashboardPage() {
                 </div>
                 <button
                   onClick={() => setAiVoiceBriefing(!aiVoiceBriefing)}
-                  className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${
-                    aiVoiceBriefing ? "bg-cyan-500" : "bg-slate-800"
-                  }`}
+                  className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${aiVoiceBriefing ? "bg-cyan-500" : "bg-slate-800"}`}
                 >
-                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${
-                    aiVoiceBriefing ? "translate-x-6" : "translate-x-0"
-                  }`} />
+                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${aiVoiceBriefing ? "translate-x-6" : "translate-x-0"}`} />
                 </button>
               </div>
             </div>
@@ -1001,25 +898,23 @@ export default function DashboardPage() {
             {/* 03 Account & Security */}
             <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-4">
               <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.sec3Title}</h3>
-
               <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
                 <div className="text-xs font-bold text-white">{t.linkedAccounts}</div>
                 <div className="text-xs text-slate-300">{t.connectedAs} <span className="text-cyan-400">{userEmail}</span></div>
                 <div className="text-[10px] text-slate-500">{t.demoSession}</div>
               </div>
-
               <div className="space-y-2 text-xs font-medium">
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center cursor-pointer hover:border-slate-700">
                   <span className="text-slate-300">{t.notifications}</span>
-                  <span className="text-slate-500">›</span>
+                  <span className="text-slate-500">{">"}</span>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center cursor-pointer hover:border-slate-700">
                   <span className="text-slate-300">{t.privacy}</span>
-                  <span className="text-slate-500">›</span>
+                  <span className="text-slate-500">{">"}</span>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center cursor-pointer hover:border-slate-700">
                   <span className="text-slate-300">{t.helpSupport}</span>
-                  <span className="text-slate-500">›</span>
+                  <span className="text-slate-500">{">"}</span>
                 </div>
               </div>
             </div>
@@ -1033,19 +928,14 @@ export default function DashboardPage() {
                     {t.activePlan}: <span className="text-white font-bold uppercase">{userPlan === 'free' ? 'Basic ($0)' : userPlan}</span>
                   </p>
                 </div>
-
                 {/* ANNUAL / MONTHLY SWITCH */}
                 <div className="flex items-center gap-3 bg-slate-950 p-2 border border-slate-800 rounded-xl">
                   <span className={`text-xs font-bold ${!isAnnual ? "text-cyan-400" : "text-slate-400"}`}>{t.monthly}</span>
                   <button
                     onClick={() => setIsAnnual(!isAnnual)}
-                    className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${
-                      isAnnual ? "bg-emerald-500" : "bg-slate-800"
-                    }`}
+                    className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${isAnnual ? "bg-emerald-500" : "bg-slate-800"}`}
                   >
-                    <div className={`w-4 h-4 rounded-full bg-white transition-transform ${
-                      isAnnual ? "translate-x-6" : "translate-x-0"
-                    }`} />
+                    <div className={`w-4 h-4 rounded-full bg-white transition-transform ${isAnnual ? "translate-x-6" : "translate-x-0"}`} />
                   </button>
                   <span className={`text-xs font-bold ${isAnnual ? "text-emerald-400" : "text-slate-400"}`}>
                     {t.annual} <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30">{t.save20}</span>
@@ -1055,15 +945,11 @@ export default function DashboardPage() {
 
               {/* FIGMA PRO VE PLUS KARTLARI */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
                 {/* PRO CARD */}
-                <div className={`p-6 rounded-2xl border-2 relative flex flex-col justify-between ${
-                  userPlan === "pro" ? "border-cyan-400 bg-slate-950 shadow-lg shadow-cyan-500/10" : "border-cyan-500/50 bg-slate-950/80"
-                }`}>
+                <div className={`p-6 rounded-2xl border-2 relative flex flex-col justify-between ${userPlan === "pro" ? "border-cyan-400 bg-slate-950 shadow-lg shadow-cyan-500/10" : "border-cyan-500/50 bg-slate-950/80"}`}>
                   <span className="absolute -top-3 right-4 bg-cyan-400 text-slate-950 font-black text-[10px] px-3 py-0.5 rounded-full uppercase tracking-wider shadow-md">
                     {t.mostPopular}
                   </span>
-
                   <div>
                     <h4 className="text-sm font-black text-cyan-400 tracking-wider">{t.proTitle}</h4>
                     <div className="my-3">
@@ -1073,21 +959,18 @@ export default function DashboardPage() {
                       <span className="text-xs text-slate-400 font-medium"> {t.perMonth}</span>
                       {isAnnual && <span className="block text-[10px] text-emerald-400 font-bold mt-0.5">{t.billedAnnuallyPro}</span>}
                     </div>
-
                     <div className="text-xs font-bold text-slate-200 mt-4 mb-3 flex items-center gap-1.5">
                       {t.proHeader}
                     </div>
-
                     <ul className="text-xs text-slate-300 space-y-2.5">
-                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF1}</li>
-                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF2}</li>
-                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF3}</li>
-                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF4}</li>
-                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF5}</li>
-                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF6}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400"></span> {t.proF1}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400"></span> {t.proF2}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400"></span> {t.proF3}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400"></span> {t.proF4}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400"></span> {t.proF5}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400"></span> {t.proF6}</li>
                     </ul>
                   </div>
-
                   <button
                     disabled={userPlan === "pro"}
                     onClick={() => handleChangePlan("pro")}
@@ -1098,9 +981,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* PLUS CARD */}
-                <div className={`p-6 rounded-2xl border-2 relative flex flex-col justify-between ${
-                  userPlan === "plus" ? "border-purple-500 bg-slate-950 shadow-lg shadow-purple-500/10" : "border-purple-500/40 bg-slate-950/80"
-                }`}>
+                <div className={`p-6 rounded-2xl border-2 relative flex flex-col justify-between ${userPlan === "plus" ? "border-purple-500 bg-slate-950 shadow-lg shadow-purple-500/10" : "border-purple-500/40 bg-slate-950/80"}`}>
                   <div>
                     <h4 className="text-sm font-black text-purple-400 tracking-wider">{t.plusTitle}</h4>
                     <div className="my-3">
@@ -1110,20 +991,17 @@ export default function DashboardPage() {
                       <span className="text-xs text-slate-400 font-medium"> {t.perMonth}</span>
                       {isAnnual && <span className="block text-[10px] text-emerald-400 font-bold mt-0.5">{t.billedAnnuallyPlus}</span>}
                     </div>
-
                     <div className="text-xs font-bold text-slate-200 mt-4 mb-3 flex items-center gap-1.5">
                       {t.plusHeader}
                     </div>
-
                     <ul className="text-xs text-slate-300 space-y-2.5">
-                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF1}</li>
-                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF2}</li>
-                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF3}</li>
-                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF4}</li>
-                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF5}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400"></span> {t.plusF1}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400"></span> {t.plusF2}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400"></span> {t.plusF3}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400"></span> {t.plusF4}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400"></span> {t.plusF5}</li>
                     </ul>
                   </div>
-
                   <button
                     disabled={userPlan === "plus"}
                     onClick={() => handleChangePlan("plus")}
@@ -1132,22 +1010,20 @@ export default function DashboardPage() {
                     {userPlan === "plus" ? t.activePlan : t.getPlusBtn}
                   </button>
                 </div>
-
               </div>
-            </div>
-
-            {/* LOG OUT BUTTON */}
-            <div className="pt-4 text-center">
-              <button
-                onClick={handleLogout}
-                className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold rounded-xl text-xs transition cursor-pointer"
-              >
-                {t.logOut}
-              </button>
             </div>
           </div>
         )}
 
+        {/* LOG OUT BUTTON */}
+        <div className="pt-4 text-center">
+          <button
+            onClick={handleLogout}
+            className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold rounded-xl text-xs transition cursor-pointer"
+          >
+            {t.logOut}
+          </button>
+        </div>
       </main>
 
       {/* POP-UP MODAL (ABONELİK YÜKSELTME KARTLARI) */}
@@ -1158,19 +1034,17 @@ export default function DashboardPage() {
               onClick={() => setShowUpgradeModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"
             >
-              ✕
+              X
             </button>
-
             <h3 className="text-xl font-bold text-white mb-2 text-center">Upgrade Your Membership</h3>
             <p className="text-xs text-slate-400 text-center mb-6">Unlock Bio-Sync, Burnout Early Warning & Unlimited AI Routine Advisor.</p>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div className="p-4 bg-slate-950 border border-cyan-500/50 rounded-xl flex flex-col justify-between">
                 <div>
                   <h4 className="font-bold text-cyan-400 text-sm">PRO ($5/mo)</h4>
                   <ul className="text-[11px] text-slate-300 space-y-1 my-3">
-                    <li>✓ 10 Auto-scheduled events</li>
-                    <li>✓ Burnout Warning System</li>
+                    <li> 10 Auto-scheduled events</li>
+                    <li> Burnout Warning System</li>
                   </ul>
                 </div>
                 <button
@@ -1180,13 +1054,12 @@ export default function DashboardPage() {
                   Start 7-Day Trial
                 </button>
               </div>
-
               <div className="p-4 bg-slate-950 border border-purple-500/50 rounded-xl flex flex-col justify-between">
                 <div>
                   <h4 className="font-bold text-purple-400 text-sm">PLUS ($8/mo)</h4>
                   <ul className="text-[11px] text-slate-300 space-y-1 my-3">
-                    <li>✓ Social Party Rooms</li>
-                    <li>✓ Priority Voice AI</li>
+                    <li> Social Party Rooms</li>
+                    <li> Priority Voice AI</li>
                   </ul>
                 </div>
                 <button
@@ -1197,7 +1070,6 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
-
             <button
               onClick={() => handleChangePlan("free")}
               className="w-full text-center text-xs text-slate-500 hover:text-slate-300 cursor-pointer"
@@ -1207,7 +1079,6 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
