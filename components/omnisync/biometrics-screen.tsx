@@ -1,5 +1,8 @@
+'use client'
+
 import { Activity, Check, Heart, Moon, Star, Zap } from 'lucide-react'
 import type { Plan } from '@/lib/omnisync'
+import { supabase } from '@/lib/supabase'
 
 const METRICS = [
   { label: 'Sleep Duration', value: '7h 20m', note: '22m vs avg', icon: Moon, color: 'text-primary', bg: 'bg-primary/10' },
@@ -18,6 +21,22 @@ const STAGES = [
 export function BiometricsScreen({ plan, onUpgrade }: { plan: Plan; onUpgrade: () => void }) {
   const score = 92
   const circumference = 2 * Math.PI * 34
+
+  // Lemon Squeezy Doğrudan Yönlendirme Fonksiyonu
+  const handleCheckout = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      let checkoutUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+
+      if (user) {
+        checkoutUrl += `?checkout[email]=${encodeURIComponent(user.email || '')}&checkout[custom][user_id]=${user.id}`;
+      }
+
+      window.location.href = checkoutUrl;
+    } catch (error) {
+      window.location.href = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -90,7 +109,7 @@ export function BiometricsScreen({ plan, onUpgrade }: { plan: Plan; onUpgrade: (
               <li key={f} className="flex items-center gap-1.5"><Check className="size-3.5 text-primary" aria-hidden />{f}</li>
             ))}
           </ul>
-          <button type="button" onClick={onUpgrade} className="mt-5 h-12 w-full rounded-2xl bg-accent font-semibold text-accent-foreground transition-opacity hover:opacity-90">
+          <button type="button" onClick={handleCheckout} className="mt-5 h-12 w-full rounded-2xl bg-accent font-semibold text-accent-foreground transition-opacity hover:opacity-90 cursor-pointer">
             Start 7-Day Free Trial · $5/mo
           </button>
         </section>
