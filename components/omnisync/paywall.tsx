@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowRight, Check, Clock, Sparkles, Star, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { PLAN_PRICES, type Plan } from '@/lib/omnisync'
+import { type Plan } from '@/lib/omnisync'
 import { supabase } from '@/lib/supabase'
 
 const OFFER_DURATION_MS = 10 * 60 * 1000
@@ -25,13 +25,24 @@ const PLUS_FEATURES = [
 export function Paywall({ onClose, onSubscribe }: { onClose: () => void; onSubscribe: (plan: Exclude<Plan, 'basic'>) => void }) {
   const [phase, setPhase] = useState<'offer' | 'discount'>('offer')
 
-  const handleSelect = async (plan: 'pro' | 'plus') => {
+  const handleSelect = async (plan: 'pro' | 'plus', isDiscounted: boolean = false, isExitDiscount: boolean = false) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      let checkoutUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+      
+      // Gerçek temel linklerimiz: Pro Aylık ve Plus Aylık
+      let checkoutUrl = plan === 'plus'
+        ? 'https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b'
+        : 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+
+      // Kupon parametrelerini duruma göre ekliyoruz
+      if (isExitDiscount && plan === 'plus') {
+        checkoutUrl += '?discount=PLUS50'; // Plus çıkış pop-up %50 indirim kuponu
+      } else if (isDiscounted) {
+        checkoutUrl += plan === 'plus' ? '?discount=PLUS20' : '?discount=PRO20'; // %20 ilk ay indirim kuponları
+      }
 
       if (user) {
-        checkoutUrl += `?checkout[email]=${encodeURIComponent(user.email || '')}&checkout[custom][user_id]=${user.id}`;
+        checkoutUrl += `${checkoutUrl.includes('?') ? '&' : '?'}checkout[email]=${encodeURIComponent(user.email || '')}&checkout[custom][user_id]=${user.id}`;
       }
 
       window.location.href = checkoutUrl;
@@ -51,7 +62,7 @@ export function Paywall({ onClose, onSubscribe }: { onClose: () => void; onSubsc
         type="button"
         onClick={() => (phase === 'offer' ? setPhase('discount') : onClose())}
         aria-label={phase === 'offer' ? 'Close plans' : 'Dismiss offer and continue'}
-        className="absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground"
+        className="absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground cursor-pointer"
       >
         <X className="size-5" aria-hidden />
       </button>
@@ -68,19 +79,20 @@ export function Paywall({ onClose, onSubscribe }: { onClose: () => void; onSubsc
             <p className="text-sm text-muted-foreground">More insight. Less friction. Your pace.</p>
           </div>
           <div className="mt-6 flex flex-col gap-4">
-            <PlanCard plan="pro" price={PLAN_PRICES.pro} onSelect={handleSelect} />
-            <PlanCard plan="plus" price={PLAN_PRICES.plus} onSelect={handleSelect} />
+            {/* İlk açılış: Pro 250 TL (%20 indirimli ilk ay -> 200 TL), Plus 400 TL (%20 indirimli ilk ay -> 320 TL) */}
+            <PlanCard plan="pro" price={250} discountedPrice={200} onSelect={(p) => handleSelect(p, true, false)} />
+            <PlanCard plan="plus" price={400} discountedPrice={320} onSelect={(p) => handleSelect(p, true, false)} />
           </div>
           <p className="mt-5 text-center text-xs text-muted-foreground">Cancel anytime. 7-day free trial on Pro & Plus.</p>
         </>
       ) : (
-        <DiscountOffer onSubscribe={handleSelect} onClose={onClose} />
+        <DiscountOffer onSelect={handleSelect} onClose={onClose} />
       )}
     </div>
   )
 }
 
-function DiscountOffer({ onSubscribe, onClose }: { onSubscribe: (plan: 'pro' | 'plus') => void; onClose: () => void }) {
+function DiscountOffer({ onSelect, onClose }: { onSelect: (plan: 'pro' | 'plus', discounted: boolean, isExit: boolean) => void; onClose: () => void }) {
   const [deadline] = useState(() => Date.now() + OFFER_DURATION_MS)
   const [now, setNow] = useState(() => Date.now())
 
@@ -121,10 +133,11 @@ function DiscountOffer({ onSubscribe, onClose }: { onSubscribe: (plan: 'pro' | '
       </div>
 
       <div className="mt-6 flex flex-col gap-4">
-        <PlanCard plan="pro" price={PLAN_PRICES.pro} discounted={!expired} onSelect={onSubscribe} />
-        <PlanCard plan="plus" price={PLAN_PRICES.plus} discounted={!expired} onSelect={onSubscribe} />
+        {/* Çıkış Pop-up: Pro 250 TL, Plus 400 TL iken Plus plana özel %50 indirim -> 200 TL */}
+        <PlanCard plan="pro" price={250} onSelect={(p) => onSelect(p, false, false)} />
+        <PlanCard plan="plus" price={400} discountedPrice={200} isExitOffer={!expired} onSelect={(p) => onSelect(p, false, !expired)} />
       </div>
-      <button type="button" onClick={onClose} className="mx-auto mt-5 block text-sm text-muted-foreground underline-offset-4 hover:underline">
+      <button type="button" onClick={onClose} className="mx-auto mt-5 block text-sm text-muted-foreground underline-offset-4 hover:underline cursor-pointer">
         No thanks, continue with Basic
       </button>
     </>
@@ -134,16 +147,19 @@ function DiscountOffer({ onSubscribe, onClose }: { onSubscribe: (plan: 'pro' | '
 function PlanCard({
   plan,
   price,
-  discounted = false,
+  discountedPrice,
+  isExitOffer = false,
   onSelect,
 }: {
   plan: 'pro' | 'plus'
   price: number
-  discounted?: boolean
+  discountedPrice?: number
+  isExitOffer?: boolean
   onSelect: (plan: 'pro' | 'plus') => void
 }) {
   const isPro = plan === 'pro'
-  const finalPrice = discounted ? price / 2 : price
+  const hasDiscount = discountedPrice !== undefined
+  const finalPrice = hasDiscount ? discountedPrice : price
   const features = isPro ? PRO_FEATURES : PLUS_FEATURES
 
   return (
@@ -166,14 +182,14 @@ function PlanCard({
       </div>
       <div className="mt-3 flex items-baseline gap-2">
         <span className={cn('text-4xl font-bold', isPro ? 'text-primary' : 'text-violet')}>
-          ${finalPrice % 1 === 0 ? finalPrice : finalPrice.toFixed(2)}
+          ₺{finalPrice % 1 === 0 ? finalPrice : finalPrice.toFixed(2)}
         </span>
-        {discounted && <span className="text-lg text-muted-foreground line-through">${price}</span>}
+        {hasDiscount && <span className="text-lg text-muted-foreground line-through">₺{price}</span>}
         <span className="text-sm text-muted-foreground">/ month</span>
       </div>
-      {discounted && (
+      {hasDiscount && (
         <span className="mt-2 inline-block rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
-          Save 50%
+          {isExitOffer ? 'Save 50%' : 'Save 20% First Month'}
         </span>
       )}
       <div className="my-4 h-px bg-border" />
