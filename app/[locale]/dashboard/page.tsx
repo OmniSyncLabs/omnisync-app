@@ -224,17 +224,19 @@ export default function DashboardPage() {
       return;
     }
 
-    // LEMON SQUEEZY YÖNLENDİRMESİ
+    // LEMON SQUEEZY YÖNLENDİRMESİ (Aylık veya Yıllık Seçimine Göre)
     try {
       const { data: { user } } = await supabase.auth.getUser();
       let checkoutUrl = '';
 
       if (targetPlan === 'plus') {
-        // Plus Plan Linki
-        checkoutUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b';
+        checkoutUrl = isAnnual 
+          ? 'https://omnisync-app.lemonsqueezy.com/checkout/buy/f46fcc91-f89d-4419-8b64-e9cf3675ee03' 
+          : 'https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b';
       } else if (targetPlan === 'pro') {
-        // Pro Plan Linki
-        checkoutUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+        checkoutUrl = isAnnual 
+          ? 'https://omnisync-app.lemonsqueezy.com/checkout/buy/35c297b5-7c8a-41ee-a663-f566dae85e2a' 
+          : 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
       }
 
       if (user) {
