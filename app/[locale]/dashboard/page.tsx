@@ -207,27 +207,35 @@ export default function DashboardPage() {
     }
   };
 
-  const handleChangePlan = async (newPlan: "free" | "pro" | "plus") => {
+ const handleChangePlan = async (targetPlan: "free" | "pro" | "plus") => {
     // "Continue with Basic" butonuna basılırsa sahte olarak ücretsiz plana çekilsin
-    if (newPlan === "free") {
+    if (targetPlan === "free") {
       try {
         await supabase.auth.updateUser({
-          data: { plan: newPlan },
+          data: { plan: "free" },
         });
-        setUserPlan(newPlan);
-        localStorage.setItem("omni_user_plan", newPlan);
+        setUserPlan("free");
+        localStorage.setItem("omni_user_plan", "free");
         setShowUpgradeModal(false);
-        setUpdateMsg(isTr ? `Planınız ${newPlan.toUpperCase()} olarak güncellendi!` : `Plan updated to ${newPlan.toUpperCase()}!`);
+        setUpdateMsg(isTr ? "Planınız FREE olarak güncellendi!" : "Plan updated to FREE!");
       } catch (e) {
         console.error("Plan güncelleme hatası:", e);
       }
       return;
     }
 
-    // PRO VEYA PLUS İÇİN LİMON SQUEEZY'YE DOĞRUDAN YÖNLENDİRME
+    // LEMON SQUEEZY YÖNLENDİRMESİ
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      let checkoutUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+      let checkoutUrl = '';
+
+      if (targetPlan === 'plus') {
+        // Plus Plan Linki
+        checkoutUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b';
+      } else if (targetPlan === 'pro') {
+        // Pro Plan Linki
+        checkoutUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+      }
 
       if (user) {
         checkoutUrl += `?checkout[email]=${encodeURIComponent(user.email || '')}&checkout[custom][user_id]=${user.id}`;
