@@ -30,7 +30,7 @@ export default function DashboardPage() {
     days: isTr ? "Gün" : "Days",
     addHabitTitle: isTr ? "Yapay Zeka ile Otomatik Zamanlanan Görev Ekle" : "Add Task Auto-Scheduled by AI",
     addHabitBtn: isTr ? "Yapay Zeka ile Otomatik Ekle" : "Add with AI Scheduler",
-    addingAl: isTr ? "Yapay Zeka Günün En İdeal Saatine Yerleştiriyor..." : "AI is Scheduling to Peak Focus Hours...",
+    addingAl: isTr ? "Yapay Zeka Günün En İideal Saatine Yerleştiriyor..." : "AI is Scheduling to Peak Focus Hours...",
     taskTitlePlaceholder: isTr ? "Görev Adı (Örn: 1.5 Saat Fizik Denemesi Çöz)" : "Task Title (e.g. 1.5h Physics Exam)",
     category: isTr ? "Kategori" : "Category",
     productivity: isTr ? "Verimlilik" : "Productivity",
@@ -93,12 +93,33 @@ export default function DashboardPage() {
     plusF5: isTr ? "Dışa aktarılabilir HRV & Sağlık PDF Raporları" : "Exportable HRV & Health PDF Reports",
   };
 
+  // HER SEVİYE İÇİN ÇOKLU AI İPUCU HAVUZU
   const aiTipsMap = {
-    1: isTr ? "AI Tavsiyesi: Zihinsel enerjin bugün düşük seviyede. Ağır matematik veya deneme çözümleri yerine 15-20 dakikalık hafif yürüyüş ve kitap okuma gibi düşük beyin yükü gerektiren rutinlere odaklan." : "AI Tip: Mental energy is low today. Focus on light activities like 15-minute walks or light reading rather than heavy problem solving.",
-    2: isTr ? "AI Tavsiyesi: Hafif-orta zihinsel moddasın. Bugün rutin tekrar dersleri ve kelime ezberleri için harika bir gün. Zor sınav çözümlerini yarın sabah peak saatine ertele." : "AI Tip: Light-moderate focus state. Ideal for vocabulary reviews and routine revision. Save intense practice tests for tomorrow morning.",
-    3: isTr ? "AI Tavsiyesi: Dengeli odak seviyesindesin. Pomodoro tekniği (25 dk çalışma + 5 dk mola) ile 1.5 saatlik verimli ders veya proje oturumunu kolayca tamamlayabilirsin." : "AI Tip: Balanced focus state. Use Pomodoro (25m study + 5m rest) to comfortably complete 1.5-hour study blocks.",
-    4: isTr ? "AI Tavsiyesi: Yüksek zihinsel performans modundasın! Beyin karmaşık mantık yürütmeye ve ağır problem çözmeye hazır. Zorlandığın en kritik 2 görevi hemen şimdi hallet." : "AI Tip: High cognitive performance! Your brain is primed for complex logic and problem solving. Tackle your top 2 hardest tasks right now.",
-    5: isTr ? "AI Tavsiyesi: MAKSİMUM DERİN ODAK (FLOW STATE)! Zihinsel kapasiten zirvede. Bildirimleri kapat, DND moduna geç ve en az 2 saatlik kesintisiz deneme sınavı veya zorlu kodlama seansını başlat." : "AI Tip: PEAK FLOW STATE! Mental capacity is at its max. Enable DND mode and initiate a 2-hour uninterrupted deep study block.",
+    1: [
+      isTr ? "AI Tavsiyesi: Zihinsel enerjin bugün düşük seviyede. Ağır matematik veya deneme çözümleri yerine 15-20 dakikalık hafif yürüyüş ve kitap okuma gibi düşük beyin yükü gerektiren rutinlere odaklan." : "AI Tip: Mental energy is low today. Focus on light activities like 15-minute walks or light reading rather than heavy problem solving.",
+      isTr ? "AI Tavsiyesi: Bugün nöral toparlanma günü. Zihnini zorlamayacak podcast'ler dinleyebilir, nefes egzersizleri veya esneme rutinleri yapabilirsin." : "AI Tip: Recovery day for your brain. Listen to light podcasts or do quick stretching routines.",
+      isTr ? "AI Tavsiyesi: Odaklanma kapasiten sınırlı. Çalışma masanı düzenlemek veya dijital klasörleri temizlemek gibi pasif görevleri aradan çıkar." : "AI Tip: Focus space is limited. Tackle passive tasks like decluttering your desk or organizing files."
+    ],
+    2: [
+      isTr ? "AI Tavsiyesi: Hafif-orta zihinsel moddasın. Bugün rutin tekrar dersleri ve kelime ezberleri için harika bir gün. Zor sınav çözümlerini yarın sabah peak saatine ertele." : "AI Tip: Light-moderate focus state. Ideal for vocabulary reviews and routine revision. Save intense practice tests for tomorrow morning.",
+      isTr ? "AI Tavsiyesi: Zihnin orta tempoda çalışıyor. Flashcard (bilgi kartı) tekrarları veya kısa konu özetleri okumak için en verimli aralıktasın." : "AI Tip: Perfect window for flashcards and quick concept summaries without heavy cognitive load.",
+      isTr ? "AI Tavsiyesi: Derin odak gerektirmeyen pratik soru çözümlerine 25-30 dakikalık kısa bloklar hâlinde odaklanabilirsin." : "AI Tip: Work in 25-minute blocks on light practice questions that don't strain your deep focus."
+    ],
+    3: [
+      isTr ? "AI Tavsiyesi: Dengeli odak seviyesindesin. Pomodoro tekniği (25 dk çalışma + 5 dk mola) ile 1.5 saatlik verimli ders veya proje oturumunu kolayca tamamlayabilirsin." : "AI Tip: Balanced focus state. Use Pomodoro (25m study + 5m rest) to comfortably complete 1.5-hour study blocks.",
+      isTr ? "AI Tavsiyesi: Zihinsel ritmin stabil. Günlük hedeflerinden en kritik 2 tanesini orta yoğunluktaki bu zaman diliminde tamamla." : "AI Tip: Mental rhythm is stable. Target 2 key priorities during this steady focus window.",
+      isTr ? "AI Tavsiyesi: İyi bir çalışma ritmi yakalayabilirsin. Arka plan seslerini (LO-FI veya pembe gürültü) açıp 45 dakikalık tek bir bloğa odaklan." : "AI Tip: Put on background binaural beats or ambient music for a solid 45-minute unbroken session."
+    ],
+    4: [
+      isTr ? "AI Tavsiyesi: Yüksek zihinsel performans modundasın! Beyin karmaşık mantık yürütmeye ve ağır problem çözmeye hazır. Zorlandığın en kritik 2 görevi hemen şimdi hallet." : "AI Tip: High cognitive performance! Your brain is primed for complex logic and problem solving. Tackle your top 2 hardest tasks right now.",
+      isTr ? "AI Tavsiyesi: Bilişsel yük kapasiten yüksek. Zor matematik problemleri, paragraf analizleri veya mimari/yazılım tasarımları için ideal an." : "AI Tip: Ideal window for complex analytical reasoning, hard math problems, or system design.",
+      isTr ? "AI Tavsiyesi: Zihinsel netlik tepe noktasına yakın. 60 dakikalık kesintisiz ve yüksek odaklı bir derin çalışma (deep work) seansı başlat." : "AI Tip: Mental clarity is near peak. Lock in a 60-minute uninterrupted deep work block."
+    ],
+    5: [
+      isTr ? "AI Tavsiyesi: MAKSİMUM DERİN ODAK (FLOW STATE)! Zihinsel kapasiten zirvede. Bildirimleri kapat, DND moduna geç ve en az 2 saatlik kesintisiz deneme sınavı veya zorlu kodlama seansını başlat." : "AI Tip: PEAK FLOW STATE! Mental capacity is at its max. Enable DND mode and initiate a 2-hour uninterrupted deep study block.",
+      isTr ? "AI Tavsiyesi: Zirve performans! Bugünün en zor, en karmaşık ve gözünde büyüttüğün ana hedefini şimdi ezmeye başla. Beynin tam kapasite çalışıyor." : "AI Tip: Peak brain performance! Attack your most complex, challenging master objective right now.",
+      isTr ? "AI Tavsiyesi: Flow (akış) halindesin. Dış etkenleri %100 izole et, zaman tutucunu çalıştır ve rekor bir zihinsel çıktı elde et." : "AI Tip: Complete flow state detected. Isolate all distractions and aim for maximum productivity output."
+    ]
   };
 
   const [userName, setUserName] = useState<string>("Kullanıcı");
@@ -123,6 +144,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "habits" | "analytics" | "group" | "settings">("overview");
   const [focusLevel, setFocusLevel] = useState<number>(3);
   const [hrvScore, setHrvScore] = useState<number>(68);
+  const [tipIndex, setTipIndex] = useState<number>(0);
 
   // INITIAL HABITS DEFAULTS
   const defaultHabits = [
@@ -232,7 +254,6 @@ export default function DashboardPage() {
   };
 
   const handleChangePlan = async (targetPlan: "free" | "pro" | "plus") => {
-    // "Continue with Basic" butonuna basılırsa sahte olarak ücretsiz plana çekilsin
     if (targetPlan === "free") {
       try {
         await supabase.auth.updateUser({
@@ -248,7 +269,6 @@ export default function DashboardPage() {
       return;
     }
 
-    // LEMON SQUEEZY YÖNLENDİRMESİ (Aylık veya Yıllık Seçimine Göre)
     try {
       const { data: { user } } = await supabase.auth.getUser();
       let checkoutUrl = '';
@@ -296,12 +316,16 @@ export default function DashboardPage() {
     setHabits(habits.filter((h) => h.id !== id));
   };
 
+  const handleRefreshTip = () => {
+    const currentTips = aiTipsMap[focusLevel as keyof typeof aiTipsMap];
+    setTipIndex((prev) => (prev + 1) % currentTips.length);
+  };
+
   // 10 EVENT KONTROLÜ + AI SCHEDULER
   const handleAddHabitAl = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
 
-    // BASIC/FREE PLAN İÇİN KESİN 10 EVENT LİMİTİ KONTROLÜ
     if ((userPlan === "free" || userPlan === "basic") && habits.length >= 10) {
       alert(isTr ? "Basic ($0) planında en fazla 10 adet etkinlik/rutin ekleyebilirsiniz. Lütfen üyeliğinizi yükseltin!" : "Basic plan is restricted to 10 events. Please upgrade your subscription!");
       setShowUpgradeModal(true);
@@ -623,7 +647,10 @@ export default function DashboardPage() {
                 {[1, 2, 3, 4, 5].map((lvl) => (
                   <button
                     key={lvl}
-                    onClick={() => setFocusLevel(lvl)}
+                    onClick={() => {
+                      setFocusLevel(lvl);
+                      setTipIndex(0);
+                    }}
                     className={`flex-1 py-3 rounded-xl border text-xs font-bold transition cursor-pointer ${focusLevel === lvl ? "bg-cyan-500 border-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20" : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"}`}
                   >
                     Seviye {lvl}
@@ -631,16 +658,27 @@ export default function DashboardPage() {
                 ))}
               </div>
               <div className="p-4 bg-gradient-to-r from-cyan-950/60 via-slate-950 to-indigo-950/60 border border-cyan-500/40 rounded-xl shadow-md">
-                <div className="flex items-start gap-3">
-                  <span className="text-xl"></span>
-                  <div>
-                    <h4 className="text-xs font-black text-cyan-400 uppercase tracking-wider mb-1">
-                      {isTr ? "AI Ritim & Performans İpucu" : "AI Rhythm & Performance Tip"}
-                    </h4>
-                    <p className="text-xs text-slate-200 leading-relaxed font-medium">
-                      {aiTipsMap[focusLevel as keyof typeof aiTipsMap]}
-                    </p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl">💡</span>
+                    <div>
+                      <h4 className="text-xs font-black text-cyan-400 uppercase tracking-wider mb-1">
+                        {isTr ? "AI Ritim & Performans İpucu" : "AI Rhythm & Performance Tip"}
+                      </h4>
+                      <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                        {aiTipsMap[focusLevel as keyof typeof aiTipsMap][tipIndex % aiTipsMap[focusLevel as keyof typeof aiTipsMap].length]}
+                      </p>
+                    </div>
                   </div>
+                  {/* YENİLEME BUTONU */}
+                  <button
+                    type="button"
+                    onClick={handleRefreshTip}
+                    title={isTr ? "Yeni İpucu Getir" : "Get New Tip"}
+                    className="p-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-lg text-xs font-bold transition transform active:scale-95 shrink-0 cursor-pointer"
+                  >
+                    🔄
+                  </button>
                 </div>
               </div>
             </div>
