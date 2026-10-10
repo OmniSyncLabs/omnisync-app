@@ -65,8 +65,9 @@ export function Paywall({
         url.searchParams.set('discount', couponCode)
       }
 
-      // 3. Kullanıcı E-posta Aktarımı
-      if (user?.email) {
+      // 3. Geçerli E-posta Kontrolü (Regex ile basit geçerlilik denetimi)
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (user?.email && emailRegex.test(user.email)) {
         url.searchParams.set('checkout[email]', user.email)
       }
 
