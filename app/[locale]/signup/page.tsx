@@ -178,7 +178,7 @@ export default function SignupPage() {
     }
   };
 
-  // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ
+  // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (422 HATASIZ)
   const handleSelectPlan = async (selectedPlan: "free" | "pro" | "plus" | "plus_50") => {
     const { data: { user } } = await supabase.auth.getUser();
     const userEmailToUse = user?.email || email;
@@ -213,18 +213,16 @@ export default function SignupPage() {
       discountCode = "SYNCPRO20";
     }
 
-    // Lemon Squeezy resmi parametre formatı (checkout_email & discount)
-    const queryParts: string[] = [];
-    if (userEmailToUse) {
-      queryParts.push(`checkout[email]=${encodeURIComponent(userEmailToUse)}`);
-    }
+    // Lemon Squeezy'nin %100 desteklediği parametre yapısı
+    const params = new URLSearchParams();
     if (discountCode) {
-      queryParts.push(`discount=${discountCode}`);
+      params.append("discount", discountCode);
+    }
+    if (userEmailToUse) {
+      params.append("checkout[data][email]", userEmailToUse);
     }
 
-    // Eğer 'checkout[email]' 422 veriyorsa, Lemon Squeezy 'email' veya 'discount' parametresinde kupon eşleşmesini kontrol eder
-    const finalUrl = `${checkoutUrl}?checkout[email]=${encodeURIComponent(userEmailToUse)}&discount=${discountCode}`;
-    window.location.href = finalUrl;
+    window.location.href = `${checkoutUrl}?${params.toString()}`;
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-4 relative overflow-hidden">
