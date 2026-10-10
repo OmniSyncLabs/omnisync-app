@@ -5,6 +5,20 @@ import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
+// GÜVENİLİR VE DÜNYA ÇAPINDA BİLİNEN E-POSTA SAĞLAYICILARI LİSTESİ
+const ALLOWED_DOMAINS = [
+  "gmail.com",
+  "outlook.com",
+  "hotmail.com",
+  "yahoo.com",
+  "icloud.com",
+  "proton.me",
+  "protonmail.com",
+  "live.com",
+  "yandex.com",
+  "gmx.com",
+];
+
 export default function SignupPage() {
   const router = useRouter();
   const params = useParams();
@@ -27,6 +41,36 @@ export default function SignupPage() {
   const [showExitModal, setShowExitModal] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300); // 5 dakika (300 saniye)
   const [offerExpired, setOfferExpired] = useState(false);
+
+  // GÜVENİLİR E-POSTA DOĞRULAMA FONKSİYONU
+  const validateTrustedEmail = (emailStr: string): { isValid: boolean; error?: string } => {
+    const cleanEmail = emailStr.trim().toLowerCase();
+
+    // 1. Genel e-posta format kontrolü
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return { isValid: false, error: "Lütfen geçerli bir e-posta adresi giriniz." };
+    }
+
+    const domain = cleanEmail.split("@")[1];
+
+    // 2. .com / .net / .org uzantı kontrolü
+    if (!domain.endsWith(".com") && !domain.endsWith(".net") && !domain.endsWith(".org")) {
+      return { isValid: false, error: "Güvenlik nedeniyle sadece geçerli bir .com e-posta adresi kullanabilirsiniz." };
+    }
+
+    // 3. Bilinen sağlayıcı kontrolü
+    const isTrusted = ALLOWED_DOMAINS.includes(domain);
+    if (!isTrusted) {
+      return {
+        isValid: false,
+        error: "Yalnızca Gmail, Outlook, Hotmail, Yahoo veya iCloud gibi güvenilir e-posta sağlayıcılarıyla kayıt olunabilir.",
+      };
+    }
+
+    return { isValid: true };
+  };
+
   // Google girişinden dönüşü yakalayıp 4. adıma geçirme nöbetçisi
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -55,7 +99,7 @@ export default function SignupPage() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Google ile Giriş / Kayıt Fonksiyonu (Yönlendirmeyi Adım 4'e veya geçiş kontrolüne bağlıyoruz)
+  // Google ile Giriş / Kayıt Fonksiyonu
   const handleGoogleLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -63,9 +107,8 @@ export default function SignupPage() {
         options: {
           redirectTo: `${window.location.origin}/${locale}/signup?auth=google_success`,
           queryParams: {
-            // Google'a "Kullanıcıya her defasında hesap seçtir ve izinleri yeniden sor" diyoruz:
-           prompt: 'select_account',
-            access_type: 'offline',
+            prompt: "select_account",
+            access_type: "offline",
           },
         },
       });
@@ -81,19 +124,18 @@ export default function SignupPage() {
       const params = new URLSearchParams(window.location.search);
 
       if (params.get("auth") === "google_success") {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
         if (user) {
           const createdAt = new Date(user.created_at).getTime();
           const now = new Date().getTime();
-          // Hesap son 2 dakika içinde mi oluşturulmuş? (Yeni kayıt kontrolü)
-          const isNewUser = (now - createdAt) < 2 * 60 * 1000;
+          const isNewUser = now - createdAt < 2 * 60 * 1000;
 
           if (isNewUser) {
-            // YENİ KULLANICI -> 4. Adımdaki İndirim Pop-up ekranına al
             setStep(4);
           } else {
-            // ZATEN KAYITLI ESKİ KULLANICI -> Doğrudan Dashboard'a yönlendir
             window.location.href = `/${locale}/dashboard`;
           }
         }
@@ -103,11 +145,19 @@ export default function SignupPage() {
     checkUserAndRedirect();
   }, [locale]);
 
-  // 3. Adımda Gerçek Kayıt İşlemi
+  // 3. Adımda Gerçek Kayıt İşlemi (E-POSTA KONTROLÜ EKLENDİ)
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
+
+    // E-Posta Güvenilirlik Kontrolü
+    const emailCheck = validateTrustedEmail(email);
+    if (!emailCheck.isValid) {
+      setErrorMsg(emailCheck.error || "Geçersiz e-posta adresi.");
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -139,7 +189,6 @@ export default function SignupPage() {
           localStorage.setItem("omni_user_email", email);
         }
         setLoading(false);
-        // Kayıt başarılı -> 4. Adım olan %20 teklif ekranına geç
         setStep(4);
       }
     } catch (err: any) {
@@ -168,7 +217,6 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-4 relative overflow-hidden">
       <div className="w-full max-w-lg bg-slate-900/90 backdrop-blur border border-slate-800 rounded-2xl p-8 shadow-2xl z-10">
-        
         {/* LOGO VE BAŞLIK */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
@@ -271,7 +319,7 @@ export default function SignupPage() {
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 font-medium text-sm transition-all shadow-sm"
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 font-medium text-sm transition-all shadow-sm cursor-pointer"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -324,9 +372,12 @@ export default function SignupPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ahmet@example.com"
+                  placeholder="ahmet@gmail.com"
                   className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:border-cyan-500 text-slate-100 text-sm transition"
                 />
+                <span className="text-[10px] text-slate-500 mt-1 block">
+                  Sadece Gmail, Outlook, Yahoo veya iCloud gibi güvenilir .com e-postaları kabul edilir.
+                </span>
               </div>
 
               <div>
@@ -347,7 +398,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-cyan-500/25 transition disabled:opacity-50 mt-2"
+                className="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-cyan-500/25 transition disabled:opacity-50 mt-2 cursor-pointer"
               >
                 {loading ? "Planınız Hazırlanıyor..." : "Kişisel Planımı Oluştur"}
               </button>
@@ -361,7 +412,7 @@ export default function SignupPage() {
             {/* ÇARPI (CLOSE) BUTONU */}
             <button
               onClick={() => setShowExitModal(true)}
-              className="absolute -top-4 -right-2 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition"
+              className="absolute -top-4 -right-2 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition cursor-pointer"
               title="Kapat"
             >
               ✕
@@ -379,9 +430,8 @@ export default function SignupPage() {
               </p>
             </div>
 
-            {/* PLAN KARTLARI (PRO, PLUS ve BASIC SEÇENEĞİ - Madde 3 Çözümü) */}
+            {/* PLAN KARTLARI */}
             <div className="grid grid-cols-1 gap-3 mb-5">
-              
               {/* PLUS PLAN (EN POPÜLER) */}
               <div className="p-3.5 bg-slate-950 border-2 border-cyan-500 rounded-xl relative flex items-center justify-between shadow-lg shadow-cyan-500/10">
                 <span className="absolute -top-2.5 right-3 bg-cyan-500 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded-full">
@@ -397,7 +447,7 @@ export default function SignupPage() {
                 </div>
                 <button
                   onClick={() => handleSelectPlan("plus")}
-                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold rounded-lg text-xs transition shadow-md"
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold rounded-lg text-xs transition shadow-md cursor-pointer"
                 >
                   Plus'ı Seç
                 </button>
@@ -415,13 +465,13 @@ export default function SignupPage() {
                 </div>
                 <button
                   onClick={() => handleSelectPlan("pro")}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold rounded-lg text-xs transition"
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold rounded-lg text-xs transition cursor-pointer"
                 >
                   Pro'yu Seç
                 </button>
               </div>
 
-              {/* BASIC PLAN (ÜCRETSİZ - Madde 3 Gereği Özellikleri Net Gösteriliyor) */}
+              {/* BASIC PLAN */}
               <div className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
                 <div className="flex items-center justify-between mb-1">
                   <div>
@@ -430,7 +480,7 @@ export default function SignupPage() {
                   </div>
                   <button
                     onClick={() => handleSelectPlan("free")}
-                    className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white font-medium rounded-lg text-[11px] transition border border-slate-800"
+                    className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white font-medium rounded-lg text-[11px] transition border border-slate-800 cursor-pointer"
                   >
                     Ücretsiz Devam Et
                   </button>
@@ -441,7 +491,6 @@ export default function SignupPage() {
                   <span>✕ AI Koçluk Yok</span>
                 </div>
               </div>
-
             </div>
 
             <p className="text-[11px] text-center text-slate-500">
@@ -458,16 +507,12 @@ export default function SignupPage() {
         </div>
       </div>
 
-      {/* ------------------------------------------------------------- */}
-      {/* İKNA POP-UP'I (EXIT-INTENT MODAL - %50 İNDİRİM & 5 DK TIMER) */}
-      {/* ------------------------------------------------------------- */}
+      {/* İKNA POP-UP'I (EXIT-INTENT MODAL) */}
       {showExitModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-slate-900 border-2 border-red-500/50 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl relative">
-            
             {!offerExpired ? (
               <>
-                {/* TIMER HEADER */}
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-red-500/10 border border-red-500/30 rounded-full text-red-400 text-xs font-bold mb-4 animate-pulse">
                   <span>⏳ Özel Fırsatın Bitiş Süresi:</span>
                   <span className="text-sm font-mono">{formatTime(timeLeft)}</span>
@@ -476,12 +521,11 @@ export default function SignupPage() {
                 <h3 className="text-2xl font-extrabold text-white mb-2">
                   Bekle! Gitmeden Önce <span className="text-red-400">%50 İndirimini</span> Al!
                 </h3>
-                
+
                 <p className="text-xs text-slate-300 mb-6">
                   Ritmini yakalaman için sana özel son bir şans sunuyoruz. İlk ay yarı fiyatına Plus Plan deneyimi!
                 </p>
 
-                {/* %50 İNDİRİMLİ FİYAT */}
                 <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-6">
                   <div className="text-xs text-slate-400">Plus Plan İlk Ay</div>
                   <div className="flex items-center justify-center gap-2 mt-1">
@@ -493,42 +537,39 @@ export default function SignupPage() {
                 <div className="space-y-3">
                   <button
                     onClick={() => handleSelectPlan("plus")}
-                    className="w-full py-3.5 bg-gradient-to-r from-red-500 to-amber-500 hover:from-red-400 hover:to-amber-400 text-white font-bold rounded-xl shadow-lg shadow-red-500/20 transition text-sm"
+                    className="w-full py-3.5 bg-gradient-to-r from-red-500 to-amber-500 hover:from-red-400 hover:to-amber-400 text-white font-bold rounded-xl shadow-lg shadow-red-500/20 transition text-sm cursor-pointer"
                   >
                     %50 İndirimi Kullan ve Başla
                   </button>
 
                   <button
                     onClick={() => handleSelectPlan("free")}
-                    className="w-full py-2.5 text-xs text-slate-400 hover:text-slate-200 transition"
+                    className="w-full py-2.5 text-xs text-slate-400 hover:text-slate-200 transition cursor-pointer"
                   >
                     Teşekkürler, ücretsiz (Basic) planla devam etmek istiyorum
                   </button>
                 </div>
               </>
             ) : (
-              /* SÜRE BİTTİĞİNDE ÇIKACAK BİLGİLENDİRME */
               <div className="py-4">
                 <div className="text-4xl mb-3">💙</div>
                 <h3 className="text-xl font-bold text-white mb-2">
                   Fırsat Süresi Doldu
                 </h3>
                 <p className="text-xs text-slate-300 mb-6 leading-relaxed">
-                  İndirimi kaçırdığın için üzgünüz ama sorun değil! OmniSync'i ücretsiz keşfetmeye her zaman devam edebilirsin. İstediğin zaman hesabını yükseltebilirsin.
+                  İndirimi kaçırdığın için üzgünüz ama sorun değil! OmniSync'i ücretsiz keşfetmeye her zaman devam edebilirsin.
                 </p>
                 <button
                   onClick={() => handleSelectPlan("free")}
-                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl text-sm transition"
+                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl text-sm transition cursor-pointer"
                 >
                   Ücretsiz Sürüm ile Devam Et
                 </button>
               </div>
             )}
-
           </div>
         </div>
       )}
-
     </div>
   );
 }
