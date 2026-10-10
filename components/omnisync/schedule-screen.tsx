@@ -1,11 +1,19 @@
 'use client'
 
-import { useState } from 'react'
-import { ArrowUp, Clock, Zap } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowUp, Clock, Plus, Trash2, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Toggle } from './toggle'
 
-type Task = { id: string; title: string; detail: string; tag: string; duration: string; focus: 'high' | 'low'; tone: 'accent' | 'primary' | 'energy' }
+type Task = {
+  id: string
+  title: string
+  detail: string
+  tag: string
+  duration: string
+  focus: 'high' | 'low'
+  tone: 'accent' | 'primary' | 'energy'
+}
 
 const INITIAL_TASKS: Task[] = [
   { id: 't1', title: 'Code Backend API', detail: 'Auth module · Supabase integration', tag: 'Deep Work', duration: '2h 30m', focus: 'high', tone: 'accent' },
@@ -20,9 +28,42 @@ const TONE = {
   energy: { dot: 'bg-energy', chip: 'border-energy/40 bg-energy/10 text-energy' },
 }
 
-export function ScheduleScreen() {
+interface ScheduleScreenProps {
+  userPlan?: 'basic' | 'pro' | 'plus'
+  onOpenPaywall?: () => void
+}
+
+export function ScheduleScreen({ userPlan = 'basic', onOpenPaywall }: ScheduleScreenProps) {
   const [optimize, setOptimize] = useState(true)
-  const [tasks, setTasks] = useState(INITIAL_TASKS)
+  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS)
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  // Yeni görev ekleme form durumları
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [newDetail, setNewDetail] = useState('')
+  const [newDuration, setNewDuration] = useState('30m')
+  const [newFocus, setNewFocus] = useState<'high' | 'low'>('high')
+
+  // Sayfa yüklendiğinde LocalStorage'dan görevleri yükle (Kalıcılık)
+  useEffect(() => {
+    const saved = localStorage.getItem('omnisync_tasks')
+    if (saved) {
+      try {
+        setTasks(JSON.parse(saved))
+      } catch (e) {
+        console.error('Görevler yüklenirken hata oluştu:', e)
+      }
+    }
+    setIsLoaded(true)
+  }, [])
+
+  // Görevler değiştikçe LocalStorage'a kaydet
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('omnisync_tasks', JSON.stringify(tasks))
+    }
+  }, [tasks, isLoaded])
 
   function moveUp(id: string) {
     setTasks((prev) => {
@@ -32,6 +73,37 @@ export function ScheduleScreen() {
       ;[next[i - 1], next[i]] = [next[i], next[i - 1]]
       return next
     })
+  }
+
+  function deleteTask(id: string) {
+    setTasks((prev) => prev.filter((t) => t.id !== id))
+  }
+
+  function handleAddTask(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newTitle.trim()) return
+
+    // 10 Görev Sınırı Kontrolü (Basic Plan)
+    if (userPlan === 'basic' && tasks.length >= 10) {
+      alert('Basic planda maksimum 10 görev ekleyebilirsiniz. Lütfen Pro veya Plus plana yükseltin!')
+      if (onOpenPaywall) onOpenPaywall()
+      return
+    }
+
+    const newTask: Task = {
+      id: `t_${Date.now()}`,
+      title: newTitle,
+      detail: newDetail || 'Quick Task',
+      tag: newFocus === 'high' ? 'High Focus' : 'Low Effort',
+      duration: newDuration,
+      focus: newFocus,
+      tone: newFocus === 'high' ? 'primary' : 'energy',
+    }
+
+    setTasks((prev) => [newTask, ...prev])
+    setNewTitle('')
+    setNewDetail('')
+    setShowAddModal(false)
   }
 
   const ordered = optimize ? [...tasks].sort((a, b) => (a.focus === b.focus ? 0 : a.focus === 'high' ? -1 : 1)) : tasks
@@ -45,11 +117,77 @@ export function ScheduleScreen() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Today · Oct 1</p>
           <h1 className="text-3xl font-bold">Smart Schedule</h1>
         </div>
-        <div className="flex items-center gap-2 pb-1">
-          <span className="text-sm font-semibold text-primary">AI Optimize</span>
-          <Toggle checked={optimize} onChange={setOptimize} label="AI Optimize schedule" />
+        <div className="flex items-center gap-3 pb-1">
+          <button
+            type="button"
+            onClick={() => {
+              if (userPlan === 'basic' && tasks.length >= 10) {
+                if (onOpenPaywall) onOpenPaywall()
+              } else {
+                setShowAddModal(!showAddModal)
+              }
+            }}
+            className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90"
+          >
+            <Plus className="size-4" /> Add Task ({tasks.length}/10)
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-primary">AI Optimize</span>
+            <Toggle checked={optimize} onChange={setOptimize} label="AI Optimize schedule" />
+          </div>
         </div>
       </header>
+
+      {/* Yeni Görev Ekleme Formu */}
+      {showAddModal && (
+        <form onSubmit={handleAddTask} className="flex flex-col gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-lg">
+          <h3 className="font-bold text-sm text-primary">Add New Task</h3>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <input
+              type="text"
+              placeholder="Task Title (e.g. Math Homework)"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+              required
+            />
+            <input
+              type="text"
+              placeholder="Detail (e.g. Chapter 3, page 42)"
+              value={newDetail}
+              onChange={(e) => setNewDetail(e.target.value)}
+              className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <select
+              value={newDuration}
+              onChange={(e) => setNewDuration(e.target.value)}
+              className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+            >
+              <option value="15m">15m</option>
+              <option value="30m">30m</option>
+              <option value="45m">45m</option>
+              <option value="1h">1h</option>
+              <option value="2h">2h</option>
+            </select>
+            <select
+              value={newFocus}
+              onChange={(e) => setNewFocus(e.target.value as 'high' | 'low')}
+              className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+            >
+              <option value="high">High Focus</option>
+              <option value="low">Low Focus / Admin</option>
+            </select>
+            <button
+              type="submit"
+              className="ml-auto rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+            >
+              Save Task
+            </button>
+          </div>
+        </form>
+      )}
 
       <div className="flex items-center gap-4 rounded-2xl border border-primary/30 bg-primary/5 p-4">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-sky-400">
@@ -61,7 +199,7 @@ export function ScheduleScreen() {
         </div>
       </div>
 
-      <TaskGroup title="High Focus Needed" meta="Peak Hours · 10–12:30" dot="bg-primary" tasks={high} onMoveUp={moveUp} />
+      <TaskGroup title="High Focus Needed" meta="Peak Hours · 10–12:30" dot="bg-primary" tasks={high} onMoveUp={moveUp} onDelete={deleteTask} />
 
       <div className="flex items-center gap-3 text-sm text-muted-foreground" aria-hidden>
         <span className="h-px flex-1 bg-border" />
@@ -69,12 +207,26 @@ export function ScheduleScreen() {
         <span className="h-px flex-1 bg-border" />
       </div>
 
-      <TaskGroup title="Low Focus / Admin" meta="Dip Hours · 1–3 PM" dot="bg-energy" tasks={low} onMoveUp={moveUp} />
+      <TaskGroup title="Low Focus / Admin" meta="Dip Hours · 1–3 PM" dot="bg-energy" tasks={low} onMoveUp={moveUp} onDelete={deleteTask} />
     </div>
   )
 }
 
-function TaskGroup({ title, meta, dot, tasks, onMoveUp }: { title: string; meta: string; dot: string; tasks: Task[]; onMoveUp: (id: string) => void }) {
+function TaskGroup({
+  title,
+  meta,
+  dot,
+  tasks,
+  onMoveUp,
+  onDelete,
+}: {
+  title: string
+  meta: string
+  dot: string
+  tasks: Task[]
+  onMoveUp: (id: string) => void
+  onDelete: (id: string) => void
+}) {
   return (
     <section className="flex flex-col gap-3" aria-label={title}>
       <div className="flex items-center gap-3">
@@ -101,9 +253,24 @@ function TaskGroup({ title, meta, dot, tasks, onMoveUp }: { title: string; meta:
             </div>
             <div className="mt-3 flex items-center justify-between border-t border-border pt-2 text-xs text-muted-foreground">
               <span>Reschedule</span>
-              <button type="button" onClick={() => onMoveUp(task.id)} aria-label={`Move ${task.title} earlier`} className="flex size-8 items-center justify-center rounded-full hover:bg-secondary hover:text-foreground">
-                <ArrowUp className="size-4" aria-hidden />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => onDelete(task.id)}
+                  aria-label={`Delete ${task.title}`}
+                  className="flex size-8 items-center justify-center rounded-full text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="size-4" aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onMoveUp(task.id)}
+                  aria-label={`Move ${task.title} earlier`}
+                  className="flex size-8 items-center justify-center rounded-full hover:bg-secondary hover:text-foreground"
+                >
+                  <ArrowUp className="size-4" aria-hidden />
+                </button>
+              </div>
             </div>
           </li>
         ))}
