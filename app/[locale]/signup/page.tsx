@@ -178,12 +178,8 @@ export default function SignupPage() {
     }
   };
 
-  // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (422 HATASIZ)
-  // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (DÜZ STRING - 422 HATASIZ)
+ // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (SADECE KUPON - 422 SIFIR RİSK)
   const handleSelectPlan = async (selectedPlan: "free" | "pro" | "plus" | "plus_50") => {
-    const { data: { user } } = await supabase.auth.getUser();
-    const userEmailToUse = user?.email || email;
-
     if (selectedPlan === "free") {
       try {
         await supabase.auth.updateUser({
@@ -214,13 +210,8 @@ export default function SignupPage() {
       discountCode = "SYNCPRO20";
     }
 
-    // Parantezlerin %5B %5D olarak bozulmaması için ham string birleştirme
-    let finalUrl = `${checkoutUrl}?discount=${discountCode}`;
-    if (userEmailToUse) {
-      finalUrl += `&checkout[email]=${encodeURIComponent(userEmailToUse)}`;
-    }
-
-    window.location.href = finalUrl;
+    // Yalnızca kupon kodunu bağlayarak yönlendiriyoruz
+    window.location.href = `${checkoutUrl}?discount=${discountCode}`;
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-4 relative overflow-hidden">
