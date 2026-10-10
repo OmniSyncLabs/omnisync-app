@@ -5,7 +5,6 @@ import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
-// GÜVENİLİR VE DÜNYA ÇAPINDA BİLİNEN E-POSTA SAĞLAYICILARI LİSTESİ
 const ALLOWED_DOMAINS = [
   "gmail.com",
   "outlook.com",
@@ -17,7 +16,7 @@ const ALLOWED_DOMAINS = [
   "live.com",
   "yandex.com",
   "gmx.com",
-  "yopmail.com", // Test için eklendi
+  "yopmail.com",
 ];
 
 export default function SignupPage() {
@@ -25,10 +24,7 @@ export default function SignupPage() {
   const params = useParams();
   const locale = params?.locale || "tr";
 
-  // Akış Adımları: 1 = Hedef, 2 = Zaman, 3 = Kayıt Formu, 4 = %20 Teklif Ekranı
   const [step, setStep] = useState(1);
-
-  // Anket ve Kullanıcı Verileri
   const [goal, setGoal] = useState("");
   const [timeCommitment, setTimeCommitment] = useState("");
   const [fullName, setFullName] = useState("");
@@ -38,29 +34,22 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Pop-up ve Geri Sayım State'leri
   const [showExitModal, setShowExitModal] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 dakika (300 saniye)
+  const [timeLeft, setTimeLeft] = useState(300);
   const [offerExpired, setOfferExpired] = useState(false);
 
-  // GÜVENİLİR E-POSTA DOĞRULAMA FONKSİYONU
   const validateTrustedEmail = (emailStr: string): { isValid: boolean; error?: string } => {
     const cleanEmail = emailStr.trim().toLowerCase();
-
-    // 1. Genel e-posta format kontrolü
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(cleanEmail)) {
       return { isValid: false, error: "Lütfen geçerli bir e-posta adresi giriniz." };
     }
 
     const domain = cleanEmail.split("@")[1];
-
-    // 2. .com / .net / .org uzantı kontrolü
     if (!domain.endsWith(".com") && !domain.endsWith(".net") && !domain.endsWith(".org")) {
       return { isValid: false, error: "Güvenlik nedeniyle sadece geçerli bir .com e-posta adresi kullanabilirsiniz." };
     }
 
-    // 3. Bilinen sağlayıcı kontrolü
     const isTrusted = ALLOWED_DOMAINS.includes(domain);
     if (!isTrusted) {
       return {
@@ -72,7 +61,6 @@ export default function SignupPage() {
     return { isValid: true };
   };
 
-  // Google girişinden dönüşü yakalayıp 4. adıma geçirme nöbetçisi
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("auth") === "google_success") {
@@ -80,7 +68,6 @@ export default function SignupPage() {
     }
   }, []);
 
-  // 5 Dakikalık Geri Sayım Sayacı Mantığı
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (showExitModal && timeLeft > 0) {
@@ -93,14 +80,12 @@ export default function SignupPage() {
     return () => clearInterval(timer);
   }, [showExitModal, timeLeft]);
 
-  // Saniyeyi Dakika:Saniye Formatına Çevirme
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Google ile Giriş / Kayıt Fonksiyonu
   const handleGoogleLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -119,15 +104,12 @@ export default function SignupPage() {
     }
   };
 
-  // Sayfa yüklendiğinde Google dönüşünü yakala ve Adım 4'e at
   useEffect(() => {
     const checkUserAndRedirect = async () => {
       const params = new URLSearchParams(window.location.search);
 
       if (params.get("auth") === "google_success") {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
 
         if (user) {
           const createdAt = new Date(user.created_at).getTime();
@@ -146,13 +128,11 @@ export default function SignupPage() {
     checkUserAndRedirect();
   }, [locale]);
 
-  // 3. Adımda Gerçek Kayıt İşlemi (E-POSTA KONTROLÜ EKLENDİ)
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
 
-    // E-Posta Güvenilirlik Kontrolü
     const emailCheck = validateTrustedEmail(email);
     if (!emailCheck.isValid) {
       setErrorMsg(emailCheck.error || "Geçersiz e-posta adresi.");
@@ -198,26 +178,52 @@ export default function SignupPage() {
     }
   };
 
-  // Seçilen Planı Supabase & LocalStorage'a Kaydedip Dashboard'a Geçme
-  const handleSelectPlan = async (selectedPlan: "free" | "pro" | "plus") => {
-    try {
-      await supabase.auth.updateUser({
-        data: { plan: selectedPlan },
-      });
-    } catch (e) {
-      console.error("Plan güncelleme hatası:", e);
+  // LEMON SQUEEZY KUPONLU ÖDEME YÖNLENDİRMESİ
+  const handleSelectPlan = async (selectedPlan: "free" | "pro" | "plus" | "plus_50") => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userEmailToUse = user?.email || email;
+
+    if (selectedPlan === "free") {
+      try {
+        await supabase.auth.updateUser({
+          data: { plan: "free" },
+        });
+      } catch (e) {
+        console.error("Plan güncelleme hatası:", e);
+      }
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("omni_user_plan", "free");
+      }
+      router.push(`/${locale}/dashboard`);
+      return;
     }
 
-    if (typeof window !== "undefined") {
-      localStorage.setItem("omni_user_plan", selectedPlan);
+    let checkoutUrl = "";
+    let discountCode = "";
+
+    if (selectedPlan === "plus") {
+      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b";
+      discountCode = "SYNCPLUS20";
+    } else if (selectedPlan === "plus_50") {
+      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b";
+      discountCode = "SYNCMEGAPLUS50";
+    } else if (selectedPlan === "pro") {
+      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917";
+      discountCode = "SYNCPRO20";
     }
 
-    router.push(`/${locale}/dashboard`);
+    const queryParams = new URLSearchParams();
+    if (userEmailToUse) queryParams.append("checkout[email]", userEmailToUse);
+    if (discountCode) queryParams.append("discount", discountCode);
+
+    window.location.href = `${checkoutUrl}?${queryParams.toString()}`;
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-4 relative overflow-hidden">
       <div className="w-full max-w-lg bg-slate-900/90 backdrop-blur border border-slate-800 rounded-2xl p-8 shadow-2xl z-10">
+        
         {/* LOGO VE BAŞLIK */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
@@ -265,7 +271,7 @@ export default function SignupPage() {
                   setGoal(option);
                   setStep(2);
                 }}
-                className="w-full p-4 bg-slate-950 border border-slate-800 hover:border-cyan-500 rounded-xl text-left text-sm font-medium transition flex items-center justify-between group"
+                className="w-full p-4 bg-slate-950 border border-slate-800 hover:border-cyan-500 rounded-xl text-left text-sm font-medium transition flex items-center justify-between group cursor-pointer"
               >
                 <span>{option}</span>
                 <span className="text-cyan-400 group-hover:translate-x-1 transition-transform">→</span>
@@ -294,7 +300,7 @@ export default function SignupPage() {
                   setTimeCommitment(option);
                   setStep(3);
                 }}
-                className="w-full p-4 bg-slate-950 border border-slate-800 hover:border-cyan-500 rounded-xl text-left text-sm font-medium transition flex items-center justify-between group"
+                className="w-full p-4 bg-slate-950 border border-slate-800 hover:border-cyan-500 rounded-xl text-left text-sm font-medium transition flex items-center justify-between group cursor-pointer"
               >
                 <span>{option}</span>
                 <span className="text-cyan-400 group-hover:translate-x-1 transition-transform">→</span>
@@ -302,7 +308,7 @@ export default function SignupPage() {
             ))}
             <button
               onClick={() => setStep(1)}
-              className="text-xs text-slate-500 hover:text-slate-300 w-full text-center mt-4"
+              className="text-xs text-slate-500 hover:text-slate-300 w-full text-center mt-4 cursor-pointer"
             >
               ← Önceki Soruya Dön
             </button>
@@ -316,7 +322,6 @@ export default function SignupPage() {
               Harika! Hesabını oluşturalım
             </h2>
 
-            {/* GOOGLE İLE GİRİŞ BUTONU */}
             <button
               type="button"
               onClick={handleGoogleLogin}
@@ -407,10 +412,9 @@ export default function SignupPage() {
           </div>
         )}
 
-        {/* ADIM 4: PRO & PLUS PLANLARI (%20 İNDİRİM & BASIC DETAYI) */}
+        {/* ADIM 4: PRO & PLUS PLANLARI (%20 İNDİRİM) */}
         {step === 4 && (
           <div className="relative pt-2">
-            {/* ÇARPI (CLOSE) BUTONU */}
             <button
               onClick={() => setShowExitModal(true)}
               className="absolute -top-4 -right-2 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition cursor-pointer"
@@ -442,8 +446,8 @@ export default function SignupPage() {
                   <h3 className="font-bold text-sm text-cyan-400">Plus Plan (AI Destekli)</h3>
                   <p className="text-[11px] text-slate-400">Sınırsız koçluk ve detaylı analizler</p>
                   <div className="mt-1">
-                    <span className="line-through text-slate-500 text-[11px] mr-2">₺299/ay</span>
-                    <span className="text-base font-bold text-cyan-400">₺239/ay</span>
+                    <span className="line-through text-slate-500 text-[11px] mr-2">$8/ay</span>
+                    <span className="text-base font-bold text-cyan-400">$6.4/ay</span>
                   </div>
                 </div>
                 <button
@@ -460,8 +464,8 @@ export default function SignupPage() {
                   <h3 className="font-bold text-sm text-slate-200">Pro Plan</h3>
                   <p className="text-[11px] text-slate-400">Gelişmiş alışkanlık ve istatistikler</p>
                   <div className="mt-1">
-                    <span className="line-through text-slate-500 text-[11px] mr-2">₺199/ay</span>
-                    <span className="text-base font-bold text-cyan-400">₺159/ay</span>
+                    <span className="line-through text-slate-500 text-[11px] mr-2">$5/ay</span>
+                    <span className="text-base font-bold text-cyan-400">$4/ay</span>
                   </div>
                 </div>
                 <button
@@ -508,7 +512,7 @@ export default function SignupPage() {
         </div>
       </div>
 
-      {/* İKNA POP-UP'I (EXIT-INTENT MODAL) */}
+      {/* İKNA POP-UP'I (%50 İNDİRİM - SYNCMEGAPLUS50) */}
       {showExitModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-slate-900 border-2 border-red-500/50 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl relative">
@@ -530,14 +534,14 @@ export default function SignupPage() {
                 <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-6">
                   <div className="text-xs text-slate-400">Plus Plan İlk Ay</div>
                   <div className="flex items-center justify-center gap-2 mt-1">
-                    <span className="line-through text-slate-500 text-sm">₺299/ay</span>
-                    <span className="text-3xl font-black text-red-400">₺149/ay</span>
+                    <span className="line-through text-slate-500 text-sm">$8/ay</span>
+                    <span className="text-3xl font-black text-red-400">$4/ay</span>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <button
-                    onClick={() => handleSelectPlan("plus")}
+                    onClick={() => handleSelectPlan("plus_50")}
                     className="w-full py-3.5 bg-gradient-to-r from-red-500 to-amber-500 hover:from-red-400 hover:to-amber-400 text-white font-bold rounded-xl shadow-lg shadow-red-500/20 transition text-sm cursor-pointer"
                   >
                     %50 İndirimi Kullan ve Başla
