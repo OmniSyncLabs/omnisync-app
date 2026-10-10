@@ -85,7 +85,14 @@ export function MainTabs({
 
   const screens = [
     <HomeScreen key="home" profile={profile} />,
-    <ScheduleScreen key="schedule" userPlan={plan} onOpenPaywall={onUpgrade} />,
+    <ScheduleScreen
+      key="schedule"
+      userPlan={plan}
+      events={events}
+      onAddEvent={onAddEvent}
+      onDeleteEvent={onDeleteEvent}
+      onOpenPaywall={onUpgrade}
+    />,
     <BiometricsScreen key="bio" plan={plan} onUpgrade={handleDirectUpgrade} />,
     <SettingsScreen key="settings" profile={profile} plan={plan} onUpgrade={handleDirectUpgrade} onLogout={onLogout} />,
   ]
