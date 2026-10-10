@@ -124,17 +124,41 @@ export default function DashboardPage() {
   const [focusLevel, setFocusLevel] = useState<number>(3);
   const [hrvScore, setHrvScore] = useState<number>(68);
 
-  const [habits, setHabits] = useState([
+  // INITIAL HABITS DEFAULTS
+  const defaultHabits = [
     { id: 1, title: isTr ? "Hafif Yürüyüş & Esneme" : "Light Walk & Stretch", category: isTr ? "Spor" : "Sports", level: 2, suggestedTime: "17:00", completed: true, streak: 12 },
     { id: 2, title: isTr ? "1.5 Saat Deneme Sınavı Çözümü" : "1.5h Practice Exam", category: isTr ? "Verimlilik" : "Productivity", level: 5, suggestedTime: "09:00 - Peak Focus Hours", completed: false, streak: 5 },
     { id: 3, title: isTr ? "Günlük Ritim / Plan İncelemesi" : "Daily Rhythm Review", category: isTr ? "Düzen" : "Order", level: 3, suggestedTime: "21:30", completed: false, streak: 8 },
     { id: 4, title: isTr ? "30 Dakika Kitap Okuma" : "30m Book Reading", category: isTr ? "Kişisel" : "Personal", level: 3, suggestedTime: "22:00", completed: true, streak: 15 },
-  ]);
+  ];
+
+  const [habits, setHabits] = useState(defaultHabits);
+  const [isHabitsLoaded, setIsHabitsLoaded] = useState(false);
 
   const [newHabitTitle, setNewHabitTitle] = useState("");
   const [newHabitCategory, setNewHabitCategory] = useState("Verimlilik");
   const [newHabitLevel, setNewHabitLevel] = useState<number>(3);
   const [aiScheduling, setAiScheduling] = useState<boolean>(false);
+
+  // 1. LOCALSTORAGE'DAN HABITS YÜKLE
+  useEffect(() => {
+    const savedHabits = localStorage.getItem("omni_habits_dashboard");
+    if (savedHabits) {
+      try {
+        setHabits(JSON.parse(savedHabits));
+      } catch (err) {
+        console.error("Habits yüklenemedi:", err);
+      }
+    }
+    setIsHabitsLoaded(true);
+  }, []);
+
+  // 2. HABITS DEĞİŞTİKÇE LOCALSTORAGE'A KAYDET
+  useEffect(() => {
+    if (isHabitsLoaded) {
+      localStorage.setItem("omni_habits_dashboard", JSON.stringify(habits));
+    }
+  }, [habits, isHabitsLoaded]);
 
   const groupMembers = [
     { id: 1, name: "Yaren Ünlü", status: isTr ? "1.5 Saat Matematik Çalışıyor" : "1.5h Studying Math", focus: "Sev. 5", hrv: "72 bpm", online: true },
@@ -207,7 +231,7 @@ export default function DashboardPage() {
     }
   };
 
- const handleChangePlan = async (targetPlan: "free" | "pro" | "plus") => {
+  const handleChangePlan = async (targetPlan: "free" | "pro" | "plus") => {
     // "Continue with Basic" butonuna basılırsa sahte olarak ücretsiz plana çekilsin
     if (targetPlan === "free") {
       try {
@@ -240,7 +264,10 @@ export default function DashboardPage() {
       }
 
       if (user) {
-        checkoutUrl += `?checkout[email]=${encodeURIComponent(user.email || '')}&checkout[custom][user_id]=${user.id}`;
+        const validEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (user.email && validEmailRegex.test(user.email.trim())) {
+          checkoutUrl += `?checkout[email]=${encodeURIComponent(user.email.trim())}&checkout[custom][user_id]=${user.id}`;
+        }
       }
       window.location.href = checkoutUrl;
     } catch (error) {
@@ -262,9 +289,18 @@ export default function DashboardPage() {
     );
   };
 
+  // 10 EVENT KONTROLÜ + AI SCHEDULER
   const handleAddHabitAl = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
+
+    // BASIC/FREE PLAN İÇİN KESİN 10 EVENT LİMİTİ KONTROLÜ
+    if ((userPlan === "free" || userPlan === "basic") && habits.length >= 10) {
+      alert(isTr ? "Basic ($0) planında en fazla 10 adet etkinlik/rutin ekleyebilirsiniz. Lütfen üyeliğinizi yükseltin!" : "Basic plan is restricted to 10 events. Please upgrade your subscription!");
+      setShowUpgradeModal(true);
+      return;
+    }
+
     setAiScheduling(true);
     setTimeout(() => {
       let calculatedTime = "14:00";
@@ -529,7 +565,7 @@ export default function DashboardPage() {
                       <span className="font-bold uppercase text-cyan-400">
                         {userPlan === "pro" && "PRO ($5)"}
                         {userPlan === "plus" && "PLUS ($8)"}
-                        {userPlan === "free" && "BASIC ($0)"}
+                        {(userPlan === "free" || userPlan === "basic") && "BASIC ($0)"}
                       </span>
                     </div>
                   </div>
@@ -587,9 +623,14 @@ export default function DashboardPage() {
             </div>
 
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-lg"> </span>
-                <h3 className="text-base font-bold text-white">{t.addHabitTitle}</h3>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg"> </span>
+                  <h3 className="text-base font-bold text-white">{t.addHabitTitle}</h3>
+                </div>
+                <span className="text-xs font-bold text-cyan-400">
+                  ({habits.length}/10 {isTr ? "Görev" : "Tasks"})
+                </span>
               </div>
               <form onSubmit={handleAddHabitAl} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <input
@@ -935,7 +976,7 @@ export default function DashboardPage() {
                 <div>
                   <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.membershipHeader}</h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    {t.activePlan}: <span className="text-white font-bold uppercase">{userPlan === 'free' ? 'Basic ($0)' : userPlan}</span>
+                    {t.activePlan}: <span className="text-white font-bold uppercase">{(userPlan === 'free' || userPlan === 'basic') ? 'Basic ($0)' : userPlan}</span>
                   </p>
                 </div>
                 {/* ANNUAL / MONTHLY SWITCH */}
