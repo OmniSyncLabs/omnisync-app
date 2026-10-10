@@ -32,31 +32,31 @@ const PLUS_FEATURES = [
 export function Paywall({ onClose, onSubscribe }: { onClose: () => void; onSubscribe: (plan: Exclude<Plan, 'basic'>) => void }) {
   const [phase, setPhase] = useState<'offer' | 'discount'>('offer')
 
-  const handleSelect = async (plan: 'pro' | 'plus', isDiscounted: boolean = false, isExitDiscount: boolean = false) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Gerçek temel linklerimiz: Pro Aylık ve Plus Aylık
-      let checkoutUrl = plan === 'plus'
-        ? 'https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b'
-        : 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+  const handleSelect = async (plan: 'pro' | 'plus', isExitDiscount = false) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
 
-      // Kupon parametrelerini duruma göre ekliyoruz
-      if (isExitDiscount && plan === 'plus') {
-checkoutUrl += '?discount=SYNCMEGAPLUS50';
-      } else if (isDiscounted) {        
-        checkoutUrl += plan === 'plus' ? '?discount=SYNCPLUS20' : '?discount=SYNCPRO20';
-      }
+    // Güncel Lemon Squeezy checkout linkleri
+    let checkoutUrl = plan === 'plus'
+      ? 'https://omnisync-app.lemonsqueezy.com/checkout/buy/7f451590-e3ce-4226-a070-edd5b097005b'
+      : 'https://omnisync-app.lemonsqueezy.com/checkout/buy/88f2920b-c14e-4e44-aad7-c0b0b8589137';
 
-      if (user) {
-        checkoutUrl += `${checkoutUrl.includes('?') ? '&' : '?'}checkout[email]=${encodeURIComponent(user.email || '')}&checkout[custom][user_id]=${user.id}`;
-      }
-
-      window.location.href = checkoutUrl;
-    } catch (error) {
-      window.location.href = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+    // Kupon kodunu bağlama (?discount=...)
+    if (isExitDiscount) {
+      const couponCode = plan === 'plus' ? 'SYNCPLUS20' : 'SYNCPRO20';
+      checkoutUrl += `?discount=${couponCode}`;
     }
-  };
+
+    // Kullanıcı e-postasını aktarma
+    if (user?.email) {
+      checkoutUrl += `${isExitDiscount ? '&' : '?'}checkout[email]=${encodeURIComponent(user.email)}`;
+    }
+
+    window.location.href = checkoutUrl;
+  } catch (error) {
+    console.error('Checkout hatası:', error);
+  }
+};
 
   return (
     <div
@@ -86,10 +86,10 @@ checkoutUrl += '?discount=SYNCMEGAPLUS50';
             <p className="text-sm text-muted-foreground">More insight. Less friction. Your pace.</p>
           </div>
           <div className="mt-6 flex flex-col gap-4">
-            {/* İlk açılış: Pro 250 TL (%20 indirimli ilk ay -> 200 TL), Plus 400 TL (%20 indirimli ilk ay -> 320 TL) */}
-            <PlanCard plan="pro" price={250} discountedPrice={200} onSelect={(p) => handleSelect(p, true, false)} />
-            <PlanCard plan="plus" price={400} discountedPrice={320} onSelect={(p) => handleSelect(p, true, false)} />
-          </div>
+  {/* İlk açılış: Pro 250 TL (%20 indirimli ilk ay -> 200 TL), Plus 400 TL (%20 indirimli ilk ay -> 320 TL) */}
+  <PlanCard plan="pro" price={250} discountedPrice={200} onSelect={(p) => handleSelect(p, true)} />
+  <PlanCard plan="plus" price={400} discountedPrice={320} onSelect={(p) => handleSelect(p, true)} />
+</div>
           <p className="mt-5 text-center text-xs text-muted-foreground">Cancel anytime. 7-day free trial on Pro & Plus.</p>
         </>
       ) : (
