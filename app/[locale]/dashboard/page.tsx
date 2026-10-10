@@ -316,19 +316,19 @@ export default function DashboardPage() {
   };
 
   // GERÇEK GEMINI AI & LOKAL AKILLI ÇAKIŞMA ÖNLEYİCİ SCHEDULER
+  // GERÇEK GEMINI AI & DAKİKA BAZLI AKILLI ZAMANLAYICI
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
 
     if ((userPlan === "free" || userPlan === "basic") && habits.length >= 10) {
-      alert(isTr ? "Basic ($0) planında en fazla 10 adet etkinlik/rutin ekleyebilirsiniz. Lütfen üyeliğinizi yükseltin!" : "Basic plan is restricted to 10 events. Please upgrade your subscription!");
+      alert(isTr ? "Basic planında en fazla 10 adet etkinlik ekleyebilirsiniz." : "Basic plan limit is 10 events.");
       setShowUpgradeModal(true);
       return;
     }
 
     setAiScheduling(true);
 
-    // Mevcut dolu saatlerin listesini çıkar
     const existingSlots = habits.map(h => `${h.title} (${h.suggestedTime})`).join(", ");
     let finalTimeSlot = "";
 
@@ -337,16 +337,18 @@ export default function DashboardPage() {
     if (apiKey) {
       try {
         const promptText = `
-Sen OmniSync uygulamasının zeki Sirkadiyen Ritim & Takvim Zamanlayıcısısın.
-Kullanıcının mevcut dolu rutin saatleri şunlardır: [${existingSlots}].
-Eklenecek yeni görev: "${newHabitTitle}"
+Sen OmniSync uygulamasının zeki Ritim & Takvim Zamanlayıcısısın.
+Kullanıcının mevcut dolu rutin saatleri: [${existingSlots}].
+Yeni görev: "${newHabitTitle}"
 Kategori: ${newHabitCategory}
-Zihinsel Beyin Yükü Seviyesi: ${newHabitLevel}/5
+Beyin Yükü Seviyesi: ${newHabitLevel}/5
 
-GÖREVİN:
-1. Mevcut dolu saatlerle Kesinlikle ÇAKIŞMAYAN boş bir zaman aralığı bul (Örn: 11:00 - 12:30).
-2. Yüksek beyin yükü olan görevleri (Sev. 4-5) sabah peak saatlerine (08:30 - 12:30), hafif görevleri (Sev. 1-2) öğleden sonra/akşama zamanla.
-3. Yanıt olarak SADECE saat aralığını ver. Örneğin: "11:00 - 12:00" veya "14:30 - 15:30". Başka hiçbir açıklama yazma.
+KRİTİK ZAMANLAMA KURALLARI:
+1. GÖREV SÜRESİNİ DİKKATE AL: Görev adında geçen süreyi oku (Örn: "1.5 saat" ise 90 dakika, "30 dk" ise 30 dakika). Yazmıyorsa varsayılan 1 saat ayarla.
+2. MOLALAR VER: Önceki görevlerin bitiş saatine yapışma! Araya en az 15-30 dakika dinlenme/mola payı koy.
+3. ÇAKIŞMA OLMASIN: Mevcut dolu saatlerle ve molalarla kesinlikle çakışmasın.
+4. BEYİN YÜKÜNE GÖRE YERLEŞTİR: Sev. 4-5 olan ağır işleri sabah (09:00 - 12:30) saatlerine koy.
+5. SADECE SAAT ARALIĞINI YAZ: Örnek format: "14:00 - 15:30" veya "16:00 - 16:45". Başka hiçbir kelime veya açıklama yazma.
         `;
 
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
@@ -363,34 +365,42 @@ GÖREVİN:
           finalTimeSlot = aiResponse;
         }
       } catch (err) {
-        console.error("Gemini API isteği başarısız oldu, yedek akıllı algoritma çalıştırılıyor:", err);
+        console.error("Gemini API hatası:", err);
       }
     }
 
-    // Yedek Algoritma (API olmasa veya kısıtlansa bile saatleri çakıştırmaz)
+    // YEDEK AKILLI DAKİKA ALGORİTMASI (API olmasa bile çakıştırmaz ve 15 dk mola koyar)
     if (!finalTimeSlot) {
-      const occupiedHours = new Set<number>();
-      habits.forEach(h => {
-        const match = h.suggestedTime.match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
-        if (match) {
-          const start = parseInt(match[1], 10);
-          const end = parseInt(match[3], 10);
-          for (let i = start; i < end; i++) occupiedHours.add(i);
-        }
-      });
+      let durationMinutes = 60;
+      if (newHabitTitle.includes("1.5") || newHabitTitle.includes("1,5")) durationMinutes = 90;
+      else if (newHabitTitle.includes("2 saat")) durationMinutes = 120;
+      else if (newHabitTitle.includes("30") || newHabitTitle.includes("yarım")) durationMinutes = 30;
 
-      let startHour = newHabitLevel >= 4 ? 9 : 14;
-      while (occupiedHours.has(startHour) && startHour < 22) {
-        startHour++;
-      }
-      if (startHour >= 22) {
-        startHour = 8;
-        while (occupiedHours.has(startHour) && startHour < 22) startHour++;
+      let startMin = newHabitLevel >= 4 ? 9 * 60 : 14 * 60;
+
+      // Dolu dakikaları tara
+      const isOverlapping = (testStart: number, testEnd: number) => {
+        return habits.some(h => {
+          const match = h.suggestedTime.match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
+          if (!match) return false;
+          const hStart = parseInt(match[1]) * 60 + parseInt(match[2]);
+          const hEnd = parseInt(match[3]) * 60 + parseInt(match[4]);
+          // 15 dakika tampon bölge (mola)
+          return Math.max(testStart, hStart) < Math.min(testEnd, hEnd) + 15;
+        });
+      };
+
+      while (isOverlapping(startMin, startMin + durationMinutes) && startMin < 22 * 60) {
+        startMin += 30; // 30'ar dakikalık aralıklarla boş yer ara
       }
 
-      const endHour = startHour + 1;
-      const formatH = (h: number) => h.toString().padStart(2, "0");
-      finalTimeSlot = `${formatH(startHour)}:00 - ${formatH(endHour)}:00`;
+      const formatTime = (totalMin: number) => {
+        const h = Math.floor(totalMin / 60).toString().padStart(2, "0");
+        const m = (totalMin % 60).toString().padStart(2, "0");
+        return `${h}:${m}`;
+      };
+
+      finalTimeSlot = `${formatTime(startMin)} - ${formatTime(startMin + durationMinutes)}`;
     }
 
     setHabits([
