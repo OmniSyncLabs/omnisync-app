@@ -9,6 +9,7 @@ import { ScheduleScreen } from './schedule-screen'
 import { BiometricsScreen } from './biometrics-screen'
 import { SettingsScreen } from './settings-screen'
 import { supabase } from '@/lib/supabase'
+import type { EventItem } from './omnisync-app'
 
 const TABS = [
   { label: 'Home', icon: Home },
@@ -17,7 +18,25 @@ const TABS = [
   { label: 'Settings', icon: Settings },
 ]
 
-export function MainTabs({ profile, plan, onUpgrade, onLogout }: { profile: Profile; plan: Plan; onUpgrade: () => void; onLogout: () => void }) {
+interface MainTabsProps {
+  profile: Profile
+  plan: Plan
+  events?: EventItem[]
+  onAddEvent?: (newEvent: Omit<EventItem, 'id'>) => boolean
+  onDeleteEvent?: (id: string) => void
+  onUpgrade: () => void
+  onLogout: () => void
+}
+
+export function MainTabs({
+  profile,
+  plan,
+  events,
+  onAddEvent,
+  onDeleteEvent,
+  onUpgrade,
+  onLogout,
+}: MainTabsProps) {
   const trackRef = useRef<HTMLDivElement>(null)
   const pendingTarget = useRef<number | null>(null)
   const [active, setActive] = useState(0)
@@ -25,25 +44,31 @@ export function MainTabs({ profile, plan, onUpgrade, onLogout }: { profile: Prof
   // Doğrudan Lemon Squeezy yönlendirmesi
   const handleDirectUpgrade = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      let checkoutUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      let checkoutUrl = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917'
 
       if (user) {
-        checkoutUrl += `?checkout[email]=${encodeURIComponent(user.email || '')}&checkout[custom][user_id]=${user.id}`;
+        const validEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+        if (user.email && validEmailRegex.test(user.email.trim())) {
+          checkoutUrl += `?checkout[email]=${encodeURIComponent(user.email.trim())}&checkout[custom][user_id]=${user.id}`
+        }
       }
 
-      window.location.href = checkoutUrl;
+      window.location.href = checkoutUrl
     } catch (error) {
-      window.location.href = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
+      window.location.href = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917'
     }
-  };
+  }
 
   function handleScroll() {
     const el = trackRef.current
     if (!el) return
     const index = Math.round(el.scrollLeft / el.clientWidth)
     if (pendingTarget.current !== null) {
-      if (index === pendingTarget.current && Math.abs(el.scrollLeft - index * el.clientWidth) < 2) pendingTarget.current = null
+      if (index === pendingTarget.current && Math.abs(el.scrollLeft - index * el.clientWidth) < 2)
+        pendingTarget.current = null
       return
     }
     setActive(index)
@@ -60,7 +85,7 @@ export function MainTabs({ profile, plan, onUpgrade, onLogout }: { profile: Prof
 
   const screens = [
     <HomeScreen key="home" profile={profile} />,
-    <ScheduleScreen key="schedule" />,
+    <ScheduleScreen key="schedule" userPlan={plan} onOpenPaywall={onUpgrade} />,
     <BiometricsScreen key="bio" plan={plan} onUpgrade={handleDirectUpgrade} />,
     <SettingsScreen key="settings" profile={profile} plan={plan} onUpgrade={handleDirectUpgrade} onLogout={onLogout} />,
   ]
@@ -92,7 +117,11 @@ export function MainTabs({ profile, plan, onUpgrade, onLogout }: { profile: Prof
         ))}
       </div>
 
-      <nav aria-label="Primary" className="absolute inset-x-0 bottom-0 z-20 border-t border-border bg-background/90 px-3 pt-2 backdrop-blur-md" style={{ paddingBottom: 'calc(8px + env(safe-area-inset-bottom))' }}>
+      <nav
+        aria-label="Primary"
+        className="absolute inset-x-0 bottom-0 z-20 border-t border-border bg-background/90 px-3 pt-2 backdrop-blur-md"
+        style={{ paddingBottom: 'calc(8px + env(safe-area-inset-bottom))' }}
+      >
         <ul className="grid grid-cols-4 gap-1">
           {TABS.map(({ label, icon: Icon }, i) => {
             const isActive = active === i
@@ -105,7 +134,7 @@ export function MainTabs({ profile, plan, onUpgrade, onLogout }: { profile: Prof
                   aria-controls={`screen-${i + 1}`}
                   className={cn(
                     'flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl text-[11px] font-medium transition-colors',
-                    isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground',
+                    isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
                   <Icon className="size-5" aria-hidden />
