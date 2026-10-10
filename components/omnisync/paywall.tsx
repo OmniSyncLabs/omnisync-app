@@ -8,6 +8,13 @@ import { supabase } from '@/lib/supabase'
 
 const OFFER_DURATION_MS = 10 * 60 * 1000
 
+// Lemon Squeezy İndirimli Checkout Linkleri
+const CHECKOUT_LINKS = {
+  proLaunch: "https://omnisync-app.lemonsqueezy.com/checkout/buy/c6cc9d6e-a882-4ce2-a28a-32f11ae4bf40?discount=SYNCPRO20",
+  plusLaunch: "https://omnisync-app.lemonsqueezy.com/checkout/buy/80fa1715-5de1-4170-8bc1-8e031ab57627?discount=SYNCPLUS20",
+  plusMega: "https://omnisync-app.lemonsqueezy.com/checkout/buy/9bade3bf-3cfc-4759-9279-879fd1f77d53?discount=SYNCMEGAPLUS50"
+};
+
 const PRO_FEATURES = [
   'Up to 10 auto-scheduled events & calendar sync',
   'Auto DND & Focus Mode Sync (Watch/Phone)',
@@ -36,9 +43,9 @@ export function Paywall({ onClose, onSubscribe }: { onClose: () => void; onSubsc
 
       // Kupon parametrelerini duruma göre ekliyoruz
       if (isExitDiscount && plan === 'plus') {
-        checkoutUrl += '?discount=PLUS50'; // Plus çıkış pop-up %50 indirim kuponu
-      } else if (isDiscounted) {
-        checkoutUrl += plan === 'plus' ? '?discount=PLUS20' : '?discount=PRO20'; // %20 ilk ay indirim kuponları
+checkoutUrl += '?discount=SYNCMEGAPLUS50';
+      } else if (isDiscounted) {        
+        checkoutUrl += plan === 'plus' ? '?discount=SYNCPLUS20' : '?discount=SYNCPRO20';
       }
 
       if (user) {
