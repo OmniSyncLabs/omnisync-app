@@ -8,13 +8,6 @@ import { supabase } from '@/lib/supabase'
 
 const OFFER_DURATION_MS = 10 * 60 * 1000
 
-// Lemon Squeezy İndirimli Checkout Linkleri
-const CHECKOUT_LINKS = {
-  proLaunch: "https://omnisync-app.lemonsqueezy.com/checkout/buy/c6cc9d6e-a882-4ce2-a28a-32f11ae4bf40?discount=SYNCPRO20",
-  plusLaunch: "https://omnisync-app.lemonsqueezy.com/checkout/buy/80fa1715-5de1-4170-8bc1-8e031ab57627?discount=SYNCPLUS20",
-  plusMega: "https://omnisync-app.lemonsqueezy.com/checkout/buy/9bade3bf-3cfc-4759-9279-879fd1f77d53?discount=SYNCMEGAPLUS50"
-};
-
 const PRO_FEATURES = [
   'Up to 10 auto-scheduled events & calendar sync',
   'Auto DND & Focus Mode Sync (Watch/Phone)',
@@ -33,30 +26,40 @@ export function Paywall({ onClose, onSubscribe }: { onClose: () => void; onSubsc
   const [phase, setPhase] = useState<'offer' | 'discount'>('offer')
 
   const handleSelect = async (plan: 'pro' | 'plus', isExitDiscount = false) => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
 
-    // Güncel Lemon Squeezy checkout linkleri
-    let checkoutUrl = plan === 'plus'
-      ? 'https://omnisync-app.lemonsqueezy.com/checkout/buy/7f451590-e3ce-4226-a070-edd5b097005b'
-      : 'https://omnisync-app.lemonsqueezy.com/checkout/buy/88f2920b-c14e-4e44-aad7-c0b0b8589137';
+      // Baz checkout URL'leri
+      const baseUrl = plan === 'plus'
+        ? 'https://omnisync-app.lemonsqueezy.com/checkout/buy/7f451590-e3ce-4226-a070-edd5b097005b'
+        : 'https://omnisync-app.lemonsqueezy.com/checkout/buy/88f2920b-c14e-4e44-aad7-c0b0b8589137';
 
-    // Kupon kodunu bağlama (?discount=...)
-    if (isExitDiscount) {
-      const couponCode = plan === 'plus' ? 'SYNCPLUS20' : 'SYNCPRO20';
-      checkoutUrl += `?discount=${couponCode}`;
+      const url = new URL(baseUrl);
+
+      // İndirim kuponu ekleme mantığı
+      if (isExitDiscount) {
+        // Çıkış teklifinde Plus için %50 kuponu, normal ilk açılış tekliflerinde %20 kuponları
+        const couponCode = plan === 'plus' ? 'SYNCMEGAPLUS50' : 'SYNCPRO20';
+        url.searchParams.set('discount', couponCode);
+      } else {
+        const couponCode = plan === 'plus' ? 'SYNCPLUS20' : 'SYNCPRO20';
+        url.searchParams.set('discount', couponCode);
+      }
+
+      // Kullanıcı e-postasını Lemon Squeezy ödeme ekranına aktarma
+      if (user?.email) {
+        url.searchParams.set('checkout[email]', user.email);
+      }
+
+      if (onSubscribe) {
+        onSubscribe(plan);
+      }
+
+      window.location.href = url.toString();
+    } catch (error) {
+      console.error('Checkout hatası:', error);
     }
-
-    // Kullanıcı e-postasını aktarma
-    if (user?.email) {
-      checkoutUrl += `${isExitDiscount ? '&' : '?'}checkout[email]=${encodeURIComponent(user.email)}`;
-    }
-
-    window.location.href = checkoutUrl;
-  } catch (error) {
-    console.error('Checkout hatası:', error);
-  }
-};
+  };
 
   return (
     <div
@@ -86,10 +89,10 @@ export function Paywall({ onClose, onSubscribe }: { onClose: () => void; onSubsc
             <p className="text-sm text-muted-foreground">More insight. Less friction. Your pace.</p>
           </div>
           <div className="mt-6 flex flex-col gap-4">
-  {/* İlk açılış: Pro 250 TL (%20 indirimli ilk ay -> 200 TL), Plus 400 TL (%20 indirimli ilk ay -> 320 TL) */}
-  <PlanCard plan="pro" price={250} discountedPrice={200} onSelect={(p) => handleSelect(p, true)} />
-  <PlanCard plan="plus" price={400} discountedPrice={320} onSelect={(p) => handleSelect(p, true)} />
-</div>
+            {/* İlk açılış: Pro 250 TL (%20 indirimli ilk ay -> 200 TL), Plus 400 TL (%20 indirimli ilk ay -> 320 TL) */}
+            <PlanCard plan="pro" price={250} discountedPrice={200} onSelect={(p) => handleSelect(p, false)} />
+            <PlanCard plan="plus" price={400} discountedPrice={320} onSelect={(p) => handleSelect(p, false)} />
+          </div>
           <p className="mt-5 text-center text-xs text-muted-foreground">Cancel anytime. 7-day free trial on Pro & Plus.</p>
         </>
       ) : (
@@ -99,7 +102,7 @@ export function Paywall({ onClose, onSubscribe }: { onClose: () => void; onSubsc
   )
 }
 
-function DiscountOffer({ onSelect, onClose }: { onSelect: (plan: 'pro' | 'plus', discounted: boolean, isExit: boolean) => void; onClose: () => void }) {
+function DiscountOffer({ onSelect, onClose }: { onSelect: (plan: 'pro' | 'plus', isExitDiscount?: boolean) => void; onClose: () => void }) {
   const [deadline] = useState(() => Date.now() + OFFER_DURATION_MS)
   const [now, setNow] = useState(() => Date.now())
 
@@ -141,8 +144,8 @@ function DiscountOffer({ onSelect, onClose }: { onSelect: (plan: 'pro' | 'plus',
 
       <div className="mt-6 flex flex-col gap-4">
         {/* Çıkış Pop-up: Pro 250 TL, Plus 400 TL iken Plus plana özel %50 indirim -> 200 TL */}
-        <PlanCard plan="pro" price={250} onSelect={(p) => onSelect(p, false, false)} />
-        <PlanCard plan="plus" price={400} discountedPrice={200} isExitOffer={!expired} onSelect={(p) => onSelect(p, false, !expired)} />
+        <PlanCard plan="pro" price={250} onSelect={(p) => onSelect(p, false)} />
+        <PlanCard plan="plus" price={400} discountedPrice={200} isExitOffer={!expired} onSelect={(p) => onSelect(p, !expired)} />
       </div>
       <button type="button" onClick={onClose} className="mx-auto mt-5 block text-sm text-muted-foreground underline-offset-4 hover:underline cursor-pointer">
         No thanks, continue with Basic
