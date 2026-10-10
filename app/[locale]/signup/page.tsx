@@ -17,6 +17,7 @@ const ALLOWED_DOMAINS = [
   "live.com",
   "yandex.com",
   "gmx.com",
+  "yopmail.com", // Test için eklendi
 ];
 
 export default function SignupPage() {
