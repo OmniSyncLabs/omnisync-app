@@ -178,7 +178,7 @@ export default function SignupPage() {
     }
   };
 
-  // LEMON SQUEEZY KUPONLU ÖDEME YÖNLENDİRMESİ
+  // LEMON SQUEEZY KUPONLU ÖDEME YÖNLENDİRMESİ (422 HATASIZ)
   const handleSelectPlan = async (selectedPlan: "free" | "pro" | "plus" | "plus_50") => {
     const { data: { user } } = await supabase.auth.getUser();
     const userEmailToUse = user?.email || email;
@@ -213,13 +213,18 @@ export default function SignupPage() {
       discountCode = "SYNCPRO20";
     }
 
-    const queryParams = new URLSearchParams();
-    if (userEmailToUse) queryParams.append("checkout[email]", userEmailToUse);
-    if (discountCode) queryParams.append("discount", discountCode);
+    // Lemon Squeezy'nin beklediği ham URL parametre dizilimi
+    const queryParts: string[] = [];
+    if (userEmailToUse) {
+      queryParts.push(`checkout[email]=${encodeURIComponent(userEmailToUse)}`);
+    }
+    if (discountCode) {
+      queryParts.push(`discount=${discountCode}`);
+    }
 
-    window.location.href = `${checkoutUrl}?${queryParams.toString()}`;
+    const finalUrl = queryParts.length > 0 ? `${checkoutUrl}?${queryParts.join("&")}` : checkoutUrl;
+    window.location.href = finalUrl;
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-4 relative overflow-hidden">
       <div className="w-full max-w-lg bg-slate-900/90 backdrop-blur border border-slate-800 rounded-2xl p-8 shadow-2xl z-10">
