@@ -292,6 +292,10 @@ export default function DashboardPage() {
     );
   };
 
+  const deleteHabit = (id: number) => {
+    setHabits(habits.filter((h) => h.id !== id));
+  };
+
   // 10 EVENT KONTROLÜ + AI SCHEDULER
   const handleAddHabitAl = (e: React.FormEvent) => {
     e.preventDefault();
@@ -530,14 +534,17 @@ export default function DashboardPage() {
                   {habits.map((habit) => (
                     <div
                       key={habit.id}
-                      onClick={() => toggleHabit(habit.id)}
-                      className={`p-4 rounded-xl border transition cursor-pointer flex items-center justify-between ${habit.completed ? "bg-slate-950/60 border-emerald-500/30 text-slate-400 line-through" : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-200"}`}
+                      className={`p-4 rounded-xl border transition flex items-center justify-between ${habit.completed ? "bg-slate-950/60 border-emerald-500/30 text-slate-400 line-through" : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-200"}`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold border ${habit.completed ? "bg-emerald-500 border-emerald-400 text-slate-950" : "border-slate-700 bg-slate-900 text-transparent"}`}>
+                      <div 
+                        onClick={() => toggleHabit(habit.id)}
+                        className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
+                      >
+                        <div className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold border shrink-0 ${habit.completed ? "bg-emerald-500 border-emerald-400 text-slate-950" : "border-slate-700 bg-slate-900 text-transparent"}`}>
+                          ✓
                         </div>
-                        <div>
-                          <div className="text-xs font-semibold">{habit.title}</div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-semibold truncate">{habit.title}</div>
                           <div className="flex flex-wrap gap-2 mt-1">
                             <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded">
                               {habit.category}
@@ -551,7 +558,20 @@ export default function DashboardPage() {
                           </div>
                         </div>
                       </div>
-                      <div className="text-xs font-bold text-amber-400"> {habit.streak} {t.days}</div>
+                      <div className="flex items-center gap-3 shrink-0 ml-2">
+                        <div className="text-xs font-bold text-amber-400">{habit.streak} {t.days}</div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteHabit(habit.id);
+                          }}
+                          title="Rutini Sil"
+                          className="text-slate-500 hover:text-red-400 p-1 rounded-lg hover:bg-red-500/10 transition cursor-pointer"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -672,6 +692,34 @@ export default function DashboardPage() {
                   {aiScheduling ? <span>{t.addingAl}</span> : <span>{t.addHabitBtn}</span>}
                 </button>
               </form>
+            </div>
+
+            {/* MEVCUT RUTİNLERİ YÖNETME LİSTESİ */}
+            <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
+              <h3 className="text-base font-bold text-white">{isTr ? "Aktif Rutinleriniz" : "Your Active Routines"}</h3>
+              <div className="space-y-3">
+                {habits.map((habit) => (
+                  <div
+                    key={habit.id}
+                    className="p-4 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-semibold text-slate-200">{habit.title}</div>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded">{habit.category}</span>
+                        <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-mono">{habit.suggestedTime}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => deleteHabit(habit.id)}
+                      className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold rounded-lg text-xs transition cursor-pointer"
+                    >
+                      {isTr ? "Sil" : "Delete"}
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
