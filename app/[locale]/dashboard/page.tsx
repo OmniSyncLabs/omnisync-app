@@ -30,7 +30,7 @@ export default function DashboardPage() {
     days: isTr ? "Gün" : "Days",
     addHabitTitle: isTr ? "Yapay Zeka ile Otomatik Zamanlanan Görev Ekle" : "Add Task Auto-Scheduled by AI",
     addHabitBtn: isTr ? "Yapay Zeka ile Otomatik Ekle" : "Add with AI Scheduler",
-    addingAl: isTr ? "Yapay Zeka Günün En İideal Saatine Yerleştiriyor..." : "AI is Scheduling to Peak Focus Hours...",
+    addingAl: isTr ? "Gemini AI Çakışmasız Saat Analizi Yapıyor..." : "Gemini AI is Calculating Non-Overlapping Slot...",
     taskTitlePlaceholder: isTr ? "Görev Adı (Örn: 1.5 Saat Fizik Denemesi Çöz)" : "Task Title (e.g. 1.5h Physics Exam)",
     category: isTr ? "Kategori" : "Category",
     productivity: isTr ? "Verimlilik" : "Productivity",
@@ -128,8 +128,6 @@ export default function DashboardPage() {
   const [userGoal, setUserGoal] = useState<string>("");
   const [userAvatar, setUserAvatar] = useState<string>(""); 
   const [loading, setLoading] = useState<boolean>(true);
-  const [editName, setEditName] = useState<string>("");
-  const [editEmail, setEditEmail] = useState<string>("");
   const [updateMsg, setUpdateMsg] = useState<string>("");
   const [isAnnual, setIsAnnual] = useState<boolean>(false);
 
@@ -143,15 +141,15 @@ export default function DashboardPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<"overview" | "habits" | "analytics" | "group" | "settings">("overview");
   const [focusLevel, setFocusLevel] = useState<number>(3);
-  const [hrvScore, setHrvScore] = useState<number>(68);
+  const [hrvScore] = useState<number>(68);
   const [tipIndex, setTipIndex] = useState<number>(0);
 
   // INITIAL HABITS DEFAULTS
   const defaultHabits = [
-    { id: 1, title: isTr ? "Hafif Yürüyüş & Esneme" : "Light Walk & Stretch", category: isTr ? "Spor" : "Sports", level: 2, suggestedTime: "17:00", completed: true, streak: 12 },
-    { id: 2, title: isTr ? "1.5 Saat Deneme Sınavı Çözümü" : "1.5h Practice Exam", category: isTr ? "Verimlilik" : "Productivity", level: 5, suggestedTime: "09:00 - Peak Focus Hours", completed: false, streak: 5 },
-    { id: 3, title: isTr ? "Günlük Ritim / Plan İncelemesi" : "Daily Rhythm Review", category: isTr ? "Düzen" : "Order", level: 3, suggestedTime: "21:30", completed: false, streak: 8 },
-    { id: 4, title: isTr ? "30 Dakika Kitap Okuma" : "30m Book Reading", category: isTr ? "Kişisel" : "Personal", level: 3, suggestedTime: "22:00", completed: true, streak: 15 },
+    { id: 1, title: isTr ? "Hafif Yürüyüş & Esneme" : "Light Walk & Stretch", category: isTr ? "Spor" : "Sports", level: 2, suggestedTime: "17:00 - 17:45", completed: true, streak: 12 },
+    { id: 2, title: isTr ? "1.5 Saat Deneme Sınavı Çözümü" : "1.5h Practice Exam", category: isTr ? "Verimlilik" : "Productivity", level: 5, suggestedTime: "09:00 - 10:30", completed: false, streak: 5 },
+    { id: 3, title: isTr ? "Günlük Ritim / Plan İncelemesi" : "Daily Rhythm Review", category: isTr ? "Düzen" : "Order", level: 3, suggestedTime: "21:30 - 22:00", completed: false, streak: 8 },
+    { id: 4, title: isTr ? "30 Dakika Kitap Okuma" : "30m Book Reading", category: isTr ? "Kişisel" : "Personal", level: 3, suggestedTime: "22:00 - 22:30", completed: true, streak: 15 },
   ];
 
   const [habits, setHabits] = useState(defaultHabits);
@@ -210,8 +208,6 @@ export default function DashboardPage() {
         setUserPlan(plan);
         setUserGoal(goal);
         setUserAvatar(avatar);
-        setEditName(name);
-        setEditEmail(email);
       } else {
         const savedName = localStorage.getItem("omni_user_name") || "Kullanıcı";
         const savedEmail = localStorage.getItem("omni_user_email") || "demo@example.com";
@@ -221,8 +217,6 @@ export default function DashboardPage() {
         setUserEmail(savedEmail);
         setUserPlan(savedPlan);
         setUserAvatar(savedAvatar);
-        setEditName(savedName);
-        setEditEmail(savedEmail);
       }
       setLoading(false);
     };
@@ -321,8 +315,8 @@ export default function DashboardPage() {
     setTipIndex((prev) => (prev + 1) % currentTips.length);
   };
 
-  // 10 EVENT KONTROLÜ + AI SCHEDULER
-  const handleAddHabitAl = (e: React.FormEvent) => {
+  // GERÇEK GEMINI AI & LOKAL AKILLI ÇAKIŞMA ÖNLEYİCİ SCHEDULER
+  const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
 
@@ -333,26 +327,87 @@ export default function DashboardPage() {
     }
 
     setAiScheduling(true);
-    setTimeout(() => {
-      let calculatedTime = "14:00";
-      if (newHabitLevel >= 4) {
-        calculatedTime = "09:00 - Peak Focus Hours";
-      }
-      setHabits([
-        ...habits,
-        {
-          id: Date.now(),
-          title: newHabitTitle,
-          category: newHabitCategory,
-          level: newHabitLevel,
-          suggestedTime: calculatedTime,
-          completed: false,
-          streak: 1,
+
+    // Mevcut dolu saatlerin listesini çıkar
+    const existingSlots = habits.map(h => `${h.title} (${h.suggestedTime})`).join(", ");
+    let finalTimeSlot = "";
+
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+
+    if (apiKey) {
+      try {
+        const promptText = `
+Sen OmniSync uygulamasının zeki Sirkadiyen Ritim & Takvim Zamanlayıcısısın.
+Kullanıcının mevcut dolu rutin saatleri şunlardır: [${existingSlots}].
+Eklenecek yeni görev: "${newHabitTitle}"
+Kategori: ${newHabitCategory}
+Zihinsel Beyin Yükü Seviyesi: ${newHabitLevel}/5
+
+GÖREVİN:
+1. Mevcut dolu saatlerle Kesinlikle ÇAKIŞMAYAN boş bir zaman aralığı bul (Örn: 11:00 - 12:30).
+2. Yüksek beyin yükü olan görevleri (Sev. 4-5) sabah peak saatlerine (08:30 - 12:30), hafif görevleri (Sev. 1-2) öğleden sonra/akşama zamanla.
+3. Yanıt olarak SADECE saat aralığını ver. Örneğin: "11:00 - 12:00" veya "14:30 - 15:30". Başka hiçbir açıklama yazma.
+        `;
+
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }]
+          })
+        });
+
+        const data = await res.json();
+        const aiResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (aiResponse && aiResponse.includes("-")) {
+          finalTimeSlot = aiResponse;
         }
-      ]);
-      setNewHabitTitle("");
-      setAiScheduling(false);
-    }, 600);
+      } catch (err) {
+        console.error("Gemini API isteği başarısız oldu, yedek akıllı algoritma çalıştırılıyor:", err);
+      }
+    }
+
+    // Yedek Algoritma (API olmasa veya kısıtlansa bile saatleri çakıştırmaz)
+    if (!finalTimeSlot) {
+      const occupiedHours = new Set<number>();
+      habits.forEach(h => {
+        const match = h.suggestedTime.match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
+        if (match) {
+          const start = parseInt(match[1], 10);
+          const end = parseInt(match[3], 10);
+          for (let i = start; i < end; i++) occupiedHours.add(i);
+        }
+      });
+
+      let startHour = newHabitLevel >= 4 ? 9 : 14;
+      while (occupiedHours.has(startHour) && startHour < 22) {
+        startHour++;
+      }
+      if (startHour >= 22) {
+        startHour = 8;
+        while (occupiedHours.has(startHour) && startHour < 22) startHour++;
+      }
+
+      const endHour = startHour + 1;
+      const formatH = (h: number) => h.toString().padStart(2, "0");
+      finalTimeSlot = `${formatH(startHour)}:00 - ${formatH(endHour)}:00`;
+    }
+
+    setHabits([
+      ...habits,
+      {
+        id: Date.now(),
+        title: newHabitTitle,
+        category: newHabitCategory,
+        level: newHabitLevel,
+        suggestedTime: finalTimeSlot,
+        completed: false,
+        streak: 1,
+      }
+    ]);
+
+    setNewHabitTitle("");
+    setAiScheduling(false);
   };
 
   if (loading) {
@@ -576,8 +631,8 @@ export default function DashboardPage() {
                             <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 font-bold">
                               Beyin Yükü: Sev. {habit.level}
                             </span>
-                            <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-mono">
-                              {habit.suggestedTime}
+                            <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-mono font-bold">
+                              Saat: {habit.suggestedTime}
                             </span>
                           </div>
                         </div>
@@ -683,6 +738,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* FORM: GERÇEK AI ZAMANLAMA */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -745,7 +801,8 @@ export default function DashboardPage() {
                       <div className="text-xs font-semibold text-slate-200">{habit.title}</div>
                       <div className="flex flex-wrap gap-2 mt-1">
                         <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded">{habit.category}</span>
-                        <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-mono">{habit.suggestedTime}</span>
+                        <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded font-bold">Beyin Yükü: Sev. {habit.level}</span>
+                        <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-mono font-bold">Saat: {habit.suggestedTime}</span>
                       </div>
                     </div>
                     <button
