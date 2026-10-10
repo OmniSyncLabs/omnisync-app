@@ -277,7 +277,10 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    localStorage.clear();
+    localStorage.removeItem("omni_user_name");
+    localStorage.removeItem("omni_user_email");
+    localStorage.removeItem("omni_user_avatar");
+    localStorage.removeItem("omni_user_plan");
     router.push(`/${locale}`);
   };
 
