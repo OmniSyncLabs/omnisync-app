@@ -178,7 +178,7 @@ export default function SignupPage() {
     }
   };
 
- // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (VARYANT LINKLERI - 422 SIFIR RISKI)
+ /// LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (DOĞRULANMIŞ VARYANT LINKLERI)
   const handleSelectPlan = async (selectedPlan: "free" | "pro" | "plus" | "plus_50") => {
     if (selectedPlan === "free") {
       try {
@@ -199,13 +199,13 @@ export default function SignupPage() {
     let checkoutUrl = "";
 
     if (selectedPlan === "plus") {
-      // %20 İndirimli Plus Varyantı
+      // Plus %20 İndirimli Varyant
       checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b?enabled=2223990";
     } else if (selectedPlan === "plus_50") {
-      // %50 İndirimli Plus Varyantı
-      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/a605ee0e-a41b-45a3-9d1e-45162f2fcd9d?enabled=2233663";
+      // Plus %50 İndirimli Varyant (Ana Ürün ID'si + Varyant ID)
+      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b?enabled=2233663";
     } else if (selectedPlan === "pro") {
-      // %20 İndirimli Pro Varyantı
+      // Pro %20 İndirimli Varyant
       checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/5a3777a4-62ec-4ed0-8109-caf98615ff42?enabled=2233666";
     }
 
