@@ -178,11 +178,8 @@ export default function SignupPage() {
     }
   };
 
- // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (GARANTİLİ ÇÖZÜM)
+ // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (TAMAMEN HATASIZ)
   const handleSelectPlan = async (selectedPlan: "free" | "pro" | "plus" | "plus_50") => {
-    const { data: { user } } = await supabase.auth.getUser();
-    const userEmailToUse = user?.email || email;
-
     if (selectedPlan === "free") {
       try {
         await supabase.auth.updateUser({
@@ -200,29 +197,14 @@ export default function SignupPage() {
     }
 
     let checkoutUrl = "";
-    let discountCode = "";
 
-    if (selectedPlan === "plus") {
+    if (selectedPlan === "plus" || selectedPlan === "plus_50") {
       checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b";
-      discountCode = "SYNCPLUS20";
-    } else if (selectedPlan === "plus_50") {
-      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b";
-      discountCode = "SYNCMEGAPLUS50";
     } else if (selectedPlan === "pro") {
       checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917";
-      discountCode = "SYNCPRO20";
     }
 
-    // Lemon Squeezy'nin hem discount hem de checkout[discount_code] destekleyen yapısı
-    const queryParts: string[] = [];
-    if (discountCode) {
-      queryParts.push(`discount=${discountCode}`);
-    }
-    if (userEmailToUse) {
-      queryParts.push(`checkout[email]=${encodeURIComponent(userEmailToUse)}`);
-    }
-
-    window.location.href = `${checkoutUrl}?${queryParts.join("&")}`;
+    window.location.href = checkoutUrl;
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-4 relative overflow-hidden">
