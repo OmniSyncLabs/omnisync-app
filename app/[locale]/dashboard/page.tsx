@@ -86,7 +86,7 @@ export default function DashboardPage() {
     proF4: isTr ? "Tükenmişlik Erken Uyarı Sistemi (3 günlük HRV)" : "Burnout Early Warning System (3-day HRV)",
     proF5: isTr ? "Sınırsız Pro AI Danışmanı" : "Unlimited Pro AI Advisor",
     proF6: isTr ? "Çoklu cihaz eşitleme (2+ cihaz)" : "Multi-device sync (2+ devices)",
-    plusF1: isTr ? "100 etkinliğe kadar / sınırsız güç görevleri" : "Up to 100 events / unlimited power tasks",
+    plusF1: isTr ? "25 etkinliğe kadar / sınırsız güç görevleri" : "Up to 25 events / unlimited power tasks",
     plusF2: isTr ? "Bio-Sync Partner Eşleşmesi" : "Bio-Sync Partner Matching",
     plusF3: isTr ? "Social Party Odak Odaları & Canlı Rutin Eşitleme" : "Social Party Focus Rooms & Live Routine Sync",
     plusF4: isTr ? "Öncelikli Sesli AI Danışmanı" : "Priority Voice Chat AI Consultant",
@@ -144,6 +144,11 @@ export default function DashboardPage() {
   const [hrvScore] = useState<number>(68);
   const [tipIndex, setTipIndex] = useState<number>(0);
 
+  // MANUEL OKUL/İŞ BLOKLARI İÇİN FORM STATE'LERİ
+  const [manualTitle, setManualTitle] = useState("");
+  const [manualStart, setManualStart] = useState("08:00");
+  const [manualEnd, setManualEnd] = useState("15:20");
+
   // ADMIN MODAL STATE'LERİ
   const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
   const [adminPassword, setAdminPassword] = useState<string>("");
@@ -152,6 +157,13 @@ export default function DashboardPage() {
   const [adminLoading, setAdminLoading] = useState<boolean>(false);
 
   const ADMIN_SECRET = "omni2026admin";
+
+  // YENİ PLAN LİMİTLERİ (BASIC: 4, PRO: 10, PLUS: 25)
+  const getPlanLimit = (plan: string) => {
+    if (plan === "pro") return 10;
+    if (plan === "plus") return 25;
+    return 4; // free / basic
+  };
 
   const handleAdminBypass = async () => {
     if (adminPassword !== ADMIN_SECRET) {
@@ -188,10 +200,11 @@ export default function DashboardPage() {
 
   // INITIAL HABITS DEFAULTS
   const defaultHabits = [
-    { id: 1, title: isTr ? "Hafif Yürüyüş & Esneme" : "Light Walk & Stretch", category: isTr ? "Spor" : "Sports", level: 2, suggestedTime: "17:00 - 17:45", completed: true, streak: 12 },
-    { id: 2, title: isTr ? "1.5 Saat Deneme Sınavı Çözümü" : "1.5h Practice Exam", category: isTr ? "Verimlilik" : "Productivity", level: 5, suggestedTime: "09:00 - 10:30", completed: false, streak: 5 },
-    { id: 3, title: isTr ? "Günlük Ritim / Plan İncelemesi" : "Daily Rhythm Review", category: isTr ? "Düzen" : "Order", level: 3, suggestedTime: "21:30 - 22:00", completed: false, streak: 8 },
-    { id: 4, title: isTr ? "30 Dakika Kitap Okuma" : "30m Book Reading", category: isTr ? "Kişisel" : "Personal", level: 3, suggestedTime: "22:00 - 22:30", completed: true, streak: 15 },
+    { id: 101, title: isTr ? "Okul / Dershane Zamanı" : "School / Class", category: isTr ? "Düzen" : "Order", level: 3, suggestedTime: "08:00 - 15:20", completed: false, streak: 1, isManual: true },
+    { id: 1, title: isTr ? "Hafif Yürüyüş & Esneme" : "Light Walk & Stretch", category: isTr ? "Spor" : "Sports", level: 2, suggestedTime: "17:00 - 17:45", completed: true, streak: 12, isManual: false },
+    { id: 2, title: isTr ? "1.5 Saat Deneme Sınavı Çözümü" : "1.5h Practice Exam", category: isTr ? "Verimlilik" : "Productivity", level: 5, suggestedTime: "18:30 - 20:00", completed: false, streak: 5, isManual: false },
+    { id: 3, title: isTr ? "Günlük Ritim / Plan İncelemesi" : "Daily Rhythm Review", category: isTr ? "Düzen" : "Order", level: 3, suggestedTime: "21:30 - 22:00", completed: false, streak: 8, isManual: false },
+    { id: 4, title: isTr ? "30 Dakika Kitap Okuma" : "30m Book Reading", category: isTr ? "Kişisel" : "Personal", level: 3, suggestedTime: "22:00 - 22:30", completed: true, streak: 15, isManual: false },
   ];
 
   const [habits, setHabits] = useState(defaultHabits);
@@ -357,13 +370,48 @@ export default function DashboardPage() {
     setTipIndex((prev) => (prev + 1) % currentTips.length);
   };
 
+  // MANUEL OKUL/İŞ BLOKU EKLEME (RUTİN LİMİTİNE DAHİL)
+  const handleAddManualBlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualTitle.trim()) return;
+
+    const maxAllowed = getPlanLimit(userPlan);
+    if (habits.length >= maxAllowed) {
+      alert(isTr 
+        ? `${userPlan.toUpperCase()} planında en fazla ${maxAllowed} adet rutin ekleyebilirsiniz.` 
+        : `Maximum ${maxAllowed} routines allowed for ${userPlan.toUpperCase()} plan.`);
+      setShowUpgradeModal(true);
+      return;
+    }
+
+    setHabits([
+      ...habits,
+      {
+        id: Date.now(),
+        title: manualTitle,
+        category: isTr ? "Sabit Blok" : "Fixed Block",
+        level: 3,
+        suggestedTime: `${manualStart} - ${manualEnd}`,
+        completed: false,
+        streak: 1,
+        isManual: true,
+      }
+    ]);
+
+    setManualTitle("");
+  };
+
   // GERÇEK GEMINI AI & DAKİKA BAZLI AKILLI ZAMANLAYICI
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
 
-    if ((userPlan === "free" || userPlan === "basic") && habits.length >= 10) {
-      alert(isTr ? "Basic planında en fazla 10 adet etkinlik ekleyebilirsiniz." : "Basic plan limit is 10 events.");
+    // PLAN RUTİN LİMİTİ KONTROLÜ (BASIC: 4, PRO: 10, PLUS: 25)
+    const maxAllowed = getPlanLimit(userPlan);
+    if (habits.length >= maxAllowed) {
+      alert(isTr 
+        ? `${userPlan.toUpperCase()} planında en fazla ${maxAllowed} adet rutin ekleyebilirsiniz.` 
+        : `Maximum ${maxAllowed} routines allowed for ${userPlan.toUpperCase()} plan.`);
       setShowUpgradeModal(true);
       return;
     }
@@ -417,7 +465,7 @@ KRİTİK ZAMANLAMA KURALLARI:
       else if (newHabitTitle.includes("2 saat")) durationMinutes = 120;
       else if (newHabitTitle.includes("30") || newHabitTitle.includes("yarım")) durationMinutes = 30;
 
-      let startMin = newHabitLevel >= 4 ? 9 * 60 : 14 * 60;
+      let startMin = newHabitLevel >= 4 ? 9 * 60 : 16 * 60;
 
       // Dolu dakikaları tara
       const isOverlapping = (testStart: number, testEnd: number) => {
@@ -454,6 +502,7 @@ KRİTİK ZAMANLAMA KURALLARI:
         suggestedTime: finalTimeSlot,
         completed: false,
         streak: 1,
+        isManual: false,
       }
     ]);
 
@@ -478,6 +527,12 @@ KRİTİK ZAMANLAMA KURALLARI:
     { day: isTr ? "Cmt" : "Sat", score: "7/10", x: 400, y: 65 },
     { day: isTr ? "Paz" : "Sun", score: "8/10", x: 480, y: 50 },
   ];
+
+  // SAATLİK TABLO İÇİN DİLİM LİSTESİ (08:00 - 23:00)
+  const timeSlots = Array.from({ length: 16 }, (_, i) => {
+    const hour = (8 + i).toString().padStart(2, "0");
+    return `${hour}:00`;
+  });
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row font-sans relative">
@@ -586,15 +641,15 @@ KRİTİK ZAMANLAMA KURALLARI:
           >
             {userPlan === "plus" ? (
               <span className="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-full shadow-lg shadow-purple-500/20 flex items-center gap-1.5 border border-purple-400/30">
-                <span></span> Plus Member
+                <span></span> Plus Member ({habits.length}/{getPlanLimit(userPlan)})
               </span>
             ) : userPlan === "pro" ? (
               <span className="px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 font-bold text-xs rounded-full shadow-lg shadow-cyan-500/10 flex items-center gap-1.5">
-                <span> 4 </span> Pro Member
+                <span> 4 </span> Pro Member ({habits.length}/{getPlanLimit(userPlan)})
               </span>
             ) : (
               <span className="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-400 font-medium text-xs rounded-full flex items-center gap-1">
-                <span></span> Basic ($0)
+                <span></span> Basic ($0) ({habits.length}/{getPlanLimit(userPlan)})
               </span>
             )}
           </button>
@@ -649,6 +704,90 @@ KRİTİK ZAMANLAMA KURALLARI:
               </div>
             </div>
 
+            {/* GENEL BAKIŞ SAAT TABLOSU (KÂĞITTAKİ 2. & 3. MADDELER) */}
+            <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    📊 Günlük Saatlik Ritim Çizelgesi
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {isTr ? "Manuel eklenen sabit bloklarınız ve Alışkanlıklar sekmesindeki planlarınız buraya yerleştirilir." : "Fixed blocks and scheduled habits mapped into hourly slots."}
+                  </p>
+                </div>
+                <div className="text-xs font-bold text-cyan-400 bg-cyan-500/10 px-3 py-1.5 rounded-xl border border-cyan-500/20">
+                  {isTr ? `Kullanılan Limit: ${habits.length}/${getPlanLimit(userPlan)}` : `Used Limit: ${habits.length}/${getPlanLimit(userPlan)}`}
+                </div>
+              </div>
+
+              {/* SAAT/PLAN MATRİS TABLOSU */}
+              <div className="border border-slate-800 rounded-xl overflow-hidden bg-slate-950">
+                <div className="grid grid-cols-4 sm:grid-cols-8 border-b border-slate-800 bg-slate-900/90 text-[11px] font-bold text-cyan-400 text-center py-2.5">
+                  <span className="border-r border-slate-800">Saatler</span>
+                  <span className="col-span-3 sm:col-span-7">Planlar & Aktiviteler</span>
+                </div>
+                <div className="divide-y divide-slate-800/60 max-h-96 overflow-y-auto">
+                  {timeSlots.map((slot) => {
+                    const currentHour = parseInt(slot.split(":")[0]);
+                    const matchingHabits = habits.filter((h) => {
+                      const match = h.suggestedTime.match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
+                      if (!match) return false;
+                      const startH = parseInt(match[1]);
+                      const endH = parseInt(match[3]);
+                      return currentHour >= startH && currentHour < endH;
+                    });
+
+                    return (
+                      <div key={slot} className="grid grid-cols-4 sm:grid-cols-8 text-xs py-2 px-3 items-center hover:bg-slate-900/40 transition">
+                        <span className="font-mono text-slate-400 text-[11px] border-r border-slate-800/80 pr-2">{slot}</span>
+                        <div className="col-span-3 sm:col-span-7 pl-3">
+                          {matchingHabits.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {matchingHabits.map((h) => (
+                                <div key={h.id} className="flex items-center justify-between bg-slate-900 px-3 py-1 rounded-lg border border-slate-800 text-[11px]">
+                                  <span className={`font-semibold ${h.isManual ? "text-amber-300" : "text-cyan-300"}`}>
+                                    {h.isManual ? "📌 " : "⚡ "} {h.title}
+                                  </span>
+                                  <span className="text-[10px] font-mono text-slate-400 bg-slate-950 px-2 py-0.5 rounded ml-2">
+                                    {h.suggestedTime}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-slate-600 italic text-[11px]">{isTr ? "— Boş Saat Dilimi —" : "— Empty Slot —"}</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* MANUEL SABİT BLOK EKLEME FORMU (OKUL / DERSHANE) */}
+            <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
+              <h3 className="text-sm font-bold text-amber-400 mb-1">🏫 Manuel Sabit Saat Ekle (Okul / İş / Dershane)</h3>
+              <p className="text-xs text-slate-400 mb-4">Örneğin 08:00 - 15:20 arası okul saatini manuel doldurun. Bu bloklar da rutin sınırına dahil edilir.</p>
+              <form onSubmit={handleAddManualBlock} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <input
+                  type="text"
+                  placeholder="Etkinlik Adı (Örn: Okul / Dershane)"
+                  value={manualTitle}
+                  onChange={(e) => setManualTitle(e.target.value)}
+                  className="sm:col-span-2 px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition"
+                />
+                <div className="flex items-center gap-1">
+                  <input type="text" value={manualStart} onChange={(e) => setManualStart(e.target.value)} className="w-full text-center py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-400 font-mono focus:outline-none focus:border-amber-500" />
+                  <span className="text-xs text-slate-500">-</span>
+                  <input type="text" value={manualEnd} onChange={(e) => setManualEnd(e.target.value)} className="w-full text-center py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-400 font-mono focus:outline-none focus:border-amber-500" />
+                </div>
+                <button type="submit" className="py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer">
+                  {isTr ? "Sabit Blok Ekle" : "Add Fixed Block"}
+                </button>
+              </form>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
                 <div className="flex items-center justify-between mb-6">
@@ -674,7 +813,10 @@ KRİTİK ZAMANLAMA KURALLARI:
                           ✓
                         </div>
                         <div className="min-w-0">
-                          <div className="text-xs font-semibold truncate">{habit.title}</div>
+                          <div className="text-xs font-semibold truncate flex items-center gap-1.5">
+                            {habit.isManual && <span className="text-amber-400 text-[10px] font-bold">[Sabit]</span>}
+                            {habit.title}
+                          </div>
                           <div className="flex flex-wrap gap-2 mt-1">
                             <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded">
                               {habit.category}
@@ -720,6 +862,10 @@ KRİTİK ZAMANLAMA KURALLARI:
                         {userPlan === "plus" && "PLUS ($8)"}
                         {(userPlan === "free" || userPlan === "basic") && "BASIC ($0)"}
                       </span>
+                    </div>
+                    <div className="flex justify-between pt-1 border-t border-slate-800">
+                      <span className="text-slate-400">Rutin Kullanımı:</span>
+                      <span className="font-bold text-amber-400">{habits.length} / {getPlanLimit(userPlan)}</span>
                     </div>
                   </div>
                   <button
@@ -814,7 +960,7 @@ KRİTİK ZAMANLAMA KURALLARI:
                   <h3 className="text-base font-bold text-white">{t.addHabitTitle}</h3>
                 </div>
                 <span className="text-xs font-bold text-cyan-400">
-                  ({habits.length}/10 {isTr ? "Görev" : "Tasks"})
+                  ({habits.length}/{getPlanLimit(userPlan)} {isTr ? "Rutin" : "Routines"})
                 </span>
               </div>
               <form onSubmit={handleAddHabitAl} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
@@ -866,7 +1012,10 @@ KRİTİK ZAMANLAMA KURALLARI:
                     className="p-4 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between gap-3"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-semibold text-slate-200">{habit.title}</div>
+                      <div className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                        {habit.isManual && <span className="text-amber-400 text-[10px] font-bold">[Sabit]</span>}
+                        {habit.title}
+                      </div>
                       <div className="flex flex-wrap gap-2 mt-1">
                         <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded">{habit.category}</span>
                         <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded font-bold">Beyin Yükü: Sev. {habit.level}</span>
@@ -1323,9 +1472,9 @@ KRİTİK ZAMANLAMA KURALLARI:
                   onChange={(e) => setSelectedAdminPlan(e.target.value as any)}
                   className="w-full rounded-xl border border-slate-700 bg-slate-800 p-2.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 >
-                  <option value="free">Basic (Ücretsiz)</option>
-                  <option value="pro">OmniSync Pro</option>
-                  <option value="plus">OmniSync Plus</option>
+                  <option value="free">Basic (Max 4 Rutin)</option>
+                  <option value="pro">OmniSync Pro (Max 10 Rutin)</option>
+                  <option value="plus">OmniSync Plus (Max 25 Rutin)</option>
                 </select>
               </div>
 
