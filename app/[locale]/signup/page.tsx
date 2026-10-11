@@ -178,8 +178,7 @@ export default function SignupPage() {
     }
   };
 
-// LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (TAM EŞLEŞEN VARYANT LINKLERI)
-  // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (SON VE KESİN ÇÖZÜM)
+  // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (YENİ TEK HİT ÜRÜNLER + OTOMATİK KUPON)
   const handleSelectPlan = async (selectedPlan: "free" | "pro" | "plus" | "plus_50") => {
     if (selectedPlan === "free") {
       try {
@@ -200,14 +199,14 @@ export default function SignupPage() {
     let checkoutUrl = "";
 
     if (selectedPlan === "plus") {
-      // Plus %20 İndirimli Varyant Linki (Çalışan Link)
-      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b?enabled=2223990";
+      // OmniSync Plus - 20% OFF
+      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/cd0a6384-419f-4e60-8932-34de65f50466?checkout[discount_code]=SYNCPLUS20";
     } else if (selectedPlan === "plus_50") {
-      // Plus Ana Linki + %50 İndirim Kuponu kuralı
-      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b?checkout[discount_code]=SYNCMEGAPLUS50";
+      // OmniSync Plus - 50% OFF
+      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/bd88925b-cbd7-4d5c-8c82-ae0274ae56c8?checkout[discount_code]=SYNCMEGAPLUS50";
     } else if (selectedPlan === "pro") {
-      // Pro %20 İndirimli Varyant Linki
-      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/5a3777a4-62ec-4ed0-8109-caf98615ff42?enabled=2233666";
+      // OmniSync Pro - 20% OFF
+      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/c2a5b207-1a3a-42b3-b9b2-fcc4ce2c3144?checkout[discount_code]=SYNCPRO20";
     }
 
     window.location.href = checkoutUrl;
