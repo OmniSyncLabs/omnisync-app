@@ -31,6 +31,16 @@ export function SettingsScreen({ profile, plan, onUpgrade, onLogout }: { profile
   const ChronoIcon = chrono.icon
   const sleepLabel = SLEEP_TARGETS.find((s) => s.value === sleepTarget)?.label
 
+  // Admin Modal State'leri
+  const [isAdminOpen, setIsAdminOpen] = useState(false)
+  const [adminPassword, setAdminPassword] = useState('')
+  const [selectedAdminPlan, setSelectedAdminPlan] = useState<'basic' | 'pro' | 'plus'>('pro')
+  const [adminError, setAdminError] = useState('')
+  const [adminLoading, setAdminLoading] = useState(false)
+
+  // ADMIN ŞİFRESİ
+  const ADMIN_SECRET = 'omni2026admin'
+
   // Lemon Squeezy doğrudan yönlendirme fonksiyonu
   const handleDirectUpgrade = async () => {
     try {
@@ -46,6 +56,38 @@ export function SettingsScreen({ profile, plan, onUpgrade, onLogout }: { profile
       window.location.href = 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
     }
   };
+
+  // Admin Bypass Plan Değiştirme Fonksiyonu
+  const handleAdminBypass = async () => {
+    if (adminPassword !== ADMIN_SECRET) {
+      setAdminError('Hatalı Admin Şifresi!')
+      return
+    }
+
+    setAdminLoading(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.auth.updateUser({
+          data: { plan: selectedAdminPlan },
+        })
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('omni_user_plan', selectedAdminPlan)
+      }
+
+      alert(`Başarılı! Planınız ödeme yapılmadan "${selectedAdminPlan.toUpperCase()}" olarak değiştirildi. Sayfa yenileniyor.`)
+      setIsAdminOpen(false)
+      setAdminPassword('')
+      window.location.reload()
+    } catch (error) {
+      console.error('Admin bypass hatası:', error)
+      setAdminError('Plan güncellenirken hata oluştu.')
+    } finally {
+      setAdminLoading(false)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -147,9 +189,93 @@ export function SettingsScreen({ profile, plan, onUpgrade, onLogout }: { profile
         </button>
       </section>
 
+      {/* ------------------- GELİŞTİRİCİ MODU (ADMIN PLAN GEÇİŞİ) ------------------- */}
+      <section className="rounded-3xl border border-amber-500/30 bg-amber-500/10 p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-500">Geliştirici Modu</p>
+            <p className="mt-1 text-sm font-semibold">Admin Yetkili Plan Geçişi</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Ödeme yapmadan hesaba Pro veya Plus plan tanımlayın.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsAdminOpen(true)}
+            className="shrink-0 rounded-2xl bg-amber-500 px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 cursor-pointer"
+          >
+            Plan Değiştir
+          </button>
+        </div>
+      </section>
+
       <button type="button" onClick={onLogout} className="flex h-12 items-center justify-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/5 font-semibold text-destructive">
         <LogOut className="size-4" aria-hidden /> Log Out
       </button>
+
+      {/* ------------------- ADMIN MODAL ------------------- */}
+      {isAdminOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-6 shadow-2xl space-y-4">
+            <div>
+              <h3 className="text-lg font-bold text-foreground">⚡ Developer Admin Pass</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Test amacıyla planınızı anında değiştirin.</p>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Atanacak Plan</label>
+                <select
+                  value={selectedAdminPlan}
+                  onChange={(e) => setSelectedAdminPlan(e.target.value as any)}
+                  className="w-full rounded-xl border border-border bg-muted p-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="basic">Basic (Ücretsiz)</option>
+                  <option value="pro">Pro Plan</option>
+                  <option value="plus">Plus Plan</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Admin Şifresi</label>
+                <input
+                  type="password"
+                  placeholder="Şifreyi girin..."
+                  value={adminPassword}
+                  onChange={(e) => {
+                    setAdminPassword(e.target.value)
+                    setAdminError('')
+                  }}
+                  className="w-full rounded-xl border border-border bg-muted p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              {adminError && (
+                <p className="text-xs font-medium text-destructive">{adminError}</p>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAdminOpen(false)
+                  setAdminError('')
+                }}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted"
+              >
+                İptal
+              </button>
+              <button
+                type="button"
+                onClick={handleAdminBypass}
+                disabled={adminLoading}
+                className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {adminLoading ? 'Güncelleniyor...' : 'Planı Etkinleştir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
