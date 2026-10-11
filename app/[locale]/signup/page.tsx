@@ -178,8 +178,11 @@ export default function SignupPage() {
     }
   };
 
- // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (SADECE KUPON - 422 SIFIR RİSK)
+ // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (GARANTİLİ ÇÖZÜM)
   const handleSelectPlan = async (selectedPlan: "free" | "pro" | "plus" | "plus_50") => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userEmailToUse = user?.email || email;
+
     if (selectedPlan === "free") {
       try {
         await supabase.auth.updateUser({
@@ -210,8 +213,16 @@ export default function SignupPage() {
       discountCode = "SYNCPRO20";
     }
 
-    // Yalnızca kupon kodunu bağlayarak yönlendiriyoruz
-    window.location.href = `${checkoutUrl}?discount=${discountCode}`;
+    // Lemon Squeezy'nin hem discount hem de checkout[discount_code] destekleyen yapısı
+    const queryParts: string[] = [];
+    if (discountCode) {
+      queryParts.push(`discount=${discountCode}`);
+    }
+    if (userEmailToUse) {
+      queryParts.push(`checkout[email]=${encodeURIComponent(userEmailToUse)}`);
+    }
+
+    window.location.href = `${checkoutUrl}?${queryParts.join("&")}`;
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-4 relative overflow-hidden">
