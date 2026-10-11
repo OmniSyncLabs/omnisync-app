@@ -9,7 +9,7 @@ export default function DashboardPage() {
   const locale = (params?.locale as string) || "tr";
   const isTr = locale === "tr";
 
-  // TÜRKÇE / İNGİLİZCE DİNAMİK ÇEVİRİ SÖZLÜĞÜ (HER DETAY DAHİL)
+  // TÜRKÇE / İNGİLİZCE DİNAMİK ÇEVİRİ SÖZLÜĞÜ
   const t = {
     overview: isTr ? "Genel Bakış" : "Overview",
     habits: isTr ? "Alışkanlıklar & AI Planlama" : "Habits & AI Schedule",
@@ -25,9 +25,7 @@ export default function DashboardPage() {
     activePlan: isTr ? "Mevcut Plan" : "Active Plan",
     upgrade: isTr ? "Aboneliği Yönet / Yükselt" : "Manage / Upgrade Subscription",
     completedRoutines: isTr ? "Tamamlanan Rutinler" : "Completed Routines",
-    activeStreak: isTr ? "Aktif Seri (Streak)" : "Active Streak",
     focusLevelText: isTr ? "Zihinsel Odak Seviyesi" : "Mental Focus Level",
-    days: isTr ? "Gün" : "Days",
     addHabitTitle: isTr ? "Yapay Zeka ile Otomatik Zamanlanan Görev Ekle" : "Add Task Auto-Scheduled by AI",
     addHabitBtn: isTr ? "Yapay Zeka ile Otomatik Ekle" : "Add with AI Scheduler",
     addingAl: isTr ? "Gemini AI Çakışmasız Saat Analizi Yapıyor..." : "Gemini AI is Calculating Non-Overlapping Slot...",
@@ -93,32 +91,26 @@ export default function DashboardPage() {
     plusF5: isTr ? "Dışa aktarılabilir HRV & Sağlık PDF Raporları" : "Exportable HRV & Health PDF Reports",
   };
 
-  // HER SEVİYE İÇİN ÇOKLU AI İPUCU HAVUZU
   const aiTipsMap = {
     1: [
-      isTr ? "AI Tavsiyesi: Zihinsel enerjin bugün düşük seviyede. Ağır matematik veya deneme çözümleri yerine 15-20 dakikalık hafif yürüyüş ve kitap okuma gibi düşük beyin yükü gerektiren rutinlere odaklan." : "AI Tip: Mental energy is low today. Focus on light activities like 15-minute walks or light reading rather than heavy problem solving.",
-      isTr ? "AI Tavsiyesi: Bugün nöral toparlanma günü. Zihnini zorlamayacak podcast'ler dinleyebilir, nefes egzersizleri veya esneme rutinleri yapabilirsin." : "AI Tip: Recovery day for your brain. Listen to light podcasts or do quick stretching routines.",
-      isTr ? "AI Tavsiyesi: Odaklanma kapasiten sınırlı. Çalışma masanı düzenlemek veya dijital klasörleri temizlemek gibi pasif görevleri aradan çıkar." : "AI Tip: Focus space is limited. Tackle passive tasks like decluttering your desk or organizing files."
+      isTr ? "AI Tavsiyesi: Zihinsel enerjin bugün düşük seviyede. Hafif yürüyüş ve kitap okuma gibi düşük beyin yükü gerektiren rutinlere odaklan." : "AI Tip: Mental energy is low today. Focus on light activities like 15-minute walks or light reading.",
+      isTr ? "AI Tavsiyesi: Bugün nöral toparlanma günü. Zihnini zorlamayacak podcast'ler dinleyebilir, nefes egzersizleri yapabilirsin." : "AI Tip: Recovery day for your brain. Listen to light podcasts or do quick stretching routines."
     ],
     2: [
-      isTr ? "AI Tavsiyesi: Hafif-orta zihinsel moddasın. Bugün rutin tekrar dersleri ve kelime ezberleri için harika bir gün. Zor sınav çözümlerini yarın sabah peak saatine ertele." : "AI Tip: Light-moderate focus state. Ideal for vocabulary reviews and routine revision. Save intense practice tests for tomorrow morning.",
-      isTr ? "AI Tavsiyesi: Zihnin orta tempoda çalışıyor. Flashcard (bilgi kartı) tekrarları veya kısa konu özetleri okumak için en verimli aralıktasın." : "AI Tip: Perfect window for flashcards and quick concept summaries without heavy cognitive load.",
-      isTr ? "AI Tavsiyesi: Derin odak gerektirmeyen pratik soru çözümlerine 25-30 dakikalık kısa bloklar hâlinde odaklanabilirsin." : "AI Tip: Work in 25-minute blocks on light practice questions that don't strain your deep focus."
+      isTr ? "AI Tavsiyesi: Hafif-orta zihinsel moddasın. Bugün rutin tekrar dersleri ve kelime ezberleri için harika bir gün." : "AI Tip: Light-moderate focus state. Ideal for vocabulary reviews and routine revision.",
+      isTr ? "AI Tavsiyesi: Zihnin orta tempoda çalışıyor. Flashcard tekrarları veya kısa konu özetleri okumak için en verimli aralıktasın." : "AI Tip: Perfect window for flashcards and quick concept summaries."
     ],
     3: [
-      isTr ? "AI Tavsiyesi: Dengeli odak seviyesindesin. Pomodoro tekniği (25 dk çalışma + 5 dk mola) ile 1.5 saatlik verimli ders veya proje oturumunu kolayca tamamlayabilirsin." : "AI Tip: Balanced focus state. Use Pomodoro (25m study + 5m rest) to comfortably complete 1.5-hour study blocks.",
-      isTr ? "AI Tavsiyesi: Zihinsel ritmin stabil. Günlük hedeflerinden en kritik 2 tanesini orta yoğunluktaki bu zaman diliminde tamamla." : "AI Tip: Mental rhythm is stable. Target 2 key priorities during this steady focus window.",
-      isTr ? "AI Tavsiyesi: İyi bir çalışma ritmi yakalayabilirsin. Arka plan seslerini (LO-FI veya pembe gürültü) açıp 45 dakikalık tek bir bloğa odaklan." : "AI Tip: Put on background binaural beats or ambient music for a solid 45-minute unbroken session."
+      isTr ? "AI Tavsiyesi: Dengeli odak seviyesindesin. Pomodoro tekniği ile 1.5 saatlik verimli ders veya proje oturumunu kolayca tamamlayabilirsin." : "AI Tip: Balanced focus state. Use Pomodoro to comfortably complete study blocks.",
+      isTr ? "AI Tavsiyesi: Zihinsel ritmin stabil. Günlük hedeflerinden en kritik 2 tanesini orta yoğunluktaki bu zaman diliminde tamamla." : "AI Tip: Mental rhythm is stable. Target 2 key priorities during this steady focus window."
     ],
     4: [
-      isTr ? "AI Tavsiyesi: Yüksek zihinsel performans modundasın! Beyin karmaşık mantık yürütmeye ve ağır problem çözmeye hazır. Zorlandığın en kritik 2 görevi hemen şimdi hallet." : "AI Tip: High cognitive performance! Your brain is primed for complex logic and problem solving. Tackle your top 2 hardest tasks right now.",
-      isTr ? "AI Tavsiyesi: Bilişsel yük kapasiten yüksek. Zor matematik problemleri, paragraf analizleri veya mimari/yazılım tasarımları için ideal an." : "AI Tip: Ideal window for complex analytical reasoning, hard math problems, or system design.",
-      isTr ? "AI Tavsiyesi: Zihinsel netlik tepe noktasına yakın. 60 dakikalık kesintisiz ve yüksek odaklı bir derin çalışma (deep work) seansı başlat." : "AI Tip: Mental clarity is near peak. Lock in a 60-minute uninterrupted deep work block."
+      isTr ? "AI Tavsiyesi: Yüksek zihinsel performans modundasın! Beyin karmaşık mantık yürütmeye ve ağır problem çözmeye hazır." : "AI Tip: High cognitive performance! Your brain is primed for complex logic and problem solving.",
+      isTr ? "AI Tavsiyesi: Bilişsel yük kapasiten yüksek. Zor matematik problemleri veya paragraf analizleri için ideal an." : "AI Tip: Ideal window for complex analytical reasoning or hard math problems."
     ],
     5: [
-      isTr ? "AI Tavsiyesi: MAKSİMUM DERİN ODAK (FLOW STATE)! Zihinsel kapasiten zirvede. Bildirimleri kapat, DND moduna geç ve en az 2 saatlik kesintisiz deneme sınavı veya zorlu kodlama seansını başlat." : "AI Tip: PEAK FLOW STATE! Mental capacity is at its max. Enable DND mode and initiate a 2-hour uninterrupted deep study block.",
-      isTr ? "AI Tavsiyesi: Zirve performans! Bugünün en zor, en karmaşık ve gözünde büyüttüğün ana hedefini şimdi ezmeye başla. Beynin tam kapasite çalışıyor." : "AI Tip: Peak brain performance! Attack your most complex, challenging master objective right now.",
-      isTr ? "AI Tavsiyesi: Flow (akış) halindesin. Dış etkenleri %100 izole et, zaman tutucunu çalıştır ve rekor bir zihinsel çıktı elde et." : "AI Tip: Complete flow state detected. Isolate all distractions and aim for maximum productivity output."
+      isTr ? "AI Tavsiyesi: MAKSİMUM DERİN ODAK! Bildirimleri kapat, DND moduna geç ve en az 2 saatlik kesintisiz deneme sınavı seansı başlat." : "AI Tip: PEAK FLOW STATE! Enable DND mode and initiate an uninterrupted deep study block.",
+      isTr ? "AI Tavsiyesi: Zirve performans! Bugünün en zor, en karmaşık ve gözünde büyüttüğün ana hedefini şimdi ezmeye başla." : "AI Tip: Peak brain performance! Attack your most complex objective right now."
     ]
   };
 
@@ -144,7 +136,7 @@ export default function DashboardPage() {
   const [hrvScore] = useState<number>(68);
   const [tipIndex, setTipIndex] = useState<number>(0);
 
-  // MANUEL OKUL/İŞ BLOKLARI İÇİN FORM STATE'LERİ
+  // MANUEL OKUL/İŞ BLOKLARI İÇİN FORM STATE'LERİ (VARSAYILAN IKI NOKTALI FORMAT)
   const [manualTitle, setManualTitle] = useState("");
   const [manualStart, setManualStart] = useState("08:00");
   const [manualEnd, setManualEnd] = useState("15:20");
@@ -158,11 +150,16 @@ export default function DashboardPage() {
 
   const ADMIN_SECRET = "omni2026admin";
 
-  // YENİ PLAN LİMİTLERİ (BASIC: 4, PRO: 10, PLUS: 25)
   const getPlanLimit = (plan: string) => {
     if (plan === "pro") return 10;
     if (plan === "plus") return 25;
-    return 4; // free / basic
+    return 4;
+  };
+
+  // SAAT FORMATLARINI OTOMATIK DÜZELTEN YARDIMCI FONKSİYON (14.00 -> 14:00)
+  const normalizeTime = (timeStr: string) => {
+    if (!timeStr) return "00:00";
+    return timeStr.replace(".", ":").trim();
   };
 
   const handleAdminBypass = async () => {
@@ -185,7 +182,7 @@ export default function DashboardPage() {
       }
 
       setUserPlan(selectedAdminPlan);
-      alert(`Başarılı! Planınız ödeme yapılmadan "${selectedAdminPlan.toUpperCase()}" olarak değiştirildi.`);
+      alert(`Başarılı! Planınız "${selectedAdminPlan.toUpperCase()}" olarak değiştirildi.`);
       setIsAdminOpen(false);
       setAdminPassword("");
       setAdminError("");
@@ -198,13 +195,13 @@ export default function DashboardPage() {
     }
   };
 
-  // INITIAL HABITS DEFAULTS
+  // INITIAL HABITS DEFAULTS (STREAK KALDIRILDI)
   const defaultHabits = [
-    { id: 101, title: isTr ? "Okul / Dershane Zamanı" : "School / Class", category: isTr ? "Düzen" : "Order", level: 3, suggestedTime: "08:00 - 15:20", completed: false, streak: 1, isManual: true },
-    { id: 1, title: isTr ? "Hafif Yürüyüş & Esneme" : "Light Walk & Stretch", category: isTr ? "Spor" : "Sports", level: 2, suggestedTime: "17:00 - 17:45", completed: true, streak: 12, isManual: false },
-    { id: 2, title: isTr ? "1.5 Saat Deneme Sınavı Çözümü" : "1.5h Practice Exam", category: isTr ? "Verimlilik" : "Productivity", level: 5, suggestedTime: "18:30 - 20:00", completed: false, streak: 5, isManual: false },
-    { id: 3, title: isTr ? "Günlük Ritim / Plan İncelemesi" : "Daily Rhythm Review", category: isTr ? "Düzen" : "Order", level: 3, suggestedTime: "21:30 - 22:00", completed: false, streak: 8, isManual: false },
-    { id: 4, title: isTr ? "30 Dakika Kitap Okuma" : "30m Book Reading", category: isTr ? "Kişisel" : "Personal", level: 3, suggestedTime: "22:00 - 22:30", completed: true, streak: 15, isManual: false },
+    { id: 101, title: isTr ? "Okul / Dershane Zamanı" : "School / Class", category: isTr ? "Düzen" : "Order", level: 3, suggestedTime: "08:00 - 15:20", completed: false, isManual: true },
+    { id: 1, title: isTr ? "Hafif Yürüyüş & Esneme" : "Light Walk & Stretch", category: isTr ? "Spor" : "Sports", level: 2, suggestedTime: "17:00 - 17:45", completed: true, isManual: false },
+    { id: 2, title: isTr ? "1.5 Saat Deneme Sınavı Çözümü" : "1.5h Practice Exam", category: isTr ? "Verimlilik" : "Productivity", level: 5, suggestedTime: "18:30 - 20:00", completed: false, isManual: false },
+    { id: 3, title: isTr ? "Günlük Ritim / Plan İncelemesi" : "Daily Rhythm Review", category: isTr ? "Düzen" : "Order", level: 3, suggestedTime: "21:30 - 22:00", completed: false, isManual: false },
+    { id: 4, title: isTr ? "30 Dakika Kitap Okuma" : "30m Book Reading", category: isTr ? "Kişisel" : "Personal", level: 3, suggestedTime: "22:00 - 22:30", completed: true, isManual: false },
   ];
 
   const [habits, setHabits] = useState(defaultHabits);
@@ -215,7 +212,6 @@ export default function DashboardPage() {
   const [newHabitLevel, setNewHabitLevel] = useState<number>(3);
   const [aiScheduling, setAiScheduling] = useState<boolean>(false);
 
-  // 1. LOCALSTORAGE'DAN HABITS YÜKLE
   useEffect(() => {
     const savedHabits = localStorage.getItem("omni_habits_dashboard");
     if (savedHabits) {
@@ -228,7 +224,6 @@ export default function DashboardPage() {
     setIsHabitsLoaded(true);
   }, []);
 
-  // 2. HABITS DEĞİŞTİKÇE LOCALSTORAGE'A KAYDET
   useEffect(() => {
     if (isHabitsLoaded) {
       localStorage.setItem("omni_habits_dashboard", JSON.stringify(habits));
@@ -356,7 +351,7 @@ export default function DashboardPage() {
   const toggleHabit = (id: number) => {
     setHabits(
       habits.map((h) =>
-        h.id === id ? { ...h, completed: !h.completed, streak: !h.completed ? h.streak + 1 : h.streak - 1 } : h
+        h.id === id ? { ...h, completed: !h.completed } : h
       )
     );
   };
@@ -370,7 +365,7 @@ export default function DashboardPage() {
     setTipIndex((prev) => (prev + 1) % currentTips.length);
   };
 
-  // MANUEL OKUL/İŞ BLOKU EKLEME (RUTİN LİMİTİNE DAHİL)
+  // MANUEL OKUL/İŞ BLOKU EKLEME (SAAT NORMALIZATION FIX DAHIL)
   const handleAddManualBlock = (e: React.FormEvent) => {
     e.preventDefault();
     if (!manualTitle.trim()) return;
@@ -384,6 +379,9 @@ export default function DashboardPage() {
       return;
     }
 
+    const cleanStart = normalizeTime(manualStart);
+    const cleanEnd = normalizeTime(manualEnd);
+
     setHabits([
       ...habits,
       {
@@ -391,9 +389,8 @@ export default function DashboardPage() {
         title: manualTitle,
         category: isTr ? "Sabit Blok" : "Fixed Block",
         level: 3,
-        suggestedTime: `${manualStart} - ${manualEnd}`,
+        suggestedTime: `${cleanStart} - ${cleanEnd}`,
         completed: false,
-        streak: 1,
         isManual: true,
       }
     ]);
@@ -401,12 +398,10 @@ export default function DashboardPage() {
     setManualTitle("");
   };
 
-  // GERÇEK GEMINI AI & DAKİKA BAZLI AKILLI ZAMANLAYICI
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
 
-    // PLAN RUTİN LİMİTİ KONTROLÜ (BASIC: 4, PRO: 10, PLUS: 25)
     const maxAllowed = getPlanLimit(userPlan);
     if (habits.length >= maxAllowed) {
       alert(isTr 
@@ -433,11 +428,10 @@ Kategori: ${newHabitCategory}
 Beyin Yükü Seviyesi: ${newHabitLevel}/5
 
 KRİTİK ZAMANLAMA KURALLARI:
-1. GÖREV SÜRESİNİ DİKKATE AL: Görev adında geçen süreyi oku (Örn: "1.5 saat" ise 90 dakika, "30 dk" ise 30 dakika). Yazmıyorsa varsayılan 1 saat ayarla.
-2. MOLALAR VER: Önceki görevlerin bitiş saatine yapışma! Araya en az 15-30 dakika dinlenme/mola payı koy.
-3. ÇAKIŞMA OLMASIN: Mevcut dolu saatlerle ve molalarla kesinlikle çakışmasın.
-4. BEYİN YÜKÜNE GÖRE YERLEŞTİR: Sev. 4-5 olan ağır işleri sabah (09:00 - 12:30) saatlerine koy.
-5. SADECE SAAT ARALIĞINI YAZ: Örnek format: "14:00 - 15:30" veya "16:00 - 16:45". Başka hiçbir kelime veya açıklama yazma.
+1. GÖREV SÜRESİNİ DİKKATE AL: Görev adında geçen süreyi oku.
+2. MOLALAR VER: Önceki görevlerin bitiş saatine yapışma! Araya en az 15-30 dakika mola koy.
+3. ÇAKIŞMA OLMASIN: Mevcut dolu saatlerle kesinlikle çakışmasın.
+4. SADECE SAAT ARALIĞINI YAZ: Örnek format: "14:00 - 15:30".
         `;
 
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
@@ -451,14 +445,13 @@ KRİTİK ZAMANLAMA KURALLARI:
         const data = await res.json();
         const aiResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         if (aiResponse && aiResponse.includes("-")) {
-          finalTimeSlot = aiResponse;
+          finalTimeSlot = aiResponse.replace(/\./g, ":");
         }
       } catch (err) {
         console.error("Gemini API hatası:", err);
       }
     }
 
-    // YEDEK AKILLI DAKİKA ALGORİTMASI (API olmasa bile çakıştırmaz ve 15 dk mola koyar)
     if (!finalTimeSlot) {
       let durationMinutes = 60;
       if (newHabitTitle.includes("1.5") || newHabitTitle.includes("1,5")) durationMinutes = 90;
@@ -467,20 +460,19 @@ KRİTİK ZAMANLAMA KURALLARI:
 
       let startMin = newHabitLevel >= 4 ? 9 * 60 : 16 * 60;
 
-      // Dolu dakikaları tara
       const isOverlapping = (testStart: number, testEnd: number) => {
         return habits.some(h => {
-          const match = h.suggestedTime.match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
+          const formattedSlot = h.suggestedTime.replace(/\./g, ":");
+          const match = formattedSlot.match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
           if (!match) return false;
           const hStart = parseInt(match[1]) * 60 + parseInt(match[2]);
           const hEnd = parseInt(match[3]) * 60 + parseInt(match[4]);
-          // 15 dakika tampon bölge (mola)
           return Math.max(testStart, hStart) < Math.min(testEnd, hEnd) + 15;
         });
       };
 
       while (isOverlapping(startMin, startMin + durationMinutes) && startMin < 22 * 60) {
-        startMin += 30; // 30'ar dakikalık aralıklarla boş yer ara
+        startMin += 30;
       }
 
       const formatTime = (totalMin: number) => {
@@ -501,7 +493,6 @@ KRİTİK ZAMANLAMA KURALLARI:
         level: newHabitLevel,
         suggestedTime: finalTimeSlot,
         completed: false,
-        streak: 1,
         isManual: false,
       }
     ]);
@@ -528,7 +519,6 @@ KRİTİK ZAMANLAMA KURALLARI:
     { day: isTr ? "Paz" : "Sun", score: "8/10", x: 480, y: 50 },
   ];
 
-  // SAATLİK TABLO İÇİN DİLİM LİSTESİ (08:00 - 23:00)
   const timeSlots = Array.from({ length: 16 }, (_, i) => {
     const hour = (8 + i).toString().padStart(2, "0");
     return `${hour}:00`;
@@ -536,7 +526,7 @@ KRİTİK ZAMANLAMA KURALLARI:
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row font-sans relative">
-      {/* SIDEBAR / SOL MENÜ */}
+      {/* SIDEBAR */}
       <aside className="w-full md:w-64 bg-slate-900/80 border-r border-slate-800/80 p-6 flex flex-col justify-between">
         <div>
           <div className="mb-8 flex items-center justify-between">
@@ -548,7 +538,6 @@ KRİTİK ZAMANLAMA KURALLARI:
                 {isTr ? "Kişisel Ritim & AI Disiplin" : "Personal Rhythm & AI Focus"}
               </p>
             </div>
-            {/* DİL DEĞİŞTİRME BUTONU */}
             <button
               onClick={() => router.push(`/${isTr ? "en" : "tr"}/dashboard`)}
               className="px-2 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[10px] font-bold text-cyan-400 rounded-md transition shadow cursor-pointer"
@@ -562,36 +551,35 @@ KRİTİK ZAMANLAMA KURALLARI:
               onClick={() => setActiveTab("overview")}
               className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "overview" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
-              <span> </span> {t.overview}
+              <span>📊</span> {t.overview}
             </button>
             <button
               onClick={() => setActiveTab("habits")}
               className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "habits" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
-              <span></span> {t.habits}
+              <span>⚡</span> {t.habits}
             </button>
             <button
               onClick={() => setActiveTab("analytics")}
               className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "analytics" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
-              <span></span> {t.analytics}
+              <span>📈</span> {t.analytics}
             </button>
             <button
               onClick={() => setActiveTab("group")}
               className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "group" ? "bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-lg shadow-amber-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
-              <span></span> {t.group}
+              <span>👥</span> {t.group}
             </button>
             <button
               onClick={() => setActiveTab("settings")}
               className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "settings" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
-              <span></span> {t.settings}
+              <span>⚙️</span> {t.settings}
             </button>
           </nav>
         </div>
 
-        {/* PROFİL ÖZETİ & FOTOĞRAFI */}
         <div className="pt-6 border-t border-slate-800/80">
           <div className="flex items-center gap-3 mb-3">
             <label className="relative cursor-pointer group" title="Profil Fotoğrafını Değiştir">
@@ -619,9 +607,8 @@ KRİTİK ZAMANLAMA KURALLARI:
         </div>
       </aside>
 
-      {/* İÇERİK ALANI */}
+      {/* MAIN CONTENT */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto space-y-8">
-        {/* HEADER */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800/80 gap-4">
           <div>
             <h2 className="text-2xl font-bold text-white tracking-tight">
@@ -641,21 +628,21 @@ KRİTİK ZAMANLAMA KURALLARI:
           >
             {userPlan === "plus" ? (
               <span className="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-full shadow-lg shadow-purple-500/20 flex items-center gap-1.5 border border-purple-400/30">
-                <span></span> Plus Member ({habits.length}/{getPlanLimit(userPlan)})
+                Plus Member ({habits.length}/{getPlanLimit(userPlan)})
               </span>
             ) : userPlan === "pro" ? (
               <span className="px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 font-bold text-xs rounded-full shadow-lg shadow-cyan-500/10 flex items-center gap-1.5">
-                <span> 4 </span> Pro Member ({habits.length}/{getPlanLimit(userPlan)})
+                Pro Member ({habits.length}/{getPlanLimit(userPlan)})
               </span>
             ) : (
               <span className="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-400 font-medium text-xs rounded-full flex items-center gap-1">
-                <span></span> Basic ($0) ({habits.length}/{getPlanLimit(userPlan)})
+                Basic ($0) ({habits.length}/{getPlanLimit(userPlan)})
               </span>
             )}
           </button>
         </header>
 
-        {/* GENEL BAKIŞ */}
+        {/* OVERVIEW TAB */}
         {activeTab === "overview" && (
           <div className="space-y-6">
             {userGoal && (
@@ -667,15 +654,17 @@ KRİTİK ZAMANLAMA KURALLARI:
                   <p className="text-base font-bold text-slate-100 mt-1">"{userGoal}"</p>
                 </div>
                 <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-2xl">
+                  🎯
                 </div>
               </div>
             )}
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* STREAK KARTLARI TEMİZLENDİ (3 KARTA DÜŞÜRÜLDÜ) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-5 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
                 <div className="flex justify-between items-center text-slate-400 text-xs font-medium">
                   <span>{t.completedRoutines}</span>
-                  <span></span>
+                  <span>✅</span>
                 </div>
                 <div className="text-2xl font-black text-cyan-400 mt-2">
                   {habits.filter((h) => h.completed).length} / {habits.length}
@@ -683,28 +672,21 @@ KRİTİK ZAMANLAMA KURALLARI:
               </div>
               <div className="p-5 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
                 <div className="flex justify-between items-center text-slate-400 text-xs font-medium">
-                  <span>{t.activeStreak}</span>
-                  <span></span>
-                </div>
-                <div className="text-2xl font-black text-amber-400 mt-2">15 {t.days}</div>
-              </div>
-              <div className="p-5 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
-                <div className="flex justify-between items-center text-slate-400 text-xs font-medium">
                   <span>HRV Score (3-day)</span>
-                  <span></span>
+                  <span>❤️</span>
                 </div>
                 <div className="text-2xl font-black text-purple-400 mt-2">{hrvScore} bpm</div>
               </div>
               <div className="p-5 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
                 <div className="flex justify-between items-center text-slate-400 text-xs font-medium">
                   <span>{t.focusLevelText}</span>
-                  <span></span>
+                  <span>🧠</span>
                 </div>
                 <div className="text-2xl font-black text-indigo-400 mt-2">Sev. {focusLevel}/5</div>
               </div>
             </div>
 
-            {/* GENEL BAKIŞ SAAT TABLOSU (KÂĞITTAKİ 2. & 3. MADDELER) */}
+            {/* SAAT CİZELGESİ (DOT VE COLON PARSING FIX ENTEGRASYONU) */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -720,7 +702,6 @@ KRİTİK ZAMANLAMA KURALLARI:
                 </div>
               </div>
 
-              {/* SAAT/PLAN MATRİS TABLOSU */}
               <div className="border border-slate-800 rounded-xl overflow-hidden bg-slate-950">
                 <div className="grid grid-cols-4 sm:grid-cols-8 border-b border-slate-800 bg-slate-900/90 text-[11px] font-bold text-cyan-400 text-center py-2.5">
                   <span className="border-r border-slate-800">Saatler</span>
@@ -730,7 +711,8 @@ KRİTİK ZAMANLAMA KURALLARI:
                   {timeSlots.map((slot) => {
                     const currentHour = parseInt(slot.split(":")[0]);
                     const matchingHabits = habits.filter((h) => {
-                      const match = h.suggestedTime.match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
+                      const normalizedSlot = h.suggestedTime.replace(/\./g, ":");
+                      const match = normalizedSlot.match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
                       if (!match) return false;
                       const startH = parseInt(match[1]);
                       const endH = parseInt(match[3]);
@@ -738,7 +720,7 @@ KRİTİK ZAMANLAMA KURALLARI:
                     });
 
                     return (
-                      <div key={slot} className="grid grid-cols-4 sm:grid-cols-8 text-xs py-2 px-3 items-center hover:bg-slate-900/40 transition">
+                      <div key={slot} className="grid grid-cols-4 sm:grid-cols-8 text-xs py-2.5 px-3 items-center hover:bg-slate-900/40 transition">
                         <span className="font-mono text-slate-400 text-[11px] border-r border-slate-800/80 pr-2">{slot}</span>
                         <div className="col-span-3 sm:col-span-7 pl-3">
                           {matchingHabits.length > 0 ? (
@@ -765,7 +747,7 @@ KRİTİK ZAMANLAMA KURALLARI:
               </div>
             </div>
 
-            {/* MANUEL SABİT BLOK EKLEME FORMU (OKUL / DERSHANE) */}
+            {/* MANUEL SABİT BLOK FORMU */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
               <h3 className="text-sm font-bold text-amber-400 mb-1">🏫 Manuel Sabit Saat Ekle (Okul / İş / Dershane)</h3>
               <p className="text-xs text-slate-400 mb-4">Örneğin 08:00 - 15:20 arası okul saatini manuel doldurun. Bu bloklar da rutin sınırına dahil edilir.</p>
@@ -803,7 +785,7 @@ KRİTİK ZAMANLAMA KURALLARI:
                   {habits.map((habit) => (
                     <div
                       key={habit.id}
-                      className={`p-4 rounded-xl border transition flex items-center justify-between ${habit.completed ? "bg-slate-950/60 border-emerald-500/30 text-slate-400 line-through" : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-200"}`}
+                      className={`p-4 rounded-xl border transition flex items-center justify-between ${habit.completed ? "bg-slate-950/60 border-emerald-500/30 text-slate-400" : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-200"}`}
                     >
                       <div 
                         onClick={() => toggleHabit(habit.id)}
@@ -813,7 +795,7 @@ KRİTİK ZAMANLAMA KURALLARI:
                           ✓
                         </div>
                         <div className="min-w-0">
-                          <div className="text-xs font-semibold truncate flex items-center gap-1.5">
+                          <div className={`text-xs font-semibold truncate flex items-center gap-1.5 ${habit.completed ? "line-through text-slate-500" : ""}`}>
                             {habit.isManual && <span className="text-amber-400 text-[10px] font-bold">[Sabit]</span>}
                             {habit.title}
                           </div>
@@ -831,7 +813,6 @@ KRİTİK ZAMANLAMA KURALLARI:
                         </div>
                       </div>
                       <div className="flex items-center gap-3 shrink-0 ml-2">
-                        <div className="text-xs font-bold text-amber-400">{habit.streak} {t.days}</div>
                         <button
                           type="button"
                           onClick={(e) => {
@@ -851,7 +832,7 @@ KRİTİK ZAMANLAMA KURALLARI:
 
               <div className="space-y-6">
                 <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
-                  <h3 className="text-base font-bold text-white mb-2"> YOUR MEMBERSHIP</h3>
+                  <h3 className="text-base font-bold text-white mb-2">YOUR MEMBERSHIP</h3>
                   <p className="text-xs text-slate-400 mb-4">{userEmail}</p>
                   
                   <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs space-y-2 mb-4">
@@ -875,7 +856,6 @@ KRİTİK ZAMANLAMA KURALLARI:
                     {t.upgrade}
                   </button>
 
-                  {/* GELİŞTİRİCİ MODU (OVERVIEW) */}
                   <div className="mt-4 pt-4 border-t border-slate-800/80">
                     <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between">
                       <div>
@@ -897,7 +877,7 @@ KRİTİK ZAMANLAMA KURALLARI:
           </div>
         )}
 
-        {/* ALIŞKANLIKLAR & AI PLANLAMA */}
+        {/* HABITS TAB */}
         {activeTab === "habits" && (
           <div className="space-y-6">
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
@@ -939,7 +919,6 @@ KRİTİK ZAMANLAMA KURALLARI:
                       </p>
                     </div>
                   </div>
-                  {/* YENİLEME BUTONU */}
                   <button
                     type="button"
                     onClick={handleRefreshTip}
@@ -952,11 +931,10 @@ KRİTİK ZAMANLAMA KURALLARI:
               </div>
             </div>
 
-            {/* FORM: GERÇEK AI ZAMANLAMA */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg"> </span>
+                  <span className="text-lg">🤖</span>
                   <h3 className="text-base font-bold text-white">{t.addHabitTitle}</h3>
                 </div>
                 <span className="text-xs font-bold text-cyan-400">
@@ -1002,7 +980,6 @@ KRİTİK ZAMANLAMA KURALLARI:
               </form>
             </div>
 
-            {/* MEVCUT RUTİNLERİ YÖNETME LİSTESİ */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
               <h3 className="text-base font-bold text-white">{isTr ? "Aktif Rutinleriniz" : "Your Active Routines"}</h3>
               <div className="space-y-3">
@@ -1036,7 +1013,7 @@ KRİTİK ZAMANLAMA KURALLARI:
           </div>
         )}
 
-        {/* ANALİZ & BIOMETRICS */}
+        {/* ANALYTICS TAB */}
         {activeTab === "analytics" && (
           <div className="space-y-6">
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
@@ -1083,14 +1060,14 @@ KRİTİK ZAMANLAMA KURALLARI:
           </div>
         )}
 
-        {/* SOCIAL PARTY FOCUS ROOMS */}
+        {/* GROUP TAB */}
         {activeTab === "group" && (
           <div className="space-y-6">
             <div className="p-6 bg-slate-900/80 border border-purple-500/30 rounded-2xl shadow-xl relative overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xl"></span>
+                    <span className="text-xl">👥</span>
                     <h3 className="text-lg font-bold text-white">{t.groupTitle}</h3>
                   </div>
                   <p className="text-xs text-slate-400 mt-1">{t.groupSub}</p>
@@ -1109,6 +1086,7 @@ KRİTİK ZAMANLAMA KURALLARI:
                 {userPlan !== "plus" && (
                   <div className="absolute inset-0 z-20 bg-slate-950/70 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center rounded-xl border border-purple-500/30">
                     <div className="w-14 h-14 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-2xl mb-3 shadow-lg shadow-purple-500/20">
+                      🔒
                     </div>
                     <h4 className="text-base font-bold text-white mb-1">{t.lockedTitle}</h4>
                     <p className="text-xs text-slate-400 max-w-md mb-5">{t.lockedSub}</p>
@@ -1153,7 +1131,7 @@ KRİTİK ZAMANLAMA KURALLARI:
           </div>
         )}
 
-        {/* SETTINGS & PREFERENCES */}
+        {/* SETTINGS TAB */}
         {activeTab === "settings" && (
           <div className="space-y-8 max-w-4xl">
             {updateMsg && (
@@ -1162,7 +1140,6 @@ KRİTİK ZAMANLAMA KURALLARI:
               </div>
             )}
             
-            {/* 01 Biometric & Health Sync */}
             <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-6">
               <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.sec1Title}</h3>
               <div className="flex items-center justify-between">
@@ -1216,7 +1193,6 @@ KRİTİK ZAMANLAMA KURALLARI:
               </div>
             </div>
 
-            {/* 02 Circadian & Routine Preferences */}
             <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-6">
               <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.sec2Title}</h3>
               <div>
@@ -1309,7 +1285,6 @@ KRİTİK ZAMANLAMA KURALLARI:
               </div>
             </div>
 
-            {/* 03 Account & Security */}
             <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-4">
               <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.sec3Title}</h3>
               <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
@@ -1333,9 +1308,7 @@ KRİTİK ZAMANLAMA KURALLARI:
               </div>
             </div>
 
-            {/* YOUR MEMBERSHIP */}
             <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-6">
-              {/* GELİŞTİRİCİ MODU (SETTINGS) */}
               <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between mb-4">
                 <div>
                   <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">🛠️ Geliştirici Modu (Admin Plan Geçişi)</h4>
@@ -1357,7 +1330,6 @@ KRİTİK ZAMANLAMA KURALLARI:
                     {t.activePlan}: <span className="text-white font-bold uppercase">{(userPlan === 'free' || userPlan === 'basic') ? 'Basic ($0)' : userPlan}</span>
                   </p>
                 </div>
-                {/* ANNUAL / MONTHLY SWITCH */}
                 <div className="flex items-center gap-3 bg-slate-950 p-2 border border-slate-800 rounded-xl">
                   <span className={`text-xs font-bold ${!isAnnual ? "text-cyan-400" : "text-slate-400"}`}>{t.monthly}</span>
                   <button
@@ -1372,9 +1344,7 @@ KRİTİK ZAMANLAMA KURALLARI:
                 </div>
               </div>
 
-              {/* FIGMA PRO VE PLUS KARTLARI */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* PRO CARD */}
                 <div className={`p-6 rounded-2xl border-2 relative flex flex-col justify-between ${userPlan === "pro" ? "border-cyan-400 bg-slate-950 shadow-lg shadow-cyan-500/10" : "border-cyan-500/50 bg-slate-950/80"}`}>
                   <span className="absolute -top-3 right-4 bg-cyan-400 text-slate-950 font-black text-[10px] px-3 py-0.5 rounded-full uppercase tracking-wider shadow-md">
                     {t.mostPopular}
@@ -1392,12 +1362,12 @@ KRİTİK ZAMANLAMA KURALLARI:
                       {t.proHeader}
                     </div>
                     <ul className="text-xs text-slate-300 space-y-2.5">
-                      <li className="flex items-start gap-2"><span className="text-cyan-400"></span> {t.proF1}</li>
-                      <li className="flex items-start gap-2"><span className="text-cyan-400"></span> {t.proF2}</li>
-                      <li className="flex items-start gap-2"><span className="text-cyan-400"></span> {t.proF3}</li>
-                      <li className="flex items-start gap-2"><span className="text-cyan-400"></span> {t.proF4}</li>
-                      <li className="flex items-start gap-2"><span className="text-cyan-400"></span> {t.proF5}</li>
-                      <li className="flex items-start gap-2"><span className="text-cyan-400"></span> {t.proF6}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF1}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF2}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF3}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF4}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF5}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF6}</li>
                     </ul>
                   </div>
                   <button
@@ -1409,7 +1379,6 @@ KRİTİK ZAMANLAMA KURALLARI:
                   </button>
                 </div>
 
-                {/* PLUS CARD */}
                 <div className={`p-6 rounded-2xl border-2 relative flex flex-col justify-between ${userPlan === "plus" ? "border-purple-500 bg-slate-950 shadow-lg shadow-purple-500/10" : "border-purple-500/40 bg-slate-950/80"}`}>
                   <div>
                     <h4 className="text-sm font-black text-purple-400 tracking-wider">{t.plusTitle}</h4>
@@ -1424,11 +1393,11 @@ KRİTİK ZAMANLAMA KURALLARI:
                       {t.plusHeader}
                     </div>
                     <ul className="text-xs text-slate-300 space-y-2.5">
-                      <li className="flex items-start gap-2"><span className="text-purple-400"></span> {t.plusF1}</li>
-                      <li className="flex items-start gap-2"><span className="text-purple-400"></span> {t.plusF2}</li>
-                      <li className="flex items-start gap-2"><span className="text-purple-400"></span> {t.plusF3}</li>
-                      <li className="flex items-start gap-2"><span className="text-purple-400"></span> {t.plusF4}</li>
-                      <li className="flex items-start gap-2"><span className="text-purple-400"></span> {t.plusF5}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF1}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF2}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF3}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF4}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF5}</li>
                     </ul>
                   </div>
                   <button
@@ -1444,7 +1413,6 @@ KRİTİK ZAMANLAMA KURALLARI:
           </div>
         )}
 
-        {/* LOG OUT BUTTON */}
         <div className="pt-4 text-center">
           <button
             onClick={handleLogout}
@@ -1455,7 +1423,7 @@ KRİTİK ZAMANLAMA KURALLARI:
         </div>
       </main>
 
-      {/* ADMIN MODAL POP-UP */}
+      {/* ADMIN MODAL */}
       {isAdminOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
@@ -1521,7 +1489,7 @@ KRİTİK ZAMANLAMA KURALLARI:
         </div>
       )}
 
-      {/* POP-UP MODAL (ABONELİK YÜKSELTME KARTLARI) */}
+      {/* UPGRADE MODAL */}
       {showUpgradeModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
@@ -1529,7 +1497,7 @@ KRİTİK ZAMANLAMA KURALLARI:
               onClick={() => setShowUpgradeModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"
             >
-              X
+              ✕
             </button>
             <h3 className="text-xl font-bold text-white mb-2 text-center">Upgrade Your Membership</h3>
             <p className="text-xs text-slate-400 text-center mb-6">Unlock Bio-Sync, Burnout Early Warning & Unlimited AI Routine Advisor.</p>
@@ -1538,8 +1506,8 @@ KRİTİK ZAMANLAMA KURALLARI:
                 <div>
                   <h4 className="font-bold text-cyan-400 text-sm">PRO ($5/mo)</h4>
                   <ul className="text-[11px] text-slate-300 space-y-1 my-3">
-                    <li> 10 Auto-scheduled events</li>
-                    <li> Burnout Warning System</li>
+                    <li>✓ 10 Auto-scheduled events</li>
+                    <li>✓ Burnout Warning System</li>
                   </ul>
                 </div>
                 <button
@@ -1553,8 +1521,8 @@ KRİTİK ZAMANLAMA KURALLARI:
                 <div>
                   <h4 className="font-bold text-purple-400 text-sm">PLUS ($8/mo)</h4>
                   <ul className="text-[11px] text-slate-300 space-y-1 my-3">
-                    <li> Social Party Rooms</li>
-                    <li> Priority Voice AI</li>
+                    <li>✓ Social Party Rooms</li>
+                    <li>✓ Priority Voice AI</li>
                   </ul>
                 </div>
                 <button
