@@ -179,6 +179,7 @@ export default function SignupPage() {
   };
 
 // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (TAM EŞLEŞEN VARYANT LINKLERI)
+  // LEMON SQUEEZY ÖDEME YÖNLENDİRMESİ (SON VE KESİN ÇÖZÜM)
   const handleSelectPlan = async (selectedPlan: "free" | "pro" | "plus" | "plus_50") => {
     if (selectedPlan === "free") {
       try {
@@ -199,13 +200,13 @@ export default function SignupPage() {
     let checkoutUrl = "";
 
     if (selectedPlan === "plus") {
-      // Plus %20 İndirimli Varyant (319,99 TL)
+      // Plus %20 İndirimli Varyant Linki (Çalışan Link)
       checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b?enabled=2223990";
     } else if (selectedPlan === "plus_50") {
-      // Plus %50 İndirimli Varyant (199,99 TL)
-      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b?enabled=2233663";
+      // Plus Ana Linki + %50 İndirim Kuponu kuralı
+      checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/7b45f0a0-e3ca-4226-a670-edd5bd97005b?checkout[discount_code]=SYNCMEGAPLUS50";
     } else if (selectedPlan === "pro") {
-      // Pro %20 İndirimli Varyant (199,99 TL)
+      // Pro %20 İndirimli Varyant Linki
       checkoutUrl = "https://omnisync-app.lemonsqueezy.com/checkout/buy/5a3777a4-62ec-4ed0-8109-caf98615ff42?enabled=2233666";
     }
 
