@@ -144,6 +144,48 @@ export default function DashboardPage() {
   const [hrvScore] = useState<number>(68);
   const [tipIndex, setTipIndex] = useState<number>(0);
 
+  // ADMIN MODAL STATE'LERİ
+  const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
+  const [adminPassword, setAdminPassword] = useState<string>("");
+  const [selectedAdminPlan, setSelectedAdminPlan] = useState<"free" | "pro" | "plus">("pro");
+  const [adminError, setAdminError] = useState<string>("");
+  const [adminLoading, setAdminLoading] = useState<boolean>(false);
+
+  const ADMIN_SECRET = "omni2026admin";
+
+  const handleAdminBypass = async () => {
+    if (adminPassword !== ADMIN_SECRET) {
+      setAdminError("Hatalı Admin Şifresi!");
+      return;
+    }
+
+    setAdminLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.auth.updateUser({
+          data: { plan: selectedAdminPlan },
+        });
+      }
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("omni_user_plan", selectedAdminPlan);
+      }
+
+      setUserPlan(selectedAdminPlan);
+      alert(`Başarılı! Planınız ödeme yapılmadan "${selectedAdminPlan.toUpperCase()}" olarak değiştirildi.`);
+      setIsAdminOpen(false);
+      setAdminPassword("");
+      setAdminError("");
+      window.location.reload();
+    } catch (error) {
+      console.error("Admin bypass hatası:", error);
+      setAdminError("Plan güncellenirken hata oluştu.");
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
   // INITIAL HABITS DEFAULTS
   const defaultHabits = [
     { id: 1, title: isTr ? "Hafif Yürüyüş & Esneme" : "Light Walk & Stretch", category: isTr ? "Spor" : "Sports", level: 2, suggestedTime: "17:00 - 17:45", completed: true, streak: 12 },
@@ -315,7 +357,6 @@ export default function DashboardPage() {
     setTipIndex((prev) => (prev + 1) % currentTips.length);
   };
 
-  // GERÇEK GEMINI AI & LOKAL AKILLI ÇAKIŞMA ÖNLEYİCİ SCHEDULER
   // GERÇEK GEMINI AI & DAKİKA BAZLI AKILLI ZAMANLAYICI
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -687,6 +728,23 @@ KRİTİK ZAMANLAMA KURALLARI:
                   >
                     {t.upgrade}
                   </button>
+
+                  {/* GELİŞTİRİCİ MODU (OVERVIEW) */}
+                  <div className="mt-4 pt-4 border-t border-slate-800/80">
+                    <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between">
+                      <div>
+                        <h4 className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">🛠️ Geliştirici Modu</h4>
+                        <p className="text-[10px] text-slate-400">Admin Yetkili Geçiş</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsAdminOpen(true)}
+                        className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] rounded-lg transition cursor-pointer"
+                      >
+                        Plan Değiştir
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1128,6 +1186,21 @@ KRİTİK ZAMANLAMA KURALLARI:
 
             {/* YOUR MEMBERSHIP */}
             <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-6">
+              {/* GELİŞTİRİCİ MODU (SETTINGS) */}
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between mb-4">
+                <div>
+                  <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">🛠️ Geliştirici Modu (Admin Plan Geçişi)</h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Test amacıyla ödeme yapmadan hesaba Pro veya Plus plan tanımlayın.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAdminOpen(true)}
+                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-lg transition cursor-pointer"
+                >
+                  Plan Değiştir
+                </button>
+              </div>
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.membershipHeader}</h3>
@@ -1232,6 +1305,72 @@ KRİTİK ZAMANLAMA KURALLARI:
           </button>
         </div>
       </main>
+
+      {/* ADMIN MODAL POP-UP */}
+      {isAdminOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
+            <div>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">⚡ Developer Admin Pass</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Test amacıyla planınızı anında değiştirin.</p>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Atanacak Plan</label>
+                <select
+                  value={selectedAdminPlan}
+                  onChange={(e) => setSelectedAdminPlan(e.target.value as any)}
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800 p-2.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                >
+                  <option value="free">Basic (Ücretsiz)</option>
+                  <option value="pro">OmniSync Pro</option>
+                  <option value="plus">OmniSync Plus</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Admin Şifresi</label>
+                <input
+                  type="password"
+                  placeholder="Şifreyi girin..."
+                  value={adminPassword}
+                  onChange={(e) => {
+                    setAdminPassword(e.target.value);
+                    setAdminError("");
+                  }}
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800 p-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                />
+              </div>
+
+              {adminError && (
+                <p className="text-xs font-semibold text-red-400">{adminError}</p>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAdminOpen(false);
+                  setAdminError("");
+                }}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-slate-400 hover:bg-slate-800 cursor-pointer"
+              >
+                İptal
+              </button>
+              <button
+                type="button"
+                onClick={handleAdminBypass}
+                disabled={adminLoading}
+                className="rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold px-4 py-2 text-xs transition-opacity disabled:opacity-50 cursor-pointer"
+              >
+                {adminLoading ? "Güncelleniyor..." : "Planı Etkinleştir"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* POP-UP MODAL (ABONELİK YÜKSELTME KARTLARI) */}
       {showUpgradeModal && (
