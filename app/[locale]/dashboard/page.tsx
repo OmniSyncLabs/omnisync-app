@@ -28,7 +28,7 @@ export default function DashboardPage() {
     focusLevelText: isTr ? "Zihinsel Odak Seviyesi" : "Mental Focus Level",
     addHabitTitle: isTr ? "Yapay Zeka ile Otomatik Zamanlanan Görev Ekle" : "Add Task Auto-Scheduled by AI",
     addHabitBtn: isTr ? "Yapay Zeka ile Otomatik Ekle" : "Add with AI Scheduler",
-    addingAl: isTr ? "Gemini AI Süre Tahmini & Çakışmasız Saat Analizi Yapıyor..." : "Gemini AI Estimating Duration & Calculating Slot...",
+    addingAl: isTr ? "AI Süre Tahmini & Çakışmasız Saat Analizi Yapıyor..." : "AI Estimating Duration & Calculating Slot...",
     taskTitlePlaceholder: isTr ? "Görev Adı (Örn: 1.5 Saat Fizik Denemesi Çöz)" : "Task Title (e.g. 1.5h Physics Exam)",
     category: isTr ? "Kategori" : "Category",
     productivity: isTr ? "Verimlilik" : "Productivity",
@@ -112,11 +112,11 @@ export default function DashboardPage() {
   const [focusLevel, setFocusLevel] = useState<number>(3);
   const [hrvScore] = useState<number>(68);
 
-  // KÂĞITTAKİ MADDE 4: REAL-TIME CANLI AI TIP STATE
+  // REAL-TIME CANLI AI TIP STATE
   const [realtimeAiTip, setRealtimeAiTip] = useState<string>("");
   const [isTipLoading, setIsTipLoading] = useState<boolean>(false);
 
-  // ARKADAŞININ İSTEĞİ: RUTİN DÜZENLEME (EDIT) MODAL STATE'LERİ
+  // RUTİN DÜZENLEME (EDIT) MODAL STATE'LERİ
   const [editingHabit, setEditingHabit] = useState<any | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editTime, setEditTime] = useState("");
@@ -179,7 +179,6 @@ export default function DashboardPage() {
     }
   };
 
-  // ARKADAŞININ İSTEĞİ: İLK GİRİŞTE TAMAMLANMIŞ HEDEF / HAZIR RUTİN OLMASIN (TEMİZ BAŞLANGIÇ)
   const defaultHabits: any[] = [];
 
   const [habits, setHabits] = useState(defaultHabits);
@@ -190,9 +189,10 @@ export default function DashboardPage() {
   const [newHabitLevel, setNewHabitLevel] = useState<number>(3);
   const [aiScheduling, setAiScheduling] = useState<boolean>(false);
 
-  // KÂĞITTAKİ MADDE 4: REAL-TIME GEMINI AI TIP
+  // MADDE 2 & MADDE 3 DÜZELTMESİ: CANLI AI TIP (GEMINI MARKASI TEMİZLENDİ, ANINDA REFRESH DÜZELTİLDİ)
   const generateRealtimeTip = async (level: number) => {
     setIsTipLoading(true);
+    setRealtimeAiTip("");
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (apiKey) {
       try {
@@ -376,7 +376,7 @@ export default function DashboardPage() {
     setHabits(habits.filter((h) => h.id !== id));
   };
 
-  // ARKADAŞININ İSTEĞİ: RUTİN DÜZENLEME (EDIT)
+  // RUTİN DÜZENLEME (EDIT)
   const openEditModal = (habit: any) => {
     setEditingHabit(habit);
     setEditTitle(habit.title);
@@ -426,7 +426,27 @@ export default function DashboardPage() {
     setManualTitle("");
   };
 
-  // KÂĞITTAKİ MADDE 2: SÜRE TAHMİNİ YAPAN AI EKLENTİSİ
+  // MADDE 1 DÜZELTMESİ: SÜRE ALGILAMA (3 SAAT, 90 DK, 1.5 SAAT GİBİ METİNLERİ KESİN OLARAK AYLIK/GÜNLÜK BLOKLARA DÖNÜŞTÜRÜR)
+  const parseDurationInMinutes = (title: string): number | null => {
+    const tLower = title.toLowerCase();
+    
+    // Saat kalıpları (3 saat, 1.5 saat, 2,5 saat vb.)
+    const hourMatch = tLower.match(/(\d+(?:[\.,]\d+)?)\s*(?:saat|st|hours|h)/);
+    if (hourMatch) {
+      const val = parseFloat(hourMatch[1].replace(",", "."));
+      if (!isNaN(val)) return Math.round(val * 60);
+    }
+    
+    // Dakika kalıpları (90 dk, 45 dakika, 30 min vb.)
+    const minMatch = tLower.match(/(\d+)\s*(?:dk|dakika|min|mins|minute|minutes)/);
+    if (minMatch) {
+      const val = parseInt(minMatch[1], 10);
+      if (!isNaN(val)) return val;
+    }
+
+    return null;
+  };
+
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
@@ -442,6 +462,7 @@ export default function DashboardPage() {
 
     setAiScheduling(true);
 
+    const detectedDuration = parseDurationInMinutes(newHabitTitle);
     const existingSlots = habits.map(h => `${h.title} (${h.suggestedTime})`).join(", ");
     let finalTimeSlot = "";
 
@@ -455,13 +476,14 @@ Kullanıcının mevcut dolu rutin saatleri: [${existingSlots}].
 Yeni görev: "${newHabitTitle}"
 Kategori: ${newHabitCategory}
 Beyin Yükü Seviyesi: ${newHabitLevel}/5
+${detectedDuration ? `ÖNEMLİ KURAL: Kullanıcı metinde kesin olarak ${detectedDuration} DAKİKALIK bir süre belirtti. Başlangıç ve bitiş saati arasındaki fark TAM OLARAK ${detectedDuration} dakika olmalıdır!` : ""}
 
-KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
-1. GÖREV SÜRESİNİ DİKKATE AL: Metinde açık bir süre varsa (örn: "1.5 saat", "45 dk") o süreyi kullan.
-2. SÜRE YOKSA TAHMİN ET: Metinde süre yazmıyorsa etkinliğin ne olduğunu analiz edip ortalama kaç dakika süreceğini TAHMİN ET (Örn: "Fizik Denemesi" -> 90 dk, "Kitap Okuma" -> 30 dk, "Yürüyüş" -> 45 dk).
+ZAMANLAMA KURALLARI:
+1. GÖREV SÜRESİNİ DİKKATE AL: Metinde açık bir süre varsa (${detectedDuration ? `${detectedDuration} dk` : "örn: 3 saat, 45 dk"}) tam o uzunlukta blok oluştur.
+2. SÜRE YOKSA TAHMİN ET: Metinde süre yazmıyorsa etkinliğin ne olduğunu analiz edip ortalama kaç dakika süreceğini TAHMİN ET (Örn: "Fizik Denemesi" -> 90 dk, "Kitap Okuma" -> 30 dk).
 3. MOLALAR VER: Önceki görevlerin bitiş saatine yapışma! Araya 15-30 dk mola koy.
 4. ÇAKIŞMA OLMASIN: 24 saatlik gün içine çakışmasız yerleştir.
-5. SADECE SAAT ARALIĞINI YAZ: Örnek format: "14:00 - 15:30".
+5. SADECE SAAT ARALIĞINI YAZ: Örnek format: "14:00 - 17:00".
         `;
 
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
@@ -478,17 +500,18 @@ KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
           finalTimeSlot = aiResponse.replace(/\./g, ":");
         }
       } catch (err) {
-        console.error("Gemini API hatası:", err);
+        console.error("AI API hatası:", err);
       }
     }
 
     if (!finalTimeSlot) {
-      let durationMinutes = 60;
-      const titleLower = newHabitTitle.toLowerCase();
-      if (titleLower.includes("deneme") || titleLower.includes("sınav")) durationMinutes = 90;
-      else if (titleLower.includes("kitap") || titleLower.includes("özet")) durationMinutes = 30;
-      else if (titleLower.includes("spor") || titleLower.includes("yürüyüş")) durationMinutes = 45;
-      else if (titleLower.includes("1.5") || titleLower.includes("1,5")) durationMinutes = 90;
+      let durationMinutes = detectedDuration || 60;
+      if (!detectedDuration) {
+        const titleLower = newHabitTitle.toLowerCase();
+        if (titleLower.includes("deneme") || titleLower.includes("sınav")) durationMinutes = 90;
+        else if (titleLower.includes("kitap") || titleLower.includes("özet")) durationMinutes = 30;
+        else if (titleLower.includes("spor") || titleLower.includes("yürüyüş")) durationMinutes = 45;
+      }
 
       let startMin = newHabitLevel >= 4 ? 9 * 60 : 16 * 60;
 
@@ -551,7 +574,7 @@ KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
     { day: isTr ? "Paz" : "Sun", score: "8/10", x: 480, y: 50 },
   ];
 
-  // KÂĞITTAKİ MADDE 1: SAAT ÇİZELGESİ 00:00 - 24:00 (TAM 24 SAAT DÖNGÜSÜ)
+  // SAAT ÇİZELGESİ 00:00 - 24:00 (TAM 24 SAAT DÖNGÜSÜ)
   const timeSlots = Array.from({ length: 24 }, (_, i) => {
     const hour = i.toString().padStart(2, "0");
     return `${hour}:00`;
@@ -718,7 +741,7 @@ KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
               </div>
             </div>
 
-            {/* SAAT CİZELGESİ (00:00 - 24:00 24 SAAT DÖNGÜSÜ) */}
+            {/* SAAT ÇİZELGESİ (00:00 - 24:00 24 SAAT DÖNGÜSÜ) */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -850,7 +873,6 @@ KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0 ml-2">
-                          {/* ARKADAŞININ İSTEĞİ: DÜZENLEME (EDIT) BUTONU */}
                           <button
                             type="button"
                             onClick={(e) => {
@@ -935,7 +957,7 @@ KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
                 <div>
                   <h3 className="text-base font-bold text-white">{t.focusLevelText}</h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    {isTr ? "KÂĞITTAKİ MADDE 3: Zihinsel odak seviyesi eklenecek event saatini/seviyesini etkilemez." : "Focus rating does not alter event schedule."}
+                    {isTr ? "Zihinsel odak seviyeniz kişiselleştirilmiş AI önerilerini doğrudan günceller." : "Focus rating dynamically powers custom AI recommendations."}
                   </p>
                 </div>
                 <span className="text-xs font-bold text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">
@@ -954,7 +976,7 @@ KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
                 ))}
               </div>
 
-              {/* KÂĞITTAKİ MADDE 4: CANLI ANLIK AI TIP */}
+              {/* CANLI ANLIK AI TIP */}
               <div className="p-4 bg-gradient-to-r from-cyan-950/60 via-slate-950 to-indigo-950/60 border border-cyan-500/40 rounded-xl shadow-md">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
@@ -964,14 +986,15 @@ KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
                         {isTr ? "Canlı AI Üretimi Odak İpucu" : "Realtime AI Generated Tip"}
                       </h4>
                       <p className="text-xs text-slate-200 leading-relaxed font-medium">
-                        {isTipLoading ? "Gemini AI anlık durumunuzu analiz ediyor..." : realtimeAiTip}
+                        {isTipLoading ? "AI anlık durumunuzu analiz ediyor ve tavsiye üretiyor..." : realtimeAiTip}
                       </p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => generateRealtimeTip(focusLevel)}
-                    className="p-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-lg text-xs font-bold transition cursor-pointer"
+                    className="p-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-lg text-xs font-bold transition cursor-pointer shrink-0"
+                    title="Yeni İpucu Üret"
                   >
                     🔄
                   </button>
@@ -1076,11 +1099,10 @@ KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
           </div>
         )}
 
-        {/* KÂĞITTAKİ MADDE 5: BİYOMETRİ & HRV ANALİZİ SAYFASI */}
+        {/* BİYOMETRİ & HRV ANALİZİ SAYFASI */}
         {activeTab === "analytics" && (
           <div className="space-y-6">
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg relative overflow-hidden">
-              {/* KÂĞITTAKİ MADDE 5.3: GİYİLEBİLİR CİHAZ YOKSA KİLİTLİ SAYFA */}
               {wearableDevice === "No wearable" && (
                 <div className="absolute inset-0 z-20 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
                   <div className="w-14 h-14 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-2xl mb-3">
@@ -1088,7 +1110,7 @@ KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
                   </div>
                   <h4 className="text-base font-bold text-white mb-1">Giyilebilir Cihaz Bağlı Değil</h4>
                   <p className="text-xs text-slate-400 max-w-md mb-4">
-                    Kâğıttaki kural gereği: Bu Biyometri & HRV Analizi alanı en az 1 giyilebilir cihaz (Apple Watch, Oura, WHOOP vb.) bağlı olmadığı sürece çalışamaz.
+                    Biyometri & HRV Analizi alanı en az 1 giyilebilir cihaz (Apple Watch, Oura, WHOOP vb.) bağlı olduğunda verileri işleyebilir.
                   </p>
                   <button
                     onClick={() => setActiveTab("settings")}
@@ -1139,10 +1161,10 @@ KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
                 </div>
               </div>
 
-              {/* KÂĞITTAKİ MADDE 5.1 & 5.2: BİYOMETRİ ÖZET METNİ VE AI ANALİZİ */}
+              {/* BİYOMETRİ ÖZET METNİ VE AI ANALİZİ */}
               <div className="mt-6 p-4 bg-slate-950 border border-cyan-500/30 rounded-xl space-y-2">
                 <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
-                  🤖 Gemini AI Biyometri Özet ve Fayda Analizi
+                  🤖 AI Biyometri Özet ve Fayda Analizi
                 </h4>
                 <p className="text-xs text-slate-300 leading-relaxed">
                   HRV (Kalp Hızı Değişkenliği), otonom sinir sisteminizin stres ve toparlanma dengesini ölçer. Yüksek HRV score (68+ bpm) vücudunuzun fiziksel ve zihinsel yüklere uyum sağlama kapasitesinin yüksek olduğunu gösterir. AI modelimiz gün sonunda verilerinizi analiz ederek yarınki ideal çalışma seanslarınızı önerir.
@@ -1377,7 +1399,7 @@ KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
               </div>
             </div>
 
-            {/* KÂĞITTAKİ MADDE 6: ÇALIŞIR HALE GETİRİLEN GÜVENLİK VE AYAR BUTONLARI */}
+            {/* GÜVENLİK VE AYAR BUTONLARI */}
             <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-4">
               <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.sec3Title}</h3>
               <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
@@ -1525,7 +1547,7 @@ KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
         </div>
       </main>
 
-      {/* ARKADAŞININ İSTEĞİ: RUTİN DÜZENLEME MODALI */}
+      {/* RUTİN DÜZENLEME MODALI */}
       {editingHabit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
