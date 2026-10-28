@@ -28,13 +28,14 @@ export default function DashboardPage() {
     focusLevelText: isTr ? "Zihinsel Odak Seviyesi" : "Mental Focus Level",
     addHabitTitle: isTr ? "Yapay Zeka ile Otomatik Zamanlanan Görev Ekle" : "Add Task Auto-Scheduled by AI",
     addHabitBtn: isTr ? "Yapay Zeka ile Otomatik Ekle" : "Add with AI Scheduler",
-    addingAl: isTr ? "AI Süre Tahmini & Çakışmasız Saat Analizi Yapıyor..." : "AI Estimating Duration & Calculating Slot...",
-    taskTitlePlaceholder: isTr ? "Görev Adı (Örn: 3 Saat Matematik Denemesi Çöz)" : "Task Title (e.g. 3h Math Exam)",
+    addingAl: isTr ? "Gemini AI Süre Tahmini & Çakışmasız Saat Analizi Yapıyor..." : "Gemini AI Estimating Duration & Calculating Slot...",
+    taskTitlePlaceholder: isTr ? "Görev Adı (Örn: 1.5 Saat Fizik Denemesi Çöz)" : "Task Title (e.g. 1.5h Physics Exam)",
     category: isTr ? "Kategori" : "Category",
     productivity: isTr ? "Verimlilik" : "Productivity",
     sports: isTr ? "Spor" : "Sports",
     health: isTr ? "Sağlık" : "Health",
     personal: isTr ? "Kişisel" : "Personal",
+    order: isTr ? "Düzen" : "Order",
     level1: isTr ? "Sev. 1 (Çok Hafif)" : "Lvl 1 (Very Light)",
     level2: isTr ? "Sev. 2 (Hafif)" : "Lvl 2 (Light)",
     level3: isTr ? "Sev. 3 (Orta)" : "Lvl 3 (Medium)",
@@ -77,6 +78,17 @@ export default function DashboardPage() {
     plusHeader: isTr ? "→ Pro paketteki her şey, ayrıca:" : "→ Everything in Pro, plus:",
     trialBtn: isTr ? "7 Günlük Ücretsiz Denemeyi Başlat" : "Start 7-Day Free Trial",
     getPlusBtn: isTr ? "Plus Üyeliği Al" : "Get Plus Membership",
+    proF1: isTr ? "10 adede kadar otomatik zamanlanmış etkinlik & takvim eşitleme" : "Up to 10 auto-scheduled events & calendar sync",
+    proF2: isTr ? "Otomatik DND & Odak Modu Eşitleme (Saat/Telefon)" : "Auto DND & Focus Mode Sync (Watch/Phone)",
+    proF3: isTr ? "Günlük AI Sesli Sabah Özeti" : "Daily AI Voice Morning Briefing",
+    proF4: isTr ? "Tükenmişlik Erken Uyarı Sistemi (3 günlük HRV)" : "Burnout Early Warning System (3-day HRV)",
+    proF5: isTr ? "Sınırsız Pro AI Danışmanı" : "Unlimited Pro AI Advisor",
+    proF6: isTr ? "Çoklu cihaz eşitleme (2+ cihaz)" : "Multi-device sync (2+ devices)",
+    plusF1: isTr ? "25 etkinliğe kadar / sınırsız güç görevleri" : "Up to 25 events / unlimited power tasks",
+    plusF2: isTr ? "Bio-Sync Partner Eşleşmesi" : "Bio-Sync Partner Matching",
+    plusF3: isTr ? "Social Party Odak Odaları & Canlı Rutin Eşitleme" : "Social Party Focus Rooms & Live Routine Sync",
+    plusF4: isTr ? "Öncelikli Sesli AI Danışmanı" : "Priority Voice Chat AI Consultant",
+    plusF5: isTr ? "Dışa aktarılabilir HRV & Sağlık PDF Raporları" : "Exportable HRV & Health PDF Reports",
   };
 
   const [userName, setUserName] = useState<string>("Kullanıcı");
@@ -100,16 +112,16 @@ export default function DashboardPage() {
   const [focusLevel, setFocusLevel] = useState<number>(3);
   const [hrvScore] = useState<number>(68);
 
-  // CANLI AI TIP STATE
+  // KÂĞITTAKİ MADDE 4: REAL-TIME CANLI AI TIP STATE
   const [realtimeAiTip, setRealtimeAiTip] = useState<string>("");
   const [isTipLoading, setIsTipLoading] = useState<boolean>(false);
 
-  // RUTİN DÜZENLEME (EDIT MODAL) STATE'LERİ
+  // ARKADAŞININ İSTEĞİ: RUTİN DÜZENLEME (EDIT) MODAL STATE'LERİ
   const [editingHabit, setEditingHabit] = useState<any | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editTime, setEditTime] = useState("");
 
-  // MANUEL SABİT BLOK FORM STATE'LERİ
+  // MANUEL OKUL/İŞ BLOKLARI İÇİN FORM STATE'LERİ
   const [manualTitle, setManualTitle] = useState("");
   const [manualStart, setManualStart] = useState("08:00");
   const [manualEnd, setManualEnd] = useState("15:20");
@@ -134,7 +146,43 @@ export default function DashboardPage() {
     return timeStr.replace(/\./g, ":").trim();
   };
 
-  const [habits, setHabits] = useState<any[]>([]);
+  const handleAdminBypass = async () => {
+    if (adminPassword !== ADMIN_SECRET) {
+      setAdminError("Hatalı Admin Şifresi!");
+      return;
+    }
+
+    setAdminLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.auth.updateUser({
+          data: { plan: selectedAdminPlan },
+        });
+      }
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("omni_user_plan", selectedAdminPlan);
+      }
+
+      setUserPlan(selectedAdminPlan);
+      alert(`Başarılı! Planınız "${selectedAdminPlan.toUpperCase()}" olarak değiştirildi.`);
+      setIsAdminOpen(false);
+      setAdminPassword("");
+      setAdminError("");
+      window.location.reload();
+    } catch (error) {
+      console.error("Admin bypass hatası:", error);
+      setAdminError("Plan güncellenirken hata oluştu.");
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // ARKADAŞININ İSTEĞİ: İLK GİRİŞTE TAMAMLANMIŞ HEDEF / HAZIR RUTİN OLMASIN (TEMİZ BAŞLANGIÇ)
+  const defaultHabits: any[] = [];
+
+  const [habits, setHabits] = useState(defaultHabits);
   const [isHabitsLoaded, setIsHabitsLoaded] = useState(false);
 
   const [newHabitTitle, setNewHabitTitle] = useState("");
@@ -142,28 +190,13 @@ export default function DashboardPage() {
   const [newHabitLevel, setNewHabitLevel] = useState<number>(3);
   const [aiScheduling, setAiScheduling] = useState<boolean>(false);
 
-  // 10 KİŞİLİK SOCIAL PARTY ÜYELERİ LİSTESİ
-  const groupMembers = [
-    { id: 1, name: "Yaren Ünlü", status: isTr ? "1.5 Saat Matematik Çalışıyor" : "1.5h Studying Math", focus: "Sev. 5", hrv: "72 bpm", online: true },
-    { id: 2, name: "Ali Yılmaz", status: isTr ? "Paragraf Soru Çözümü" : "Solving Reading Tests", focus: "Sev. 4", hrv: "65 bpm", online: true },
-    { id: 3, name: "Zeynep Kaya", status: isTr ? "Açık Hava Yürüyüşü" : "Outdoor Walk", focus: "Sev. 2", hrv: "80 bpm", online: false },
-    { id: 4, name: "Mert Demir", status: isTr ? "Dinlenme / Mola" : "Rest & Break", focus: "Sev. 1", hrv: "58 bpm", online: true },
-    { id: 5, name: "Ece Şahin", status: isTr ? "İngilizce Kelime Ezberi" : "English Vocabulary", focus: "Sev. 3", hrv: "70 bpm", online: true },
-    { id: 6, name: "Can Öztürk", status: isTr ? "Fizik Soru Çözümü" : "Physics Practice", focus: "Sev. 5", hrv: "63 bpm", online: false },
-    { id: 7, name: "Selin Arslan", status: isTr ? "Kitap Okuma Saati" : "Reading Time", focus: "Sev. 2", hrv: "76 bpm", online: true },
-    { id: 8, name: "Burak Yıldız", status: isTr ? "Kodlama & Proje" : "Coding & Project", focus: "Sev. 4", hrv: "69 bpm", online: true },
-    { id: 9, name: "Elif Aydın", status: isTr ? "Geometri Tekrarı" : "Geometry Review", focus: "Sev. 4", hrv: "67 bpm", online: false },
-    { id: 10, name: "Deniz Kaan", status: isTr ? "Gece Çalışması" : "Night Session", focus: "Sev. 3", hrv: "71 bpm", online: true },
-  ];
-
-  // TAKILMAYAN CANLI AI İPUCU ÜRETİCİSİ
+  // KÂĞITTAKİ MADDE 4: REAL-TIME GEMINI AI TIP
   const generateRealtimeTip = async (level: number) => {
     setIsTipLoading(true);
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-    
     if (apiKey) {
       try {
-        const prompt = `Kullanıcının anlık zihinsel odak seviyesi: ${level}/5. Bu odak seviyesindeki öğrenci/çalışan için uygulanabilecek 1-2 cümlelik pratik, motivasyon verici bir odak tavsiyesi yaz. Yalnızca tavsiyeyi ver.`;
+        const prompt = `Kullanıcının anlık zihinsel odak seviyesi: ${level}/5. Bu seviyedeki bir öğrenci/çalışan için tam şu an uygulanabilecek 1-2 cümlelik kişiselleştirilmiş, eyleme geçirici, özgün bir AI ritim ve odak tavsiyesi üret. Sadece tavsiye metnini yaz.`;
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -180,18 +213,14 @@ export default function DashboardPage() {
         console.error("AI Tip alma hatası:", err);
       }
     }
-
-    const tipsPool: Record<number, string[]> = {
-      1: ["Zihinsel enerjin düşük. Zor dersler yerine kısa yürüyüşler ve hafif okumalar yap.", "Düşük odak modundasın. Masanı düzenle ve 15 dakikalık mola ver."],
-      2: ["Hafif odak modundasın. Kelime ezberi ve rutin tekrar yapmak için mükemmel zaman.", "Kavram tekrarları ve formül incelemeleri için 30 dakikalık bloklar tercih et."],
-      3: ["Dengeli odak seviyesi. 45 dakikalık soru çözümü ve ardından 10 dakika mola ideal.", "Zihnin açık. Orta zorluktaki konuları bitirmek için zamanlayıcını başlat."],
-      4: ["Yüksek zihinsel performans! Zorlandığın branş derslerine ve ağır problemlere odaklan.", "Analiz ve mantık yürütme gücün zirvede. Kesintisiz 1 saatlik derin çalışma yap."],
-      5: ["MAKSİMUM AKIŞ (FLOW) MODU! Bildirimleri kapat, 2-3 saatlik deneme seansını başlat.", "Zihinsel odaklama tepe noktada. En zorlandığın projeyi hemen önceliklendir."]
+    const fallbackTips: Record<number, string> = {
+      1: isTr ? "Anlık Analiz: Zihinsel enerjin bugün düşük seviyede. Hafif yürüyüş ve kitap okuma gibi düşük beyin yükü gerektiren rutinlere odaklan." : "AI Tip: Mental energy is low today. Focus on light activities like 15-minute walks or light reading.",
+      2: isTr ? "Anlık Analiz: Hafif-orta zihinsel moddasın. Bugün rutin tekrar dersleri ve kelime ezberleri için harika bir gün." : "AI Tip: Light-moderate focus state. Ideal for vocabulary reviews and routine revision.",
+      3: isTr ? "Anlık Analiz: Dengeli odak seviyesindesin. Pomodoro tekniği ile 1.5 saatlik verimli ders veya proje oturumunu kolayca tamamlayabilirsin." : "AI Tip: Balanced focus state. Use Pomodoro to comfortably complete study blocks.",
+      4: isTr ? "Anlık Analiz: Yüksek zihinsel performans modundasın! Beyin karmaşık mantık yürütmeye ve ağır problem çözmeye hazır." : "AI Tip: High cognitive performance! Your brain is primed for complex logic and problem solving.",
+      5: isTr ? "Anlık Analiz: MAKSİMUM DERİN ODAK! Bildirimleri kapat, DND moduna geç ve en az 2 saatlik kesintisiz deneme sınavı seansı başlat." : "AI Tip: PEAK FLOW STATE! Enable DND mode and initiate an uninterrupted deep study block."
     };
-
-    const currentTips = tipsPool[level] || tipsPool[3];
-    const randomTip = currentTips[Math.floor(Math.random() * currentTips.length)];
-    setRealtimeAiTip(randomTip);
+    setRealtimeAiTip(fallbackTips[level] || fallbackTips[3]);
     setIsTipLoading(false);
   };
 
@@ -217,21 +246,43 @@ export default function DashboardPage() {
     }
   }, [habits, isHabitsLoaded]);
 
+  const groupMembers = [
+    { id: 1, name: "Yaren Ünlü", status: isTr ? "1.5 Saat Matematik Çalışıyor" : "1.5h Studying Math", focus: "Sev. 5", hrv: "72 bpm", online: true },
+    { id: 2, name: "Ali Yılmaz", status: isTr ? "Paragraf Soru Çözümü" : "Solving Reading Tests", focus: "Sev. 4", hrv: "65 bpm", online: true },
+    { id: 3, name: "Zeynep Kaya", status: isTr ? "Açık Hava Yürüyüşü" : "Outdoor Walk", focus: "Sev. 2", hrv: "80 bpm", online: false },
+    { id: 4, name: "Mert Demir", status: isTr ? "Dinlenme / Mola" : "Rest & Break", focus: "Sev. 1", hrv: "58 bpm", online: true },
+    { id: 5, name: "Ece Şahin", status: isTr ? "İngilizce Kelime Ezberi" : "English Vocabulary", focus: "Sev. 3", hrv: "70 bpm", online: true },
+    { id: 6, name: "Can Öztürk", status: isTr ? "Fizik Soru Çözümü" : "Physics Practice", focus: "Sev. 5", hrv: "63 bpm", online: false },
+    { id: 7, name: "Selin Arslan", status: isTr ? "Kitap Okuma Saati" : "Reading Time", focus: "Sev. 2", hrv: "76 bpm", online: true },
+    { id: 8, name: "Burak Yıldız", status: isTr ? "Kodlama & Proje" : "Coding & Project", focus: "Sev. 4", hrv: "69 bpm", online: true },
+    { id: 9, name: "Elif Aydın", status: isTr ? "Geometri Tekrarı" : "Geometry Review", focus: "Sev. 4", hrv: "67 bpm", online: false },
+    { id: 10, name: "Deniz Kaan", status: isTr ? "Gece Çalışması" : "Night Session", focus: "Sev. 3", hrv: "71 bpm", online: true },
+  ];
+
   useEffect(() => {
     const fetchUserData = async () => {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setUserName(user.user_metadata?.full_name || "Kullanıcı");
-        setUserEmail(user.email || "demo@example.com");
-        setUserPlan(user.user_metadata?.plan || "free");
-        setUserGoal(user.user_metadata?.onboarding_goal || "");
-        setUserAvatar(user.user_metadata?.avatar_url || user.user_metadata?.picture || "");
+        const name = user.user_metadata?.full_name || "Kullanıcı";
+        const email = user.email || "demo@example.com";
+        const plan = user.user_metadata?.plan || "free";
+        const goal = user.user_metadata?.onboarding_goal || "";
+        const avatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || "";
+        setUserName(name);
+        setUserEmail(email);
+        setUserPlan(plan);
+        setUserGoal(goal);
+        setUserAvatar(avatar);
       } else {
-        setUserName(localStorage.getItem("omni_user_name") || "Kullanıcı");
-        setUserEmail(localStorage.getItem("omni_user_email") || "demo@example.com");
-        setUserPlan(localStorage.getItem("omni_user_plan") || "free");
-        setUserAvatar(localStorage.getItem("omni_user_avatar") || "");
+        const savedName = localStorage.getItem("omni_user_name") || "Kullanıcı";
+        const savedEmail = localStorage.getItem("omni_user_email") || "demo@example.com";
+        const savedPlan = localStorage.getItem("omni_user_plan") || "free";
+        const savedAvatar = localStorage.getItem("omni_user_avatar") || "";
+        setUserName(savedName);
+        setUserEmail(savedEmail);
+        setUserPlan(savedPlan);
+        setUserAvatar(savedAvatar);
       }
       setLoading(false);
     };
@@ -245,9 +296,13 @@ export default function DashboardPage() {
       reader.onloadend = async () => {
         const base64String = reader.result as string;
         setUserAvatar(base64String);
-        localStorage.setItem("omni_user_avatar", base64String);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("omni_user_avatar", base64String);
+        }
         try {
-          await supabase.auth.updateUser({ data: { avatar_url: base64String } });
+          await supabase.auth.updateUser({
+            data: { avatar_url: base64String }
+          });
           setUpdateMsg(isTr ? "Profil fotoğrafı güncellendi!" : "Profile picture updated!");
           setTimeout(() => setUpdateMsg(""), 3000);
         } catch (err) {
@@ -261,7 +316,9 @@ export default function DashboardPage() {
   const handleChangePlan = async (targetPlan: "free" | "pro" | "plus") => {
     if (targetPlan === "free") {
       try {
-        await supabase.auth.updateUser({ data: { plan: "free" } });
+        await supabase.auth.updateUser({
+          data: { plan: "free" },
+        });
         setUserPlan("free");
         localStorage.setItem("omni_user_plan", "free");
         setShowUpgradeModal(false);
@@ -275,6 +332,7 @@ export default function DashboardPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       let checkoutUrl = '';
+
       if (targetPlan === 'plus') {
         checkoutUrl = isAnnual 
           ? 'https://omnisync-app.lemonsqueezy.com/checkout/buy/f46fcc91-f89d-4419-8b64-e9cf3675ee03' 
@@ -285,8 +343,11 @@ export default function DashboardPage() {
           : 'https://omnisync-app.lemonsqueezy.com/checkout/buy/0e12cb09-c14a-4cdd-aa67-c9bd6f6f6917';
       }
 
-      if (user && user.email) {
-        checkoutUrl += `?checkout[email]=${encodeURIComponent(user.email.trim())}&checkout[custom][user_id]=${user.id}`;
+      if (user) {
+        const validEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (user.email && validEmailRegex.test(user.email.trim())) {
+          checkoutUrl += `?checkout[email]=${encodeURIComponent(user.email.trim())}&checkout[custom][user_id]=${user.id}`;
+        }
       }
       window.location.href = checkoutUrl;
     } catch (error) {
@@ -296,19 +357,26 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    localStorage.clear();
+    localStorage.removeItem("omni_user_name");
+    localStorage.removeItem("omni_user_email");
+    localStorage.removeItem("omni_user_avatar");
+    localStorage.removeItem("omni_user_plan");
     router.push(`/${locale}`);
   };
 
   const toggleHabit = (id: number) => {
-    setHabits(habits.map((h) => h.id === id ? { ...h, completed: !h.completed } : h));
+    setHabits(
+      habits.map((h) =>
+        h.id === id ? { ...h, completed: !h.completed } : h
+      )
+    );
   };
 
   const deleteHabit = (id: number) => {
     setHabits(habits.filter((h) => h.id !== id));
   };
 
-  // RUTİN DÜZENLEME (EDIT MODAL)
+  // ARKADAŞININ İSTEĞİ: RUTİN DÜZENLEME (EDIT)
   const openEditModal = (habit: any) => {
     setEditingHabit(habit);
     setEditTitle(habit.title);
@@ -358,7 +426,7 @@ export default function DashboardPage() {
     setManualTitle("");
   };
 
-  // TAM DÜZELTİLMİŞ METİN İÇİNDEN SÜRE ALGILAYAN ZAMANLAYICI (3 SAAT vb.)
+  // KÂĞITTAKİ MADDE 2: SÜRE TAHMİNİ YAPAN AI EKLENTİSİ
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
@@ -374,23 +442,6 @@ export default function DashboardPage() {
 
     setAiScheduling(true);
 
-    // METİNDEN SÜRE AYRIŞTIRMA (3 saat, 90 dk vs.)
-    let extractedMinutes = 60;
-    const titleLower = newHabitTitle.toLowerCase().replace(',', '.');
-
-    const hourMatch = titleLower.match(/(\d+(?:\.\d+)?)\s*(?:saat|sa|hour|hr|h)/);
-    const minMatch = titleLower.match(/(\d+)\s*(?:dakika|dk|min|m)/);
-
-    if (hourMatch) {
-      extractedMinutes = Math.round(parseFloat(hourMatch[1]) * 60);
-    } else if (minMatch) {
-      extractedMinutes = parseInt(minMatch[1]);
-    } else {
-      if (titleLower.includes("deneme") || titleLower.includes("sınav")) extractedMinutes = 120;
-      else if (titleLower.includes("kitap") || titleLower.includes("özet")) extractedMinutes = 30;
-      else if (titleLower.includes("yürüyüş") || titleLower.includes("mola")) extractedMinutes = 45;
-    }
-
     const existingSlots = habits.map(h => `${h.title} (${h.suggestedTime})`).join(", ");
     let finalTimeSlot = "";
 
@@ -399,18 +450,26 @@ export default function DashboardPage() {
     if (apiKey) {
       try {
         const promptText = `
-Sen OmniSync akıllı zamanlayıcısısın.
-Dolu zamanlar: [${existingSlots}].
-Görev: "${newHabitTitle}"
-Bu etkinliğin süresi EXACTLY ${extractedMinutes} dakikadır. 
-Lütfen tam ${extractedMinutes} dakikalık çakışmasız bir saat aralığı belirle (Örn: 3 saatlikse 14:00 - 17:00).
-SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
+Sen OmniSync uygulamasının zeki Ritim & Takvim Zamanlayıcısısın.
+Kullanıcının mevcut dolu rutin saatleri: [${existingSlots}].
+Yeni görev: "${newHabitTitle}"
+Kategori: ${newHabitCategory}
+Beyin Yükü Seviyesi: ${newHabitLevel}/5
+
+KÂĞITTAKİ SÜRE TAHMİNİ & ZAMANLAMA KURALLARI:
+1. GÖREV SÜRESİNİ DİKKATE AL: Metinde açık bir süre varsa (örn: "1.5 saat", "45 dk") o süreyi kullan.
+2. SÜRE YOKSA TAHMİN ET: Metinde süre yazmıyorsa etkinliğin ne olduğunu analiz edip ortalama kaç dakika süreceğini TAHMİN ET (Örn: "Fizik Denemesi" -> 90 dk, "Kitap Okuma" -> 30 dk, "Yürüyüş" -> 45 dk).
+3. MOLALAR VER: Önceki görevlerin bitiş saatine yapışma! Araya 15-30 dk mola koy.
+4. ÇAKIŞMA OLMASIN: 24 saatlik gün içine çakışmasız yerleştir.
+5. SADECE SAAT ARALIĞINI YAZ: Örnek format: "14:00 - 15:30".
         `;
 
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }]
+          })
         });
 
         const data = await res.json();
@@ -419,24 +478,32 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
           finalTimeSlot = aiResponse.replace(/\./g, ":");
         }
       } catch (err) {
-        console.error("API hatası:", err);
+        console.error("Gemini API hatası:", err);
       }
     }
 
     if (!finalTimeSlot) {
-      let startMin = 14 * 60;
+      let durationMinutes = 60;
+      const titleLower = newHabitTitle.toLowerCase();
+      if (titleLower.includes("deneme") || titleLower.includes("sınav")) durationMinutes = 90;
+      else if (titleLower.includes("kitap") || titleLower.includes("özet")) durationMinutes = 30;
+      else if (titleLower.includes("spor") || titleLower.includes("yürüyüş")) durationMinutes = 45;
+      else if (titleLower.includes("1.5") || titleLower.includes("1,5")) durationMinutes = 90;
+
+      let startMin = newHabitLevel >= 4 ? 9 * 60 : 16 * 60;
 
       const isOverlapping = (testStart: number, testEnd: number) => {
         return habits.some(h => {
-          const match = h.suggestedTime.replace(/\./g, ":").match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
+          const formattedSlot = h.suggestedTime.replace(/\./g, ":");
+          const match = formattedSlot.match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
           if (!match) return false;
           const hStart = parseInt(match[1]) * 60 + parseInt(match[2]);
           const hEnd = parseInt(match[3]) * 60 + parseInt(match[4]);
-          return Math.max(testStart, hStart) < Math.min(testEnd, hEnd);
+          return Math.max(testStart, hStart) < Math.min(testEnd, hEnd) + 15;
         });
       };
 
-      while (isOverlapping(startMin, startMin + extractedMinutes) && startMin + extractedMinutes <= 24 * 60) {
+      while (isOverlapping(startMin, startMin + durationMinutes) && startMin < 23 * 60) {
         startMin += 30;
       }
 
@@ -446,7 +513,7 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
         return `${h}:${m}`;
       };
 
-      finalTimeSlot = `${formatTime(startMin)} - ${formatTime(startMin + extractedMinutes)}`;
+      finalTimeSlot = `${formatTime(startMin)} - ${formatTime(startMin + durationMinutes)}`;
     }
 
     setHabits([
@@ -466,30 +533,6 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
     setAiScheduling(false);
   };
 
-  const handleAdminBypass = async () => {
-    if (adminPassword !== ADMIN_SECRET) {
-      setAdminError("Hatalı Admin Şifresi!");
-      return;
-    }
-    setAdminLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.auth.updateUser({ data: { plan: selectedAdminPlan } });
-      }
-      localStorage.setItem("omni_user_plan", selectedAdminPlan);
-      setUserPlan(selectedAdminPlan);
-      alert(`Planınız "${selectedAdminPlan.toUpperCase()}" olarak değiştirildi.`);
-      setIsAdminOpen(false);
-      setAdminPassword("");
-      window.location.reload();
-    } catch (error) {
-      setAdminError("Plan güncellenirken hata oluştu.");
-    } finally {
-      setAdminLoading(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
@@ -497,11 +540,6 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
       </div>
     );
   }
-
-  const timeSlots = Array.from({ length: 24 }, (_, i) => {
-    const hour = i.toString().padStart(2, "0");
-    return `${hour}:00`;
-  });
 
   const chartPoints = [
     { day: isTr ? "Pzt" : "Mon", score: "6/10", x: 10, y: 90 },
@@ -512,6 +550,12 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
     { day: isTr ? "Cmt" : "Sat", score: "7/10", x: 400, y: 65 },
     { day: isTr ? "Paz" : "Sun", score: "8/10", x: 480, y: 50 },
   ];
+
+  // KÂĞITTAKİ MADDE 1: SAAT ÇİZELGESİ 00:00 - 24:00 (TAM 24 SAAT DÖNGÜSÜ)
+  const timeSlots = Array.from({ length: 24 }, (_, i) => {
+    const hour = i.toString().padStart(2, "0");
+    return `${hour}:00`;
+  });
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row font-sans relative">
@@ -674,7 +718,7 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
               </div>
             </div>
 
-            {/* 00:00 - 24:00 SAAT ÇİZELGESİ */}
+            {/* SAAT CİZELGESİ (00:00 - 24:00 24 SAAT DÖNGÜSÜ) */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -682,7 +726,7 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
                     📊 Günlük 24 Saatlik Ritim Çizelgesi (00:00 - 24:00)
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    {isTr ? "Tüm gününüzü 24 saatlik eksiksiz tablo üzerinde görün." : "Complete 24-hour daily schedule mapping."}
+                    {isTr ? "Manuel eklenen sabit bloklarınız ve Alışkanlıklar sekmesindeki planlarınız buraya yerleştirilir." : "Fixed blocks and scheduled habits mapped into hourly slots."}
                   </p>
                 </div>
                 <div className="text-xs font-bold text-cyan-400 bg-cyan-500/10 px-3 py-1.5 rounded-xl border border-cyan-500/20">
@@ -735,10 +779,10 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
               </div>
             </div>
 
-            {/* MANUEL BLOK EKLEME */}
+            {/* MANUEL SABİT BLOK FORMU */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
               <h3 className="text-sm font-bold text-amber-400 mb-1">🏫 Manuel Sabit Saat Ekle (Okul / İş / Dershane)</h3>
-              <p className="text-xs text-slate-400 mb-4">Hem "14:00" hem "14.00" formatı desteklenir.</p>
+              <p className="text-xs text-slate-400 mb-4">Örneğin 08:00 - 15:20 arası okul saatini manuel doldurun. Bu bloklar da rutin sınırına dahil edilir.</p>
               <form onSubmit={handleAddManualBlock} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <input
                   type="text"
@@ -758,7 +802,6 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
               </form>
             </div>
 
-            {/* RUTİNLER LİSTESİ VE DÜZENLEME MODALI */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
                 <div className="flex items-center justify-between mb-6">
@@ -807,6 +850,7 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0 ml-2">
+                          {/* ARKADAŞININ İSTEĞİ: DÜZENLEME (EDIT) BUTONU */}
                           <button
                             type="button"
                             onClick={(e) => {
@@ -838,7 +882,7 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
 
               <div className="space-y-6">
                 <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
-                  <h3 className="text-base font-bold text-white mb-2">ABONELİK DURUMU</h3>
+                  <h3 className="text-base font-bold text-white mb-2">YOUR MEMBERSHIP</h3>
                   <p className="text-xs text-slate-400 mb-4">{userEmail}</p>
                   
                   <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs space-y-2 mb-4">
@@ -891,7 +935,7 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
                 <div>
                   <h3 className="text-base font-bold text-white">{t.focusLevelText}</h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    {isTr ? "Zihinsel odak seviyesi eklenecek event saatini/seviyesini etkilemez." : "Focus rating does not alter event schedule."}
+                    {isTr ? "KÂĞITTAKİ MADDE 3: Zihinsel odak seviyesi eklenecek event saatini/seviyesini etkilemez." : "Focus rating does not alter event schedule."}
                   </p>
                 </div>
                 <span className="text-xs font-bold text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">
@@ -910,7 +954,7 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
                 ))}
               </div>
 
-              {/* DÜZELTİLEN YENİLEME BUTONLU CANLI AI İPUCU */}
+              {/* KÂĞITTAKİ MADDE 4: CANLI ANLIK AI TIP */}
               <div className="p-4 bg-gradient-to-r from-cyan-950/60 via-slate-950 to-indigo-950/60 border border-cyan-500/40 rounded-xl shadow-md">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
@@ -920,23 +964,21 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
                         {isTr ? "Canlı AI Üretimi Odak İpucu" : "Realtime AI Generated Tip"}
                       </h4>
                       <p className="text-xs text-slate-200 leading-relaxed font-medium">
-                        {isTipLoading ? "AI anlık durumunuzu analiz ediyor..." : realtimeAiTip}
+                        {isTipLoading ? "Gemini AI anlık durumunuzu analiz ediyor..." : realtimeAiTip}
                       </p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => generateRealtimeTip(focusLevel)}
-                    title="İpucunu Yenile"
-                    className="p-2 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-lg text-xs font-bold transition cursor-pointer shrink-0"
+                    className="p-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-lg text-xs font-bold transition cursor-pointer"
                   >
-                    🔄 Yenile
+                    🔄
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* AI ETKİNLİK EKLEME */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -985,13 +1027,60 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
                 </button>
               </form>
             </div>
+
+            <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
+              <h3 className="text-base font-bold text-white">{isTr ? "Aktif Rutinleriniz" : "Your Active Routines"}</h3>
+              {habits.length === 0 ? (
+                <div className="text-center py-6 text-slate-500 text-xs border border-dashed border-slate-800 rounded-xl">
+                  {isTr ? "Henüz aktif rutin bulunmuyor." : "No active routines."}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {habits.map((habit) => (
+                    <div
+                      key={habit.id}
+                      className="p-4 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between gap-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                          {habit.isManual && <span className="text-amber-400 text-[10px] font-bold">[Sabit]</span>}
+                          {habit.title}
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded">{habit.category}</span>
+                          <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded font-bold">Beyin Yükü: Sev. {habit.level}</span>
+                          <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-mono font-bold">Saat: {habit.suggestedTime}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(habit)}
+                          className="px-2.5 py-1.5 bg-slate-800 hover:bg-cyan-500/20 text-cyan-400 border border-slate-700 font-bold rounded-lg text-xs transition cursor-pointer"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteHabit(habit.id)}
+                          className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold rounded-lg text-xs transition cursor-pointer"
+                        >
+                          {isTr ? "Sil" : "Delete"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        {/* BİYOMETRİ & HRV ANALİZİ SAYFASI */}
+        {/* KÂĞITTAKİ MADDE 5: BİYOMETRİ & HRV ANALİZİ SAYFASI */}
         {activeTab === "analytics" && (
           <div className="space-y-6">
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg relative overflow-hidden">
+              {/* KÂĞITTAKİ MADDE 5.3: GİYİLEBİLİR CİHAZ YOKSA KİLİTLİ SAYFA */}
               {wearableDevice === "No wearable" && (
                 <div className="absolute inset-0 z-20 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
                   <div className="w-14 h-14 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-2xl mb-3">
@@ -999,7 +1088,7 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
                   </div>
                   <h4 className="text-base font-bold text-white mb-1">Giyilebilir Cihaz Bağlı Değil</h4>
                   <p className="text-xs text-slate-400 max-w-md mb-4">
-                    Bu Biyometri & HRV Analizi alanı en az 1 giyilebilir cihaz (Apple Watch, Oura, WHOOP vb.) bağlı olmadığı sürece çalışamaz.
+                    Kâğıttaki kural gereği: Bu Biyometri & HRV Analizi alanı en az 1 giyilebilir cihaz (Apple Watch, Oura, WHOOP vb.) bağlı olmadığı sürece çalışamaz.
                   </p>
                   <button
                     onClick={() => setActiveTab("settings")}
@@ -1010,42 +1099,60 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
                 </div>
               )}
 
-              <h3 className="text-base font-bold text-white mb-1">Biyometrik & Günlük HRV Analiz Grafiği</h3>
-              <p className="text-xs text-slate-400 mb-6">Gün sonunda AI tarafından analiz edilen HRV trend verileriniz.</p>
-              
+              <h3 className="text-base font-bold text-white mb-1">Performance & HRV Trend Chart</h3>
+              <p className="text-xs text-slate-400 mb-6">
+                {isTr ? "Pazartesi ve Pazar dahil günlerin hizasına tam oturan kesintisiz çizgi grafiği." : "Seamless line chart spanning from Mon to Sun."}
+              </p>
               <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-6 relative overflow-hidden">
                 <svg className="w-full h-44 overflow-visible" viewBox="0 0 490 140">
+                  <line x1="10" y1="20" x2="480" y2="20" stroke="#1e293b" strokeDasharray="3" />
+                  <line x1="10" y1="65" x2="480" y2="65" stroke="#1e293b" strokeDasharray="3" />
+                  <line x1="10" y1="110" x2="480" y2="110" stroke="#1e293b" strokeDasharray="3" />
                   <polyline
                     fill="none"
                     stroke="url(#chartGradient)"
                     strokeWidth="3.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     points={chartPoints.map((p) => `${p.x},${p.y}`).join(" ")}
                   />
                   <defs>
                     <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#22d3ee" />
+                      <stop offset="50%" stopColor="#3b82f6" />
                       <stop offset="100%" stopColor="#10b981" />
                     </linearGradient>
                   </defs>
                   {chartPoints.map((pt, i) => (
-                    <circle key={i} cx={pt.x} cy={pt.y} r="5" className="fill-cyan-400 stroke-slate-950 stroke-2" />
+                    <g key={i}>
+                      <circle cx={pt.x} cy={pt.y} r="5" className="fill-cyan-400 stroke-slate-950 stroke-2" />
+                      <text x={pt.x} y={pt.y - 10} textAnchor="middle" className="text-[9px] fill-cyan-300 font-bold">
+                        {pt.score}
+                      </text>
+                    </g>
                   ))}
                 </svg>
+                <div className="flex justify-between text-[11px] text-slate-400 font-semibold mt-4 pt-2 border-t border-slate-800">
+                  {chartPoints.map((pt, idx) => (
+                    <span key={idx} className="w-8 text-center">{pt.day}</span>
+                  ))}
+                </div>
               </div>
 
+              {/* KÂĞITTAKİ MADDE 5.1 & 5.2: BİYOMETRİ ÖZET METNİ VE AI ANALİZİ */}
               <div className="mt-6 p-4 bg-slate-950 border border-cyan-500/30 rounded-xl space-y-2">
                 <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
-                  🤖 AI Biyometri Özet ve Fayda Analizi
+                  🤖 Gemini AI Biyometri Özet ve Fayda Analizi
                 </h4>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  HRV (Kalp Hızı Değişkenliği), otonom sinir sisteminizin stres ve toparlanma dengesini ölçer. Yüksek HRV değeri (68+ bpm) vücudunuzun fiziksel ve zihinsel yüklere uyum sağlama kapasitesinin yüksek olduğunu gösterir. Yapay zeka sistemimiz gün sonunda verilerinizi analiz ederek yarınki ideal çalışma seanslarınızı önerir.
+                  HRV (Kalp Hızı Değişkenliği), otonom sinir sisteminizin stres ve toparlanma dengesini ölçer. Yüksek HRV score (68+ bpm) vücudunuzun fiziksel ve zihinsel yüklere uyum sağlama kapasitesinin yüksek olduğunu gösterir. AI modelimiz gün sonunda verilerinizi analiz ederek yarınki ideal çalışma seanslarınızı önerir.
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* SOCIAL PARTY (10 KİŞİ) TAB */}
+        {/* GROUP TAB */}
         {activeTab === "group" && (
           <div className="space-y-6">
             <div className="p-6 bg-slate-900/80 border border-purple-500/30 rounded-2xl shadow-xl relative overflow-hidden">
@@ -1119,8 +1226,38 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
         {/* SETTINGS TAB */}
         {activeTab === "settings" && (
           <div className="space-y-8 max-w-4xl">
+            {updateMsg && (
+              <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-cyan-400 text-xs font-bold">
+                {updateMsg}
+              </div>
+            )}
+            
             <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-6">
               <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.sec1Title}</h3>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-white">{t.appleHealth}</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">{t.appleHealthSub}</p>
+                </div>
+                <button
+                  onClick={() => setHealthSync(!healthSync)}
+                  className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${healthSync ? "bg-cyan-500" : "bg-slate-800"}`}
+                >
+                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${healthSync ? "translate-x-6" : "translate-x-0"}`} />
+                </button>
+              </div>
+              <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
+                <div>
+                  <h4 className="text-sm font-bold text-white">{t.autoFocus}</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">{t.autoFocusSub}</p>
+                </div>
+                <button
+                  onClick={() => setAutoFocusSync(!autoFocusSync)}
+                  className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${autoFocusSync ? "bg-cyan-500" : "bg-slate-800"}`}
+                >
+                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${autoFocusSync ? "translate-x-6" : "translate-x-0"}`} />
+                </button>
+              </div>
               <div className="pt-4 border-t border-slate-800/80">
                 <div className="flex justify-between items-center mb-3">
                   <h4 className="text-sm font-bold text-white">{t.wearableTitle}</h4>
@@ -1134,45 +1271,261 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
                   >
                     <option value="No wearable" className="bg-slate-900 text-white">No wearable (Cihaz Yok)</option>
                     <option value="Apple Watch Series 9" className="bg-slate-900 text-white">Apple Watch Series 9</option>
+                    <option value="Apple Watch Ultra 2" className="bg-slate-900 text-white">Apple Watch Ultra 2</option>
+                    <option value="Google Pixel Watch 2" className="bg-slate-900 text-white">Google Pixel Watch 2</option>
                     <option value="Samsung Galaxy Watch 6" className="bg-slate-900 text-white">Samsung Galaxy Watch 6</option>
+                    <option value="Garmin Forerunner 965" className="bg-slate-900 text-white">Garmin Forerunner 965</option>
                     <option value="WHOOP 4.0" className="bg-slate-900 text-white">WHOOP 4.0</option>
+                    <option value="Oura Ring Gen 3" className="bg-slate-900 text-white">Oura Ring Gen 3</option>
+                    <option value="Fitbit Charge 6" className="bg-slate-900 text-white">Fitbit Charge 6</option>
+                    <option value="Amazfit T-Rex 2" className="bg-slate-900 text-white">Amazfit T-Rex 2</option>
                   </select>
+                  <p className="text-[10px] text-slate-500 mt-2">{t.swipeScroll}</p>
                 </div>
               </div>
             </div>
 
-            {/* HESAP VE GÜVENLİK BUTONLARI */}
+            <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-6">
+              <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.sec2Title}</h3>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-sm font-bold text-white">{t.sleepTargetTitle}</h4>
+                  <span className="text-xs text-cyan-400 font-bold">{sleepTarget}</span>
+                </div>
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-center">
+                  <select
+                    value={sleepTarget}
+                    onChange={(e) => setSleepTarget(e.target.value)}
+                    className="bg-transparent text-xs text-cyan-400 font-bold text-center focus:outline-none w-full cursor-pointer"
+                  >
+                    <option value="5.0 Hours" className="bg-slate-900 text-white">5.0 Hours (5 Saat)</option>
+                    <option value="5.5 Hours" className="bg-slate-900 text-white">5.5 Hours (5.5 Saat)</option>
+                    <option value="6.0 Hours" className="bg-slate-900 text-white">6.0 Hours (6 Saat)</option>
+                    <option value="6.5 Hours" className="bg-slate-900 text-white">6.5 Hours (6.5 Saat)</option>
+                    <option value="7.0 Hours" className="bg-slate-900 text-white">7.0 Hours (7 Saat)</option>
+                    <option value="7.5 Hours" className="bg-slate-900 text-white">7.5 Hours (7.5 Saat)</option>
+                    <option value="8.0 Hours" className="bg-slate-900 text-white">8.0 Hours (8 Saat)</option>
+                    <option value="8.5 Hours" className="bg-slate-900 text-white">8.5 Hours (8.5 Saat)</option>
+                    <option value="9.0 Hours" className="bg-slate-900 text-white">9.0 Hours (9 Saat)</option>
+                    <option value="9.5 Hours" className="bg-slate-900 text-white">9.5 Hours (9.5 Saat)</option>
+                    <option value="10.0 Hours" className="bg-slate-900 text-white">10.0 Hours (10 Saat)</option>
+                  </select>
+                  <p className="text-[10px] text-slate-500 mt-2">{t.swipeScroll}</p>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-sm font-bold text-white">{t.caffeineTitle}</h4>
+                  <span className="text-xs text-cyan-400 font-bold">{caffeineBuffer}</span>
+                </div>
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-center">
+                  <select
+                    value={caffeineBuffer}
+                    onChange={(e) => setCaffeineBuffer(e.target.value)}
+                    className="bg-transparent text-xs text-cyan-400 font-bold text-center focus:outline-none w-full cursor-pointer"
+                  >
+                    <option value={`5.0 ${t.hoursBeforeSleep}`} className="bg-slate-900 text-white">5.0 {t.hoursBeforeSleep}</option>
+                    <option value={`5.5 ${t.hoursBeforeSleep}`} className="bg-slate-900 text-white">5.5 {t.hoursBeforeSleep}</option>
+                    <option value={`6.0 ${t.hoursBeforeSleep}`} className="bg-slate-900 text-white">6.0 {t.hoursBeforeSleep}</option>
+                    <option value={`6.5 ${t.hoursBeforeSleep}`} className="bg-slate-900 text-white">6.5 {t.hoursBeforeSleep}</option>
+                    <option value={`7.0 ${t.hoursBeforeSleep}`} className="bg-slate-900 text-white">7.0 {t.hoursBeforeSleep}</option>
+                    <option value={`7.5 ${t.hoursBeforeSleep}`} className="bg-slate-900 text-white">7.5 {t.hoursBeforeSleep}</option>
+                    <option value={`8.0 ${t.hoursBeforeSleep}`} className="bg-slate-900 text-white">8.0 {t.hoursBeforeSleep}</option>
+                    <option value={`8.5 ${t.hoursBeforeSleep}`} className="bg-slate-900 text-white">8.5 {t.hoursBeforeSleep}</option>
+                    <option value={`9.0 ${t.hoursBeforeSleep}`} className="bg-slate-900 text-white">9.0 {t.hoursBeforeSleep}</option>
+                    <option value={`9.5 ${t.hoursBeforeSleep}`} className="bg-slate-900 text-white">9.5 {t.hoursBeforeSleep}</option>
+                    <option value={`10.0 ${t.hoursBeforeSleep}`} className="bg-slate-900 text-white">10.0 {t.hoursBeforeSleep}</option>
+                  </select>
+                  <p className="text-[10px] text-slate-500 mt-2">{t.swipeScroll}</p>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-sm font-bold text-white">{t.timezoneTitle}</h4>
+                  <span className="text-xs text-cyan-400 font-bold">{timezone}</span>
+                </div>
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-center">
+                  <select
+                    value={timezone}
+                    onChange={(e) => setTimezone(e.target.value)}
+                    className="bg-transparent text-xs text-cyan-400 font-bold text-center focus:outline-none w-full cursor-pointer"
+                  >
+                    <option value="Europe/Istanbul" className="bg-slate-900 text-white">Europe/Istanbul (İstanbul, Türkiye)</option>
+                    <option value="Europe/Berlin" className="bg-slate-900 text-white">Europe/Berlin (Berlin, Almanya)</option>
+                    <option value="Europe/London" className="bg-slate-900 text-white">Europe/London (Londra, İngiltere)</option>
+                    <option value="Europe/Paris" className="bg-slate-900 text-white">Europe/Paris (Paris, Fransa)</option>
+                    <option value="America/New_York" className="bg-slate-900 text-white">America/New_York (New York, ABD)</option>
+                    <option value="America/Los_Angeles" className="bg-slate-900 text-white">America/Los_Angeles (Los Angeles, ABD)</option>
+                    <option value="Asia/Tokyo" className="bg-slate-900 text-white">Asia/Tokyo (Tokyo, Japonya)</option>
+                    <option value="Asia/Dubai" className="bg-slate-900 text-white">Asia/Dubai (Dubai, BAE)</option>
+                    <option value="Asia/Singapore" className="bg-slate-900 text-white">Asia/Singapore (Singapur)</option>
+                    <option value="Australia/Sydney" className="bg-slate-900 text-white">Australia/Sydney (Sidney, Avustralya)</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
+                <div>
+                  <h4 className="text-sm font-bold text-white">{t.aiVoiceTitle}</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">{t.aiVoiceSub}</p>
+                </div>
+                <button
+                  onClick={() => setAiVoiceBriefing(!aiVoiceBriefing)}
+                  className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${aiVoiceBriefing ? "bg-cyan-500" : "bg-slate-800"}`}
+                >
+                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${aiVoiceBriefing ? "translate-x-6" : "translate-x-0"}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* KÂĞITTAKİ MADDE 6: ÇALIŞIR HALE GETİRİLEN GÜVENLİK VE AYAR BUTONLARI */}
             <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-4">
               <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.sec3Title}</h3>
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                <div className="text-xs font-bold text-white">{t.linkedAccounts}</div>
+                <div className="text-xs text-slate-300">{t.connectedAs} <span className="text-cyan-400">{userEmail}</span></div>
+                <div className="text-[10px] text-slate-500">{t.demoSession}</div>
+              </div>
               <div className="space-y-2 text-xs font-medium">
                 <button
                   onClick={() => alert("Bildirim Tercihleri: E-posta ve Anlık Bildirimler Aktif.")}
-                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center hover:border-cyan-500 transition cursor-pointer"
+                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center hover:border-cyan-500 transition cursor-pointer text-left"
                 >
                   <span className="text-slate-300">{t.notifications}</span>
                   <span className="text-cyan-400 font-bold">Yapılandır →</span>
                 </button>
                 <button
                   onClick={() => alert("Gizlilik & Güvenlik: Uçtan uca şifreleme aktif.")}
-                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center hover:border-cyan-500 transition cursor-pointer"
+                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center hover:border-cyan-500 transition cursor-pointer text-left"
                 >
                   <span className="text-slate-300">{t.privacy}</span>
                   <span className="text-cyan-400 font-bold">İncele →</span>
                 </button>
                 <button
                   onClick={() => alert("Destek Ekibi: support@omnisync.app adresine e-posta atabilirsiniz.")}
-                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center hover:border-cyan-500 transition cursor-pointer"
+                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center hover:border-cyan-500 transition cursor-pointer text-left"
                 >
                   <span className="text-slate-300">{t.helpSupport}</span>
                   <span className="text-cyan-400 font-bold">İletişim →</span>
                 </button>
               </div>
             </div>
+
+            <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-6">
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between mb-4">
+                <div>
+                  <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">🛠️ Geliştirici Modu (Admin Plan Geçişi)</h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Test amacıyla ödeme yapmadan hesaba Pro veya Plus plan tanımlayın.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAdminOpen(true)}
+                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-lg transition cursor-pointer"
+                >
+                  Plan Değiştir
+                </button>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-sm font-bold text-cyan-400 tracking-wider">{t.membershipHeader}</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {t.activePlan}: <span className="text-white font-bold uppercase">{(userPlan === 'free' || userPlan === 'basic') ? 'Basic ($0)' : userPlan}</span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 bg-slate-950 p-2 border border-slate-800 rounded-xl">
+                  <span className={`text-xs font-bold ${!isAnnual ? "text-cyan-400" : "text-slate-400"}`}>{t.monthly}</span>
+                  <button
+                    onClick={() => setIsAnnual(!isAnnual)}
+                    className={`w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer ${isAnnual ? "bg-emerald-500" : "bg-slate-800"}`}
+                  >
+                    <div className={`w-4 h-4 rounded-full bg-white transition-transform ${isAnnual ? "translate-x-6" : "translate-x-0"}`} />
+                  </button>
+                  <span className={`text-xs font-bold ${isAnnual ? "text-emerald-400" : "text-slate-400"}`}>
+                    {t.annual} <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30">{t.save20}</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className={`p-6 rounded-2xl border-2 relative flex flex-col justify-between ${userPlan === "pro" ? "border-cyan-400 bg-slate-950 shadow-lg shadow-cyan-500/10" : "border-cyan-500/50 bg-slate-950/80"}`}>
+                  <span className="absolute -top-3 right-4 bg-cyan-400 text-slate-950 font-black text-[10px] px-3 py-0.5 rounded-full uppercase tracking-wider shadow-md">
+                    {t.mostPopular}
+                  </span>
+                  <div>
+                    <h4 className="text-sm font-black text-cyan-400 tracking-wider">{t.proTitle}</h4>
+                    <div className="my-3">
+                      <span className="text-3xl font-black text-white">
+                        {isAnnual ? "$4" : "$5"}
+                      </span>
+                      <span className="text-xs text-slate-400 font-medium"> {t.perMonth}</span>
+                      {isAnnual && <span className="block text-[10px] text-emerald-400 font-bold mt-0.5">{t.billedAnnuallyPro}</span>}
+                    </div>
+                    <div className="text-xs font-bold text-slate-200 mt-4 mb-3 flex items-center gap-1.5">
+                      {t.proHeader}
+                    </div>
+                    <ul className="text-xs text-slate-300 space-y-2.5">
+                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF1}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF2}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF3}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF4}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF5}</li>
+                      <li className="flex items-start gap-2"><span className="text-cyan-400">✓</span> {t.proF6}</li>
+                    </ul>
+                  </div>
+                  <button
+                    disabled={userPlan === "pro"}
+                    onClick={() => handleChangePlan("pro")}
+                    className="mt-6 w-full py-3 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-extrabold rounded-xl text-xs transition shadow-lg shadow-cyan-400/20 disabled:opacity-50 cursor-pointer"
+                  >
+                    {userPlan === "pro" ? t.activePlan : t.trialBtn}
+                  </button>
+                </div>
+
+                <div className={`p-6 rounded-2xl border-2 relative flex flex-col justify-between ${userPlan === "plus" ? "border-purple-500 bg-slate-950 shadow-lg shadow-purple-500/10" : "border-purple-500/40 bg-slate-950/80"}`}>
+                  <div>
+                    <h4 className="text-sm font-black text-purple-400 tracking-wider">{t.plusTitle}</h4>
+                    <div className="my-3">
+                      <span className="text-3xl font-black text-white">
+                        {isAnnual ? "$6.4" : "$8"}
+                      </span>
+                      <span className="text-xs text-slate-400 font-medium"> {t.perMonth}</span>
+                      {isAnnual && <span className="block text-[10px] text-emerald-400 font-bold mt-0.5">{t.billedAnnuallyPlus}</span>}
+                    </div>
+                    <div className="text-xs font-bold text-slate-200 mt-4 mb-3 flex items-center gap-1.5">
+                      {t.plusHeader}
+                    </div>
+                    <ul className="text-xs text-slate-300 space-y-2.5">
+                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF1}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF2}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF3}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF4}</li>
+                      <li className="flex items-start gap-2"><span className="text-purple-400">✓</span> {t.plusF5}</li>
+                    </ul>
+                  </div>
+                  <button
+                    disabled={userPlan === "plus"}
+                    onClick={() => handleChangePlan("plus")}
+                    className="mt-6 w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold rounded-xl text-xs transition shadow-lg shadow-purple-500/20 disabled:opacity-50 cursor-pointer"
+                  >
+                    {userPlan === "plus" ? t.activePlan : t.getPlusBtn}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
+
+        <div className="pt-4 text-center">
+          <button
+            onClick={handleLogout}
+            className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold rounded-xl text-xs transition cursor-pointer"
+          >
+            {t.logOut}
+          </button>
+        </div>
       </main>
 
-      {/* EDIT RUTİN MODAL */}
+      {/* ARKADAŞININ İSTEĞİ: RUTİN DÜZENLEME MODALI */}
       {editingHabit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
@@ -1200,13 +1553,13 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
             <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => setEditingHabit(null)}
-                className="px-4 py-2 bg-slate-800 text-slate-400 rounded-xl text-xs cursor-pointer"
+                className="px-4 py-2 bg-slate-800 text-slate-400 rounded-xl text-xs"
               >
                 İptal
               </button>
               <button
                 onClick={handleSaveEdit}
-                className="px-4 py-2 bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs cursor-pointer"
+                className="px-4 py-2 bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs"
               >
                 Kaydet
               </button>
@@ -1219,30 +1572,118 @@ SADECE Saat Aralığını Yaz. Örnek: "14:00 - 17:00".
       {isAdminOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
-            <h3 className="text-lg font-bold text-white">⚡ Developer Admin Pass</h3>
+            <div>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">⚡ Developer Admin Pass</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Test amacıyla planınızı anında değiştirin.</p>
+            </div>
+
             <div className="space-y-3">
-              <select
-                value={selectedAdminPlan}
-                onChange={(e) => setSelectedAdminPlan(e.target.value as any)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-800 p-2.5 text-sm text-white cursor-pointer"
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Atanacak Plan</label>
+                <select
+                  value={selectedAdminPlan}
+                  onChange={(e) => setSelectedAdminPlan(e.target.value as any)}
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800 p-2.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                >
+                  <option value="free">Basic (Max 4 Rutin)</option>
+                  <option value="pro">OmniSync Pro (Max 10 Rutin)</option>
+                  <option value="plus">OmniSync Plus (Max 25 Rutin)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Admin Şifresi</label>
+                <input
+                  type="password"
+                  placeholder="Şifreyi girin..."
+                  value={adminPassword}
+                  onChange={(e) => {
+                    setAdminPassword(e.target.value);
+                    setAdminError("");
+                  }}
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800 p-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                />
+              </div>
+
+              {adminError && (
+                <p className="text-xs font-semibold text-red-400">{adminError}</p>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAdminOpen(false);
+                  setAdminError("");
+                }}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-slate-400 hover:bg-slate-800 cursor-pointer"
               >
-                <option value="free">Basic (Max 4 Rutin)</option>
-                <option value="pro">OmniSync Pro (Max 10 Rutin)</option>
-                <option value="plus">OmniSync Plus (Max 25 Rutin)</option>
-              </select>
-              <input
-                type="password"
-                placeholder="Şifre..."
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-800 p-2.5 text-sm text-white"
-              />
-              {adminError && <p className="text-xs text-red-400">{adminError}</p>}
+                İptal
+              </button>
+              <button
+                type="button"
+                onClick={handleAdminBypass}
+                disabled={adminLoading}
+                className="rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold px-4 py-2 text-xs transition-opacity disabled:opacity-50 cursor-pointer"
+              >
+                {adminLoading ? "Güncelleniyor..." : "Planı Etkinleştir"}
+              </button>
             </div>
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setIsAdminOpen(false)} className="px-4 py-2 text-xs text-slate-400 cursor-pointer">İptal</button>
-              <button onClick={handleAdminBypass} className="px-4 py-2 bg-cyan-400 text-slate-950 font-bold text-xs rounded-xl cursor-pointer">Etkinleştir</button>
+          </div>
+        </div>
+      )}
+
+      {/* UPGRADE MODAL */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <button
+              onClick={() => setShowUpgradeModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"
+            >
+              ✕
+            </button>
+            <h3 className="text-xl font-bold text-white mb-2 text-center">Upgrade Your Membership</h3>
+            <p className="text-xs text-slate-400 text-center mb-6">Unlock Bio-Sync, Burnout Early Warning & Unlimited AI Routine Advisor.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <div className="p-4 bg-slate-950 border border-cyan-500/50 rounded-xl flex flex-col justify-between">
+                <div>
+                  <h4 className="font-bold text-cyan-400 text-sm">PRO ($5/mo)</h4>
+                  <ul className="text-[11px] text-slate-300 space-y-1 my-3">
+                    <li>✓ 10 Auto-scheduled events</li>
+                    <li>✓ Burnout Warning System</li>
+                  </ul>
+                </div>
+                <button
+                  onClick={() => handleChangePlan("pro")}
+                  className="w-full py-2 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold rounded-lg text-xs cursor-pointer"
+                >
+                  Start 7-Day Trial
+                </button>
+              </div>
+              <div className="p-4 bg-slate-950 border border-purple-500/50 rounded-xl flex flex-col justify-between">
+                <div>
+                  <h4 className="font-bold text-purple-400 text-sm">PLUS ($8/mo)</h4>
+                  <ul className="text-[11px] text-slate-300 space-y-1 my-3">
+                    <li>✓ Social Party Rooms</li>
+                    <li>✓ Priority Voice AI</li>
+                  </ul>
+                </div>
+                <button
+                  onClick={() => handleChangePlan("plus")}
+                  className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg text-xs cursor-pointer"
+                >
+                  Get Plus
+                </button>
+              </div>
             </div>
+            <button
+              onClick={() => handleChangePlan("free")}
+              className="w-full text-center text-xs text-slate-500 hover:text-slate-300 cursor-pointer"
+            >
+              Continue with Basic ($0) Plan
+            </button>
           </div>
         </div>
       )}
