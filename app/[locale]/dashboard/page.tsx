@@ -100,6 +100,9 @@ export default function DashboardPage() {
   const [updateMsg, setUpdateMsg] = useState<string>("");
   const [isAnnual, setIsAnnual] = useState<boolean>(false);
 
+  // YAN MENÜ (HAMBURGER / DRAWER) STATE
+  const [isNavOpen, setIsNavOpen] = useState<boolean>(false);
+
   const [healthSync, setHealthSync] = useState<boolean>(true);
   const [autoFocusSync, setAutoFocusSync] = useState<boolean>(true);
   const [aiVoiceBriefing, setAiVoiceBriefing] = useState<boolean>(true);
@@ -121,7 +124,7 @@ export default function DashboardPage() {
   const [editTitle, setEditTitle] = useState("");
   const [editTime, setEditTime] = useState("");
 
-  // MANUEL OKUL/İŞ BLOKLARI İÇİN FORM STATE'LERİ
+  // MANUEL OKUL/İŞ BLOKLARI İÇİN FORM STATE'LERİ (HTML5 TIME INPUT İLE HASSAS SAAT)
   const [manualTitle, setManualTitle] = useState("");
   const [manualStart, setManualStart] = useState("08:00");
   const [manualEnd, setManualEnd] = useState("15:20");
@@ -189,7 +192,6 @@ export default function DashboardPage() {
   const [newHabitLevel, setNewHabitLevel] = useState<number>(3);
   const [aiScheduling, setAiScheduling] = useState<boolean>(false);
 
-  // MADDE 2 & MADDE 3 DÜZELTMESİ: CANLI AI TIP (GEMINI MARKASI TEMİZLENDİ, ANINDA REFRESH DÜZELTİLDİ)
   const generateRealtimeTip = async (level: number) => {
     setIsTipLoading(true);
     setRealtimeAiTip("");
@@ -376,7 +378,6 @@ export default function DashboardPage() {
     setHabits(habits.filter((h) => h.id !== id));
   };
 
-  // RUTİN DÜZENLEME (EDIT)
   const openEditModal = (habit: any) => {
     setEditingHabit(habit);
     setEditTitle(habit.title);
@@ -426,18 +427,15 @@ export default function DashboardPage() {
     setManualTitle("");
   };
 
-  // MADDE 1 DÜZELTMESİ: SÜRE ALGILAMA (3 SAAT, 90 DK, 1.5 SAAT GİBİ METİNLERİ KESİN OLARAK AYLIK/GÜNLÜK BLOKLARA DÖNÜŞTÜRÜR)
   const parseDurationInMinutes = (title: string): number | null => {
     const tLower = title.toLowerCase();
     
-    // Saat kalıpları (3 saat, 1.5 saat, 2,5 saat vb.)
     const hourMatch = tLower.match(/(\d+(?:[\.,]\d+)?)\s*(?:saat|st|hours|h)/);
     if (hourMatch) {
       const val = parseFloat(hourMatch[1].replace(",", "."));
       if (!isNaN(val)) return Math.round(val * 60);
     }
     
-    // Dakika kalıpları (90 dk, 45 dakika, 30 min vb.)
     const minMatch = tLower.match(/(\d+)\s*(?:dk|dakika|min|mins|minute|minutes)/);
     if (minMatch) {
       const val = parseInt(minMatch[1], 10);
@@ -582,9 +580,36 @@ ZAMANLAMA KURALLARI:
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row font-sans relative">
-      {/* SIDEBAR */}
-      <aside className="w-full md:w-64 bg-slate-900/80 border-r border-slate-800/80 p-6 flex flex-col justify-between shrink-0">
-        <div>
+      
+      {/* 🟢 SAYFA NE KADAR AŞAĞIDA OLURSA OLSUN YAPIŞKAN (FIXED) 3 ÇİZGİ HAMBURGER MENÜ BUTONU */}
+      <button
+        type="button"
+        onClick={() => setIsNavOpen(!isNavOpen)}
+        className="fixed top-4 left-4 z-50 p-3 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-cyan-400 rounded-xl shadow-2xl backdrop-blur-md transition-all flex items-center justify-center cursor-pointer group"
+        title="Sekme Menüsü"
+      >
+        {isNavOpen ? (
+          <span className="text-xl font-black">✕</span>
+        ) : (
+          <div className="space-y-1.5">
+            <span className="block w-6 h-0.5 bg-cyan-400 transition-transform group-hover:scale-110"></span>
+            <span className="block w-6 h-0.5 bg-cyan-400 transition-transform group-hover:scale-110"></span>
+            <span className="block w-6 h-0.5 bg-cyan-400 transition-transform group-hover:scale-110"></span>
+          </div>
+        )}
+      </button>
+
+      {/* BACKDROP OVERLAY (MENÜ AÇIKKEN ARKA PLAN KARARTMASI) */}
+      {isNavOpen && (
+        <div 
+          onClick={() => setIsNavOpen(false)}
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden transition-opacity"
+        />
+      )}
+
+      {/* SIDEBAR (YAPISAL YAN MENÜ - MASAÜSTÜNDE NORMAL, MOBİLDE / CLICK ILE YANDA AÇILIR DRAWER) */}
+      <aside className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-slate-900/95 border-r border-slate-800/80 p-6 flex flex-col justify-between shrink-0 z-40 transition-transform duration-300 ease-in-out backdrop-blur-xl ${isNavOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}`}>
+        <div className="pt-12 md:pt-0">
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 bg-clip-text text-transparent">
@@ -602,33 +627,33 @@ ZAMANLAMA KURALLARI:
             </button>
           </div>
 
-          <nav className="space-y-1.5">
+          <nav className="space-y-2">
             <button
-              onClick={() => setActiveTab("overview")}
+              onClick={() => { setActiveTab("overview"); setIsNavOpen(false); }}
               className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "overview" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
               <span>📊</span> {t.overview}
             </button>
             <button
-              onClick={() => setActiveTab("habits")}
+              onClick={() => { setActiveTab("habits"); setIsNavOpen(false); }}
               className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "habits" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
               <span>⚡</span> {t.habits}
             </button>
             <button
-              onClick={() => setActiveTab("analytics")}
+              onClick={() => { setActiveTab("analytics"); setIsNavOpen(false); }}
               className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "analytics" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
               <span>📈</span> {t.analytics}
             </button>
             <button
-              onClick={() => setActiveTab("group")}
+              onClick={() => { setActiveTab("group"); setIsNavOpen(false); }}
               className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "group" ? "bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-lg shadow-amber-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
               <span>👥</span> {t.group}
             </button>
             <button
-              onClick={() => setActiveTab("settings")}
+              onClick={() => { setActiveTab("settings"); setIsNavOpen(false); }}
               className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold transition flex items-center gap-3 ${activeTab === "settings" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/5" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"}`}
             >
               <span>⚙️</span> {t.settings}
@@ -664,7 +689,7 @@ ZAMANLAMA KURALLARI:
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto space-y-8">
+      <main className="flex-1 p-6 md:p-10 pl-16 md:pl-10 overflow-y-auto space-y-8">
         <header className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800/80 gap-4">
           <div>
             <h2 className="text-2xl font-bold text-white tracking-tight">
@@ -741,7 +766,7 @@ ZAMANLAMA KURALLARI:
               </div>
             </div>
 
-            {/* SAAT ÇİZELGESİ (00:00 - 24:00 24 SAAT DÖNGÜSÜ) */}
+            {/* SAAT ÇİZELGESİ (00:00 - 24:00 GECE YARISI GEÇİŞLERİ TAM DESTEKLENİR) */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -765,13 +790,26 @@ ZAMANLAMA KURALLARI:
                 <div className="divide-y divide-slate-800/60 max-h-96 overflow-y-auto">
                   {timeSlots.map((slot) => {
                     const currentHour = parseInt(slot.split(":")[0]);
+                    
+                    // 🟢 GECE YARISINI AŞAN (22:30 - 06:30 GİBİ) SAATLERİ KUSURSUZ EŞLEŞTİREN ALGORİTMA
                     const matchingHabits = habits.filter((h) => {
                       const normalizedSlot = h.suggestedTime.replace(/\./g, ":");
                       const match = normalizedSlot.match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
                       if (!match) return false;
+                      
                       const startH = parseInt(match[1]);
                       const endH = parseInt(match[3]);
-                      return currentHour >= startH && currentHour < endH;
+                      
+                      if (startH < endH) {
+                        // Normal aynı gün içi aralık (örn: 08:00 - 15:00)
+                        return currentHour >= startH && currentHour < endH;
+                      } else if (startH > endH) {
+                        // Gece yarısını aşan aralık (örn: 22:30 - 06:30)
+                        return currentHour >= startH || currentHour < endH;
+                      } else {
+                        // 24 saatlik tam blok
+                        return currentHour === startH;
+                      }
                     });
 
                     return (
@@ -802,22 +840,32 @@ ZAMANLAMA KURALLARI:
               </div>
             </div>
 
-            {/* MANUEL SABİT BLOK FORMU */}
+            {/* MANUEL SABİT BLOK FORMU (NATIVE TIME INPUT İLE HASSAS VE SİLİNMEYEN SAAT SEÇİMİ) */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
-              <h3 className="text-sm font-bold text-amber-400 mb-1">🏫 Manuel Sabit Saat Ekle (Okul / İş / Dershane)</h3>
-              <p className="text-xs text-slate-400 mb-4">Örneğin 08:00 - 15:20 arası okul saatini manuel doldurun. Bu bloklar da rutin sınırına dahil edilir.</p>
+              <h3 className="text-sm font-bold text-amber-400 mb-1">🏫 Manuel Sabit Saat Ekle (Okul / Uyku / Dershane)</h3>
+              <p className="text-xs text-slate-400 mb-4">Örneğin 22:30 - 06:30 arası uyku saatini veya 08:00 - 15:20 arası okul saatini ekleyin.</p>
               <form onSubmit={handleAddManualBlock} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <input
                   type="text"
-                  placeholder="Etkinlik Adı (Örn: Okul / Dershane)"
+                  placeholder="Etkinlik Adı (Örn: Gece Uykusu / Okul)"
                   value={manualTitle}
                   onChange={(e) => setManualTitle(e.target.value)}
                   className="sm:col-span-2 px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition"
                 />
-                <div className="flex items-center gap-1">
-                  <input type="text" value={manualStart} onChange={(e) => setManualStart(e.target.value)} className="w-full text-center py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-400 font-mono focus:outline-none focus:border-amber-500" />
+                <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-3 py-1 rounded-xl">
+                  <input 
+                    type="time" 
+                    value={manualStart} 
+                    onChange={(e) => setManualStart(e.target.value)} 
+                    className="bg-transparent text-center text-xs text-amber-400 font-mono focus:outline-none w-full cursor-pointer" 
+                  />
                   <span className="text-xs text-slate-500">-</span>
-                  <input type="text" value={manualEnd} onChange={(e) => setManualEnd(e.target.value)} className="w-full text-center py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-400 font-mono focus:outline-none focus:border-amber-500" />
+                  <input 
+                    type="time" 
+                    value={manualEnd} 
+                    onChange={(e) => setManualEnd(e.target.value)} 
+                    className="bg-transparent text-center text-xs text-amber-400 font-mono focus:outline-none w-full cursor-pointer" 
+                  />
                 </div>
                 <button type="submit" className="py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer">
                   {isTr ? "Sabit Blok Ekle" : "Add Fixed Block"}
