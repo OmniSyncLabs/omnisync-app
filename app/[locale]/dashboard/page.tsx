@@ -573,7 +573,8 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     return `${startStr} - ${endStr}`;
   };
 
-  // 🟢 AI İLE AKILLI GÖREV EKLEME (GÜNCELLENMİŞ & DÜZELTİLMİŞ)
+  // 🟢 AI İLE AKILLI GÖREV EKLEME (KESİN KATEGORİ & SEVİYE ÇÖZÜMÜ)
+  // 🟢 AI İLE AKILLI GÖREV EKLEME (KESİN KATEGORİ & SEVİYE ÇÖZÜMÜ)
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
@@ -592,35 +593,38 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     const detectedDuration = parseDurationInMinutes(newHabitTitle);
     const existingSlots = currentDayHabits.map(h => `${h.title} (${h.suggestedTime})`).join(", ");
     
-    // Esnek regex: 'uyku', 'uyuycam', 'yatak', 'sleep' gibi tüm varyasyonları yakalar
-    const isSleepTask = /(uyku|uyu|yatak|sleep|yatış)/i.test(newHabitTitle);
-    
-    let finalTimeSlot = "";
-    let inferredCategory = isSleepTask ? "Sağlık" : "Verimlilik";
-    let inferredLevel = isSleepTask ? 1 : 3;
+    // Esnek Akıllı Kural Tanımlamaları
+    const lowerTitle = newHabitTitle.toLowerCase();
+    const isSleepTask = /(uyku|uyu|yatak|sleep|yatış)/i.test(lowerTitle);
+    const isSportsTask = /(yürüyüş|yürüyuş|yuru|koşu|spor|fitness|gym|idman|kardiyo|cardio|squat|antrenman)/i.test(lowerTitle);
+    const isHardStudyTask = /(deneme|fizik|matematik|geometri|kimya|biyoloji|sınav|sinav|test|zor)/i.test(lowerTitle);
 
+    // Akıllı Varsayılan Başlangıç Değerleri
+    let inferredCategory = isSleepTask ? "Sağlık" : isSportsTask ? "Spor" : "Verimlilik";
+    let inferredLevel = isSleepTask ? 1 : isSportsTask ? 1 : isHardStudyTask ? 5 : 3;
+
+    let finalTimeSlot = "";
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
     if (apiKey) {
       try {
         const promptText = `
-Sen OmniSync'in Yapay Zeka Ritim Mimarısın.
+Sen OmniSync'in nöro-bilişsel AI Ritim Mimarısın.
 Seçili gün (${selectedDay}) için mevcut dolu rutinler: [${existingSlots}].
-Kullanıcının girdiği yeni görev metni: "${newHabitTitle}"
+Gelen Görev: "${newHabitTitle}"
 
-Aşağıdaki kurallara göre analizi yap ve SADECE JSON formatında yanıt ver:
-1. "category": Görevin türü ("Verimlilik", "Spor", "Sağlık", "Kişisel")
-2. "level": Görevin gerektirdiği zihinsel güç ve beyin yükü seviyesi (1: Çok Düşük/Uyku/Dinlenme, 2: Hafif, 3: Orta, 4: Yüksek Odak, 5: Maksimum Ağır Deneme/Zor Ders).
-3. "timeSlot": ÇAKIŞMAYACAK başlangıç ve bitiş saati (Örn: "14:00 - 15:30").
+Aşağıdaki kurallara kesin uyarak SADECE ve SADECE saf bir JSON objesi döndür:
+1. "category": Görevin türü. Seçenekler: "Verimlilik", "Spor", "Sağlık", "Kişisel". (Örn: Yürüyüş/Koşu -> "Spor", Uyku -> "Sağlık", Ders/Kodlama -> "Verimlilik")
+2. "level": Zihinsel yük seviyesi (1-5 arası tam sayı). 
+   - 1: Uyku, Yürüyüş, Dinlenme, Mola, Hafif Spor
+   - 2: Kitap Okuma, Kelime Ezberi
+   - 3: Rutin İşler, Konu Tekrarı
+   - 4: Soru Çözümü, Kodlama
+   - 5: Zor Ders Denemesi (Fizik, Mat), Ağır Sınav Seansı
+3. "timeSlot": ÇAKIŞMAYACAK saat aralığı (Örn: "14:00 - 15:30").
 
-ÖNEMLİ KURALLAR:
-- Eğer görev uyku/dinlenme ise "level" değerini KESİNLİKLE 1 ver.
-- Eğer görev zor bir ders (Fizik, Matematik, Ağır Deneme) ise "level" değerini 4 veya 5 ver.
-- ${isSleepTask ? "Bu bir uyku görevidir! Başlangıç saatini GECE saatlerine (Örn: 22:30 veya 23:00) koy." : ""}
-- ${detectedDuration ? `Görev süresi KESİNLİKLE ${detectedDuration} dakika olmalıdır.` : ""}
-
-Yalnızca şu JSON formatını döndür (başka hiçbir kelime yazma):
-{"category": "Sağlık", "level": 1, "timeSlot": "22:30 - 06:30"}
+Sadece bu JSON'ı yaz:
+{"category": "Spor", "level": 1, "timeSlot": "10:30 - 10:45"}
         `;
 
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
@@ -630,19 +634,21 @@ Yalnızca şu JSON formatını döndür (başka hiçbir kelime yazma):
         });
 
         const data = await res.json();
-        const aiResponseText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        let aiResponseText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
         
         if (aiResponseText) {
-          const cleanJson = aiResponseText.substring(
-            aiResponseText.indexOf("{"),
-            aiResponseText.lastIndexOf("}") + 1
-          );
-          const parsed = JSON.parse(cleanJson);
-          if (parsed.timeSlot) {
-            finalTimeSlot = parsed.timeSlot.replace(/\./g, ":");
+          aiResponseText = aiResponseText.replace(/```json/g, "").replace(/```/g, "").trim();
+          const firstBrace = aiResponseText.indexOf("{");
+          const lastBrace = aiResponseText.lastIndexOf("}");
+          
+          if (firstBrace !== -1 && lastBrace !== -1) {
+            const cleanJson = aiResponseText.substring(firstBrace, lastBrace + 1);
+            const parsed = JSON.parse(cleanJson);
+            
+            if (parsed.timeSlot) finalTimeSlot = parsed.timeSlot.replace(/\./g, ":");
+            if (parsed.category) inferredCategory = parsed.category;
+            if (parsed.level) inferredLevel = Number(parsed.level);
           }
-          if (parsed.category) inferredCategory = parsed.category;
-          if (parsed.level) inferredLevel = Number(parsed.level);
         }
       } catch (err) {
         console.error("AI Akıllı Analiz hatası:", err);
