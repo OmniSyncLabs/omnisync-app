@@ -573,7 +573,7 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     return `${startStr} - ${endStr}`;
   };
 
-  // 🟢 AI İLE AKILLI GÖREV EKLEME
+  // 🟢 AI İLE AKILLI GÖREV EKLEME (GÜNCELLENMİŞ & DÜZELTİLMİŞ)
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
@@ -591,11 +591,13 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
 
     const detectedDuration = parseDurationInMinutes(newHabitTitle);
     const existingSlots = currentDayHabits.map(h => `${h.title} (${h.suggestedTime})`).join(", ");
-    const isSleepTask = /uyku|sleep|yatış/i.test(newHabitTitle);
+    
+    // Esnek regex: 'uyku', 'uyuycam', 'yatak', 'sleep' gibi tüm varyasyonları yakalar
+    const isSleepTask = /(uyku|uyu|yatak|sleep|yatış)/i.test(newHabitTitle);
     
     let finalTimeSlot = "";
     let inferredCategory = isSleepTask ? "Sağlık" : "Verimlilik";
-    let inferredLevel = 3;
+    let inferredLevel = isSleepTask ? 1 : 3;
 
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
@@ -606,15 +608,19 @@ Sen OmniSync'in Yapay Zeka Ritim Mimarısın.
 Seçili gün (${selectedDay}) için mevcut dolu rutinler: [${existingSlots}].
 Kullanıcının girdiği yeni görev metni: "${newHabitTitle}"
 
-SAYIN AI, ŞUNLARI ANALİZ ET VE JSON FORMATINDA DÖNDÜR:
-1. category: Görevin türü ("Verimlilik", "Spor", "Sağlık", "Kişisel")
-2. level: Görevin gerektirdiği zihinsel güç seviyesi (1 ile 5 arası sayı)
-3. timeSlot: 24 saatlik gün içinde ÇAKIŞMAYACAK başlangıç ve bitiş saati (Örn: "14:00 - 15:30")
-${isSleepTask ? "DİKKAT: Bu bir uyku görevidir! Başlangıç saatini GECE saatlerine (Örn: 22:30, 23:00 veya 00:00) yerleştir." : ""}
-${detectedDuration ? `DİKKAT: Görev süresi kesin olarak ${detectedDuration} dakika olmalıdır.` : ""}
+Aşağıdaki kurallara göre analizi yap ve SADECE JSON formatında yanıt ver:
+1. "category": Görevin türü ("Verimlilik", "Spor", "Sağlık", "Kişisel")
+2. "level": Görevin gerektirdiği zihinsel güç ve beyin yükü seviyesi (1: Çok Düşük/Uyku/Dinlenme, 2: Hafif, 3: Orta, 4: Yüksek Odak, 5: Maksimum Ağır Deneme/Zor Ders).
+3. "timeSlot": ÇAKIŞMAYACAK başlangıç ve bitiş saati (Örn: "14:00 - 15:30").
 
-SADECE ŞU JSON'I DÖNDÜR:
-{"category": "Verimlilik", "level": 4, "timeSlot": "14:00 - 15:30"}
+ÖNEMLİ KURALLAR:
+- Eğer görev uyku/dinlenme ise "level" değerini KESİNLİKLE 1 ver.
+- Eğer görev zor bir ders (Fizik, Matematik, Ağır Deneme) ise "level" değerini 4 veya 5 ver.
+- ${isSleepTask ? "Bu bir uyku görevidir! Başlangıç saatini GECE saatlerine (Örn: 22:30 veya 23:00) koy." : ""}
+- ${detectedDuration ? `Görev süresi KESİNLİKLE ${detectedDuration} dakika olmalıdır.` : ""}
+
+Yalnızca şu JSON formatını döndür (başka hiçbir kelime yazma):
+{"category": "Sağlık", "level": 1, "timeSlot": "22:30 - 06:30"}
         `;
 
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
@@ -633,16 +639,7 @@ SADECE ŞU JSON'I DÖNDÜR:
           );
           const parsed = JSON.parse(cleanJson);
           if (parsed.timeSlot) {
-            const parts = parsed.timeSlot.split("-").map((p: string) => p.trim());
-            if (parts.length === 2) {
-              const parseMin = (tStr: string) => {
-                const [hh, mm] = tStr.split(":").map(Number);
-                return (hh || 0) * 60 + (mm || 0);
-              };
-              finalTimeSlot = `${formatTimeMinutes(parseMin(parts[0]))} - ${formatTimeMinutes(parseMin(parts[1]))}`;
-            } else {
-              finalTimeSlot = parsed.timeSlot.replace(/\./g, ":");
-            }
+            finalTimeSlot = parsed.timeSlot.replace(/\./g, ":");
           }
           if (parsed.category) inferredCategory = parsed.category;
           if (parsed.level) inferredLevel = Number(parsed.level);
@@ -653,7 +650,7 @@ SADECE ŞU JSON'I DÖNDÜR:
     }
 
     if (!finalTimeSlot) {
-      const durationMinutes = detectedDuration || 60;
+      const durationMinutes = detectedDuration || (isSleepTask ? 480 : 60);
       finalTimeSlot = findAvailableSlot(durationMinutes, isSleepTask);
     }
 
