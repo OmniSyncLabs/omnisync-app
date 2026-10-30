@@ -536,6 +536,44 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     return null;
   };
 
+  // 🟢 ÇAKIŞMA ÖNLEYİCİ VE AKILLI SAAT DİLİMİ BULUCU (UYKU GECEYE SABİTLENİR)
+  const findAvailableSlot = (durationMin: number, isSleep: boolean) => {
+    let startMin = isSleep ? 22.5 * 60 : 9 * 60; // Uyku ise 22:30, normal görev ise 09:00
+
+    const parseMin = (tStr: string) => {
+      const [hh, mm] = tStr.split(":").map(Number);
+      return (hh || 0) * 60 + (mm || 0);
+    };
+
+    const isOverlapping = (testStart: number, testEnd: number) => {
+      return currentDayHabits.some((h) => {
+        const formattedSlot = h.suggestedTime.replace(/\./g, ":");
+        const match = formattedSlot.match(/(\d\d:\d\d)\s*-\s*(\d\d:\d\d)/);
+        if (!match) return false;
+
+        let hStart = parseMin(match[1]);
+        let hEnd = parseMin(match[2]);
+
+        if (hStart >= hEnd) hEnd += 1440;
+
+        let tStart = testStart;
+        let tEnd = testEnd;
+        if (tStart >= tEnd) tEnd += 1440;
+
+        return Math.max(tStart, hStart) < Math.min(tEnd, hEnd);
+      });
+    };
+
+    while (isOverlapping(startMin, startMin + durationMin) && startMin < 36 * 60) {
+      startMin += 30;
+    }
+
+    const startStr = formatTimeMinutes(startMin);
+    const endStr = formatTimeMinutes(startMin + durationMin);
+    return `${startStr} - ${endStr}`;
+  };
+
+  // 🟢 AI İLE AKILLI GÖREV EKLEME
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
@@ -553,9 +591,10 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
 
     const detectedDuration = parseDurationInMinutes(newHabitTitle);
     const existingSlots = currentDayHabits.map(h => `${h.title} (${h.suggestedTime})`).join(", ");
+    const isSleepTask = /uyku|sleep|yatış/i.test(newHabitTitle);
     
     let finalTimeSlot = "";
-    let inferredCategory = "Verimlilik";
+    let inferredCategory = isSleepTask ? "Sağlık" : "Verimlilik";
     let inferredLevel = 3;
 
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -567,10 +606,11 @@ Sen OmniSync'in Yapay Zeka Ritim Mimarısın.
 Seçili gün (${selectedDay}) için mevcut dolu rutinler: [${existingSlots}].
 Kullanıcının girdiği yeni görev metni: "${newHabitTitle}"
 
-SAYIN AI, SENSEN ŞUNLARI YAZIŞSIZ OLARAK ANALİZ ET VE JSON FORMATINDA DÖNDÜR:
-1. category: Görevin türü (Seçenekler: "Verimlilik", "Spor", "Sağlık", "Kişisel")
-2. level: Görevin gerektirdiği zihinsel/fiziksel güç seviyesi (1 ile 5 arası sayı)
-3. timeSlot: 24 saatlik gün içine çakışmayacak başlangıç ve bitiş saati (Örn: "14:00 - 15:30")
+SAYIN AI, ŞUNLARI ANALİZ ET VE JSON FORMATINDA DÖNDÜR:
+1. category: Görevin türü ("Verimlilik", "Spor", "Sağlık", "Kişisel")
+2. level: Görevin gerektirdiği zihinsel güç seviyesi (1 ile 5 arası sayı)
+3. timeSlot: 24 saatlik gün içinde ÇAKIŞMAYACAK başlangıç ve bitiş saati (Örn: "14:00 - 15:30")
+${isSleepTask ? "DİKKAT: Bu bir uyku görevidir! Başlangıç saatini GECE saatlerine (Örn: 22:30, 23:00 veya 00:00) yerleştir." : ""}
 ${detectedDuration ? `DİKKAT: Görev süresi kesin olarak ${detectedDuration} dakika olmalıdır.` : ""}
 
 SADECE ŞU JSON'I DÖNDÜR:
@@ -613,25 +653,8 @@ SADECE ŞU JSON'I DÖNDÜR:
     }
 
     if (!finalTimeSlot) {
-      let durationMinutes = detectedDuration || 60;
-      let startMin = 16 * 60;
-
-      const isOverlapping = (testStart: number, testEnd: number) => {
-        return currentDayHabits.some(h => {
-          const formattedSlot = h.suggestedTime.replace(/\./g, ":");
-          const match = formattedSlot.match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
-          if (!match) return false;
-          const hStart = parseInt(match[1]) * 60 + parseInt(match[2]);
-          const hEnd = parseInt(match[3]) * 60 + parseInt(match[4]);
-          return Math.max(testStart, hStart) < Math.min(testEnd, hEnd) + 15;
-        });
-      };
-
-      while (isOverlapping(startMin, startMin + durationMinutes) && startMin < 23 * 60) {
-        startMin += 30;
-      }
-
-      finalTimeSlot = `${formatTimeMinutes(startMin)} - ${formatTimeMinutes(startMin + durationMinutes)}`;
+      const durationMinutes = detectedDuration || 60;
+      finalTimeSlot = findAvailableSlot(durationMinutes, isSleepTask);
     }
 
     const newHabitObj = {
