@@ -176,7 +176,6 @@ export default function DashboardPage() {
     return timeStr.replace(/\./g, ":").trim();
   };
 
-  // 🟢 24 SAAT MODÜLÜ DÜZELTMESİ (26:00 -> 02:00 HESAPLAMA)
   const formatTimeMinutes = (totalMin: number) => {
     const normalizedMin = ((totalMin % 1440) + 1440) % 1440;
     const h = Math.floor(normalizedMin / 60).toString().padStart(2, "0");
@@ -226,7 +225,7 @@ export default function DashboardPage() {
   // SEÇİLİ GÜNÜN RUTİNLERİ
   const currentDayHabits = habits.filter((h) => h.day === selectedDay);
 
-  // 🟢 SUPABASE VE LOCAL STORAGE SYNC
+  // SUPABASE VE LOCAL STORAGE SYNC
   useEffect(() => {
     const fetchUserDataAndHabits = async () => {
       setLoading(true);
@@ -536,9 +535,8 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     return null;
   };
 
-  // 🟢 ÇAKIŞMA ÖNLEYİCİ VE AKILLI SAAT DİLİMİ BULUCU (UYKU GECEYE SABİTLENİR)
   const findAvailableSlot = (durationMin: number, isSleep: boolean) => {
-    let startMin = isSleep ? 22.5 * 60 : 9 * 60; // Uyku ise 22:30, normal görev ise 09:00
+    let startMin = isSleep ? 22.5 * 60 : 9 * 60;
 
     const parseMin = (tStr: string) => {
       const [hh, mm] = tStr.split(":").map(Number);
@@ -573,8 +571,6 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     return `${startStr} - ${endStr}`;
   };
 
-  // 🟢 AI İLE AKILLI GÖREV EKLEME (KESİN KATEGORİ & SEVİYE ÇÖZÜMÜ)
-  // 🟢 AI İLE AKILLI GÖREV EKLEME (KESİN KATEGORİ & SEVİYE ÇÖZÜMÜ)
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
@@ -593,13 +589,11 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     const detectedDuration = parseDurationInMinutes(newHabitTitle);
     const existingSlots = currentDayHabits.map(h => `${h.title} (${h.suggestedTime})`).join(", ");
     
-    // Esnek Akıllı Kural Tanımlamaları
     const lowerTitle = newHabitTitle.toLowerCase();
     const isSleepTask = /(uyku|uyu|yatak|sleep|yatış)/i.test(lowerTitle);
     const isSportsTask = /(yürüyüş|yürüyuş|yuru|koşu|spor|fitness|gym|idman|kardiyo|cardio|squat|antrenman)/i.test(lowerTitle);
     const isHardStudyTask = /(deneme|fizik|matematik|geometri|kimya|biyoloji|sınav|sinav|test|zor)/i.test(lowerTitle);
 
-    // Akıllı Varsayılan Başlangıç Değerleri
     let inferredCategory = isSleepTask ? "Sağlık" : isSportsTask ? "Spor" : "Verimlilik";
     let inferredLevel = isSleepTask ? 1 : isSportsTask ? 1 : isHardStudyTask ? 5 : 3;
 
@@ -694,15 +688,10 @@ Sadece bu JSON'ı yaz:
     { day: isTr ? "Paz" : "Sun", score: "8/10", x: 480, y: 50 },
   ];
 
-  const timeSlots = Array.from({ length: 24 }, (_, i) => {
-    const hour = i.toString().padStart(2, "0");
-    return `${hour}:00`;
-  });
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row font-sans relative">
       
-      {/* YAPIŞKAN (FIXED) HAMBURGER MENÜ BUTONU */}
+      {/* YAPIŞKAN HAMBURGER MENÜ BUTONU */}
       <button
         type="button"
         onClick={() => setIsNavOpen(!isNavOpen)}
@@ -908,21 +897,23 @@ Sadece bu JSON'ı yaz:
               </div>
             </div>
 
-            <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* 📊 MİNİMALİST VE İŞLEVSEL HAFTALIK RİTİM ÖZETİ */}
+            <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    📊 Haftalık Ritim Çizelgesi (00:00 - 24:00)
+                    ⚡ Günlük Ritim & Rutin Özeti
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Haftanın istediğiniz gününe tıklayarak o günün planını inceleyebilir ve düzenleyebilirsiniz.
+                    Gününüzün tamamlanma oranını ve zaman akışındaki rutinlerinizi minimalist kart yapısıyla takip edin.
                   </p>
                 </div>
-                <div className="text-xs font-bold text-cyan-400 bg-cyan-500/10 px-3 py-1.5 rounded-xl border border-cyan-500/20">
+                <div className="text-xs font-bold text-cyan-400 bg-cyan-500/10 px-3 py-1.5 rounded-xl border border-cyan-500/20 self-start sm:self-auto">
                   {selectedDay} Limiti: {currentDayHabits.length}/{getPlanLimit(userPlan)}
                 </div>
               </div>
 
+              {/* GÜNLER SEÇİM BUTONLARI */}
               <div className="grid grid-cols-7 gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
                 {daysOfWeek.map((day) => (
                   <button
@@ -935,75 +926,75 @@ Sadece bu JSON'ı yaz:
                 ))}
               </div>
 
-              <div className="border border-slate-800 rounded-xl overflow-hidden bg-slate-950">
-                <div className="grid grid-cols-4 sm:grid-cols-8 border-b border-slate-800 bg-slate-900/90 text-[11px] font-bold text-cyan-400 text-center py-2.5">
-                  <span className="border-r border-slate-800">Saatler</span>
-                  <span className="col-span-3 sm:col-span-7">{selectedDay} Günü Planları & Aktiviteleri</span>
+              {/* PROGRESS BAR & KATEGORİ ÖZET ROZETLERİ */}
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400 font-medium">Günün Tamamlanma Oranı ({selectedDay})</span>
+                  <span className="font-bold text-cyan-400">
+                    %{currentDayHabits.length > 0 ? Math.round((currentDayHabits.filter(h => h.completed).length / currentDayHabits.length) * 100) : 0}
+                  </span>
                 </div>
-                <div className="divide-y divide-slate-800/60 max-h-96 overflow-y-auto">
-                  {timeSlots.map((slot) => {
-                    const currentHour = parseInt(slot.split(":")[0]);
-                    const firstHalfMin = currentHour * 60;
-                    const secondHalfMin = currentHour * 60 + 30;
+                
+                {/* İlerleme Çubuğu */}
+                <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                  <div 
+                    className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-emerald-400 transition-all duration-500"
+                    style={{
+                      width: `${currentDayHabits.length > 0 ? (currentDayHabits.filter(h => h.completed).length / currentDayHabits.length) * 100 : 0}%`
+                    }}
+                  />
+                </div>
 
-                    const getSlotHabits = (startCheck: number, endCheck: number) => {
-                      return currentDayHabits.filter((h) => {
-                        const normalizedSlot = h.suggestedTime.replace(/\./g, ":");
-                        const match = normalizedSlot.match(/(\d\d):(\d\d)\s*-\s*(\d\d):(\d\d)/);
-                        if (!match) return false;
-                        
-                        let startH = parseInt(match[1]) * 60 + parseInt(match[2]);
-                        let endH = parseInt(match[3]) * 60 + parseInt(match[4]);
-                        
-                        if (startH > endH) {
-                          return (startCheck >= startH || endCheck <= endH);
-                        } else {
-                          return Math.max(startCheck, startH) < Math.min(endCheck, endH);
-                        }
-                      });
-                    };
+                {/* Kategori Dağılımı Rozetleri */}
+                <div className="flex flex-wrap gap-2 pt-1 text-[10px]">
+                  <span className="px-2.5 py-1 bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 rounded-md font-semibold">
+                    Verimlilik: {currentDayHabits.filter(h => h.category === "Verimlilik").length} Görev
+                  </span>
+                  <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-md font-semibold">
+                    Spor: {currentDayHabits.filter(h => h.category === "Spor").length} Görev
+                  </span>
+                  <span className="px-2.5 py-1 bg-purple-500/10 text-purple-300 border border-purple-500/20 rounded-md font-semibold">
+                    Sağlık: {currentDayHabits.filter(h => h.category === "Sağlık").length} Görev
+                  </span>
+                </div>
+              </div>
 
-                    const firstHalfHabits = getSlotHabits(firstHalfMin, firstHalfMin + 30);
-                    const secondHalfHabits = getSlotHabits(secondHalfMin, secondHalfMin + 30);
+              {/* MİNİMALİST ZAMAN AKIŞI (TIMELINE) */}
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl">
+                <h4 className="text-xs font-bold text-slate-300 mb-3 flex items-center gap-1.5">
+                  🕒 Akıllı Zaman Akışı ({selectedDay})
+                </h4>
 
-                    return (
-                      <div key={slot} className="grid grid-cols-4 sm:grid-cols-8 text-xs py-2 px-3 items-center hover:bg-slate-900/40 transition border-b border-slate-800/40">
-                        <span className="font-mono text-slate-400 text-[11px] border-r border-slate-800/80 pr-2">{slot}</span>
-                        <div className="col-span-3 sm:col-span-7 pl-3 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-mono text-slate-500 w-10 shrink-0">:00-:30</span>
-                            {firstHalfHabits.length > 0 ? (
-                              <div className="flex flex-wrap gap-1.5">
-                                {firstHalfHabits.map((h) => (
-                                  <span key={h.id} className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${h.isManual ? "bg-amber-500/10 text-amber-300 border-amber-500/30" : "bg-cyan-500/10 text-cyan-300 border-cyan-500/30"}`}>
-                                    {h.isManual ? "📌 " : "⚡ "} {h.title} ({h.suggestedTime})
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-slate-700 italic text-[10px]">—</span>
-                            )}
+                {currentDayHabits.length === 0 ? (
+                  <div className="text-center py-6 text-slate-500 text-xs italic">
+                    Bu gün için planlanmış bir rutin bulunmuyor.
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {currentDayHabits
+                      .slice()
+                      .sort((a, b) => (a.suggestedTime || "").localeCompare(b.suggestedTime || ""))
+                      .map((habit) => (
+                        <div 
+                          key={habit.id} 
+                          className={`p-3 rounded-lg border flex items-center justify-between text-xs transition ${habit.completed ? "bg-slate-900/40 border-slate-800 opacity-60" : "bg-slate-900/90 border-slate-800"}`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="font-mono font-bold text-amber-400 text-[11px] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 shrink-0">
+                              {habit.suggestedTime}
+                            </span>
+                            <span className={`font-semibold truncate ${habit.completed ? "line-through text-slate-500" : "text-slate-200"}`}>
+                              {habit.isManual && <span className="text-amber-400 mr-1">[Sabit]</span>}
+                              {habit.title}
+                            </span>
                           </div>
-
-                          <div className="flex items-center gap-2 pt-0.5 border-t border-slate-900">
-                            <span className="text-[9px] font-mono text-slate-500 w-10 shrink-0">:30-:00</span>
-                            {secondHalfHabits.length > 0 ? (
-                              <div className="flex flex-wrap gap-1.5">
-                                {secondHalfHabits.map((h) => (
-                                  <span key={h.id} className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${h.isManual ? "bg-amber-500/10 text-amber-300 border-amber-500/30" : "bg-cyan-500/10 text-cyan-300 border-cyan-500/30"}`}>
-                                    {h.isManual ? "📌 " : "⚡ "} {h.title} ({h.suggestedTime})
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-slate-700 italic text-[10px]">—</span>
-                            )}
-                          </div>
+                          <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 shrink-0 ml-2">
+                            Sev. {habit.level}
+                          </span>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      ))}
+                  </div>
+                )}
               </div>
             </div>
 
