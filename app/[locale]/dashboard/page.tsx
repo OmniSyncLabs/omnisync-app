@@ -145,7 +145,7 @@ export default function DashboardPage() {
   const [realtimeAiTip, setRealtimeAiTip] = useState<string>("");
   const [isTipLoading, setIsTipLoading] = useState<boolean>(false);
 
-  // RUTİN DÜZENLEME MODAL STATE'LERİ (NATIVE TIME INPUT İLE HASSAS SEÇİM)
+  // RUTİN DÜZENLEME MODAL STATE'LERİ
   const [editingHabit, setEditingHabit] = useState<any | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editStart, setEditStart] = useState("08:00");
@@ -174,6 +174,14 @@ export default function DashboardPage() {
   const normalizeTime = (timeStr: string) => {
     if (!timeStr) return "00:00";
     return timeStr.replace(/\./g, ":").trim();
+  };
+
+  // 🟢 24 SAAT MODÜLÜ DÜZELTMESİ (26:00 -> 02:00 HESAPLAMA)
+  const formatTimeMinutes = (totalMin: number) => {
+    const normalizedMin = ((totalMin % 1440) + 1440) % 1440;
+    const h = Math.floor(normalizedMin / 60).toString().padStart(2, "0");
+    const m = (normalizedMin % 60).toString().padStart(2, "0");
+    return `${h}:${m}`;
   };
 
   const handleAdminBypass = async () => {
@@ -218,7 +226,7 @@ export default function DashboardPage() {
   // SEÇİLİ GÜNÜN RUTİNLERİ
   const currentDayHabits = habits.filter((h) => h.day === selectedDay);
 
-  // 🟢 SUPABASE VE LOCAL STORAGE SYNC (CİHAZLAR ARASI SENKRONİZASYON)
+  // 🟢 SUPABASE VE LOCAL STORAGE SYNC
   useEffect(() => {
     const fetchUserDataAndHabits = async () => {
       setLoading(true);
@@ -230,7 +238,6 @@ export default function DashboardPage() {
         setUserGoal(user.user_metadata?.onboarding_goal || "");
         setUserAvatar(user.user_metadata?.avatar_url || user.user_metadata?.picture || "");
         
-        // Supabase'den Rutinleri Çek
         if (user.user_metadata?.synced_habits) {
           setHabits(user.user_metadata.synced_habits);
         } else {
@@ -251,7 +258,6 @@ export default function DashboardPage() {
     fetchUserDataAndHabits();
   }, []);
 
-  // KOD HER GÜNCELLENDİĞİNDE SUPABASE VE LOCALSTORAGE'A DEPOLA
   const syncHabitsToCloud = async (updatedHabits: any[]) => {
     setHabits(updatedHabits);
     if (typeof window !== "undefined") {
@@ -269,7 +275,6 @@ export default function DashboardPage() {
     }
   };
 
-  // 🟢 AI TARAFINDAN OTOMATİK ZİHİNSEL ODAK SEVİYESİ BELİRLEME
   const evaluateFocusLevelWithAI = async (dayHabits: any[]) => {
     if (dayHabits.length < 4) {
       setAiEvaluatedFocus(null);
@@ -307,7 +312,6 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
       }
     }
 
-    // Fallback AI hesaplama (API olmaması veya hata durumunda)
     const totalLevel = dayHabits.reduce((acc, curr) => acc + (curr.level || 3), 0);
     const avg = Math.min(5, Math.max(1, Math.round(totalLevel / dayHabits.length)));
     setAiEvaluatedFocus(avg);
@@ -320,7 +324,6 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     }
   }, [selectedDay, habits, isHabitsLoaded]);
 
-  // CANLI AI TIP ÜRETİMİ
   const generateRealtimeTip = async (level: number | null) => {
     if (!level) return;
     setIsTipLoading(true);
@@ -464,7 +467,6 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     setEditingHabit(habit);
     setEditTitle(habit.title);
     
-    // Saat aralığını böl (Örn: "08:00 - 15:20")
     const match = habit.suggestedTime.match(/(\d\d:\d\d)\s*-\s*(\d\d:\d\d)/);
     if (match) {
       setEditStart(match[1]);
@@ -534,7 +536,6 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     return null;
   };
 
-  // 🟢 AI İLE AKILLI GÖREV EKLEME (KATEGORİ VE SEVİYE AI TARAFINDAN OTOMATİK TAHMİN EDİLİR)
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitTitle.trim()) return;
@@ -591,7 +592,18 @@ SADECE ŞU JSON'I DÖNDÜR:
             aiResponseText.lastIndexOf("}") + 1
           );
           const parsed = JSON.parse(cleanJson);
-          if (parsed.timeSlot) finalTimeSlot = parsed.timeSlot.replace(/\./g, ":");
+          if (parsed.timeSlot) {
+            const parts = parsed.timeSlot.split("-").map((p: string) => p.trim());
+            if (parts.length === 2) {
+              const parseMin = (tStr: string) => {
+                const [hh, mm] = tStr.split(":").map(Number);
+                return (hh || 0) * 60 + (mm || 0);
+              };
+              finalTimeSlot = `${formatTimeMinutes(parseMin(parts[0]))} - ${formatTimeMinutes(parseMin(parts[1]))}`;
+            } else {
+              finalTimeSlot = parsed.timeSlot.replace(/\./g, ":");
+            }
+          }
           if (parsed.category) inferredCategory = parsed.category;
           if (parsed.level) inferredLevel = Number(parsed.level);
         }
@@ -600,7 +612,6 @@ SADECE ŞU JSON'I DÖNDÜR:
       }
     }
 
-    // Fallback Zamanlayıcı (AI Yanıt Vermezse)
     if (!finalTimeSlot) {
       let durationMinutes = detectedDuration || 60;
       let startMin = 16 * 60;
@@ -620,13 +631,7 @@ SADECE ŞU JSON'I DÖNDÜR:
         startMin += 30;
       }
 
-      const formatTime = (totalMin: number) => {
-        const h = Math.floor(totalMin / 60).toString().padStart(2, "0");
-        const m = (totalMin % 60).toString().padStart(2, "0");
-        return `${h}:${m}`;
-      };
-
-      finalTimeSlot = `${formatTime(startMin)} - ${formatTime(startMin + durationMinutes)}`;
+      finalTimeSlot = `${formatTimeMinutes(startMin)} - ${formatTimeMinutes(startMin + durationMinutes)}`;
     }
 
     const newHabitObj = {
@@ -663,7 +668,6 @@ SADECE ŞU JSON'I DÖNDÜR:
     { day: isTr ? "Paz" : "Sun", score: "8/10", x: 480, y: 50 },
   ];
 
-  // SAAT ÇİZELGESİ (00:00 - 24:00 DÖNGÜSÜ)
   const timeSlots = Array.from({ length: 24 }, (_, i) => {
     const hour = i.toString().padStart(2, "0");
     return `${hour}:00`;
@@ -843,7 +847,6 @@ SADECE ŞU JSON'I DÖNDÜR:
                 </div>
               </div>
 
-              {/* 🟢 HRV KARTI (CİHAZ SADECE BAĞLIYSA GÖSTERİLİR) */}
               <div className="p-5 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg relative overflow-hidden">
                 <div className="flex justify-between items-center text-slate-400 text-xs font-medium">
                   <span>HRV Score (3-day)</span>
@@ -858,7 +861,6 @@ SADECE ŞU JSON'I DÖNDÜR:
                 )}
               </div>
 
-              {/* 🟢 AI TARAFINDAN OTOMATİK HESAPLANAN ZİHİNSEL ODAK SEVİYESİ */}
               <div className="p-5 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
                 <div className="flex justify-between items-center text-slate-400 text-xs font-medium">
                   <span>{t.focusLevelText}</span>
@@ -880,7 +882,6 @@ SADECE ŞU JSON'I DÖNDÜR:
               </div>
             </div>
 
-            {/* 🟢 HAFTANIN GÜNLERİ SEÇİMLİ 24 SAATLİK RİTİM ÇİZELGESİ */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -896,7 +897,6 @@ SADECE ŞU JSON'I DÖNDÜR:
                 </div>
               </div>
 
-              {/* HAFTANIN GÜNLERİ SEÇİM BUTONLARI */}
               <div className="grid grid-cols-7 gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
                 {daysOfWeek.map((day) => (
                   <button
@@ -909,7 +909,6 @@ SADECE ŞU JSON'I DÖNDÜR:
                 ))}
               </div>
 
-              {/* ÇİZELGE KUTUSU (YARIM SAATLİK 23:30 DİLİM BÖLÜNMESİ DESTEKLENİR) */}
               <div className="border border-slate-800 rounded-xl overflow-hidden bg-slate-950">
                 <div className="grid grid-cols-4 sm:grid-cols-8 border-b border-slate-800 bg-slate-900/90 text-[11px] font-bold text-cyan-400 text-center py-2.5">
                   <span className="border-r border-slate-800">Saatler</span>
@@ -918,10 +917,8 @@ SADECE ŞU JSON'I DÖNDÜR:
                 <div className="divide-y divide-slate-800/60 max-h-96 overflow-y-auto">
                   {timeSlots.map((slot) => {
                     const currentHour = parseInt(slot.split(":")[0]);
-                    
-                    // 🟢 YARIM SAATLİK HASSAS DİLİM BÖLÜNME ALGORİTMASI (23:30 DÜZELTMESİ)
-                    const firstHalfMin = currentHour * 60; // xx:00 - xx:30
-                    const secondHalfMin = currentHour * 60 + 30; // xx:30 - (xx+1):00
+                    const firstHalfMin = currentHour * 60;
+                    const secondHalfMin = currentHour * 60 + 30;
 
                     const getSlotHabits = (startCheck: number, endCheck: number) => {
                       return currentDayHabits.filter((h) => {
@@ -933,7 +930,6 @@ SADECE ŞU JSON'I DÖNDÜR:
                         let endH = parseInt(match[3]) * 60 + parseInt(match[4]);
                         
                         if (startH > endH) {
-                          // Gece yarısını aşan saatler (örn 22:30 - 07:00)
                           return (startCheck >= startH || endCheck <= endH);
                         } else {
                           return Math.max(startCheck, startH) < Math.min(endCheck, endH);
@@ -948,7 +944,6 @@ SADECE ŞU JSON'I DÖNDÜR:
                       <div key={slot} className="grid grid-cols-4 sm:grid-cols-8 text-xs py-2 px-3 items-center hover:bg-slate-900/40 transition border-b border-slate-800/40">
                         <span className="font-mono text-slate-400 text-[11px] border-r border-slate-800/80 pr-2">{slot}</span>
                         <div className="col-span-3 sm:col-span-7 pl-3 space-y-1">
-                          {/* İlk 30 Dakika Dilimi (xx:00 - xx:30) */}
                           <div className="flex items-center gap-2">
                             <span className="text-[9px] font-mono text-slate-500 w-10 shrink-0">:00-:30</span>
                             {firstHalfHabits.length > 0 ? (
@@ -964,7 +959,6 @@ SADECE ŞU JSON'I DÖNDÜR:
                             )}
                           </div>
 
-                          {/* İkinci 30 Dakika Dilimi (xx:30 - xx:00) */}
                           <div className="flex items-center gap-2 pt-0.5 border-t border-slate-900">
                             <span className="text-[9px] font-mono text-slate-500 w-10 shrink-0">:30-:00</span>
                             {secondHalfHabits.length > 0 ? (
@@ -987,7 +981,6 @@ SADECE ŞU JSON'I DÖNDÜR:
               </div>
             </div>
 
-            {/* MANUEL SABİT BLOK FORMU (NATIVE TIME INPUT) */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
               <h3 className="text-sm font-bold text-amber-400 mb-1">🏫 Manuel Sabit Saat Ekle ({selectedDay} Günü İçin)</h3>
               <p className="text-xs text-slate-400 mb-4">Örneğin 22:30 - 07:00 arası uyku saatini veya 08:00 - 15:20 arası okul saatini ekleyin.</p>
@@ -1162,7 +1155,6 @@ SADECE ŞU JSON'I DÖNDÜR:
                 )}
               </div>
 
-              {/* CANLI ANLIK AI TIP */}
               <div className="p-4 bg-gradient-to-r from-cyan-950/60 via-slate-950 to-indigo-950/60 border border-cyan-500/40 rounded-xl shadow-md">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
@@ -1194,7 +1186,6 @@ SADECE ŞU JSON'I DÖNDÜR:
               </div>
             </div>
 
-            {/* 🟢 ZEKİ AI GÖREV EKLEME FORMU (KATEGORİ VE SEVİYE AI TARAFINDAN OTOMATİK DOLDURULUR) */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -1706,18 +1697,9 @@ SADECE ŞU JSON'I DÖNDÜR:
             </div>
           </div>
         )}
-
-        <div className="pt-4 text-center">
-          <button
-            onClick={handleLogout}
-            className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold rounded-xl text-xs transition cursor-pointer"
-          >
-            {t.logOut}
-          </button>
-        </div>
       </main>
 
-      {/* 🟢 RUTİN DÜZENLEME MODALI (NATIVE TIME INPUT İLE SILINEMEZ HASSAS SAAT) */}
+      {/* RUTİN DÜZENLEME MODALI */}
       {editingHabit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
