@@ -654,11 +654,11 @@ Sadece bu JSON'ı yaz:
 {"category": "Spor", "level": 1, "timeSlot": "10:30 - 10:45"}
         `;
 
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
-        });
+       const res = await fetch('/api/gemini', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ promptText }),
+});
 
         if (!res.ok) {
           console.warn(`⚠️ [OmniSync AI Debug] Gemini Planlama API isteği başarısız oldu (Status: ${res.status}). Fallback zaman aralığı devreye giriyor.`);
