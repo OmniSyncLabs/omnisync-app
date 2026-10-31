@@ -640,19 +640,22 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
       console.log("🔑 [OmniSync Key Test]:", apiKey ? `Key Var: ${apiKey.substring(0, 6)}...` : "Key YOK (Undefined)");
       try {
         console.log("🚀 [OmniSync AI Debug] Gemini Planlama İsteği Gönderiliyor. Görev:", cleanTitle);
-        const promptText = `
+       const promptText = `
 Sen OmniSync'in nöro-bilişsel AI Ritim Mimarısın.
 Seçili gün (${selectedDay}) için mevcut dolu rutinler: [${existingSlots}].
 Gelen Görev: "${cleanTitle}"
 
 Aşağıdaki kurallara kesin uyarak SADECE ve SADECE saf bir JSON objesi döndür:
 1. "category": Görevin türü. Seçenekler: "Verimlilik", "Spor", "Sağlık", "Kişisel".
-2. "level": Zihinsel yük seviyesi (1-5 arası tam sayı). 
+2. "level": Zihinsel yük seviyesi (1-5 arası tam sayı).
 3. "timeSlot": ÇAKIŞMAYACAK saat aralığı (Örn: "14:00 - 15:30").
+- EĞER görevde "yatmadan önce", "gece", "akşam" gibi ifadeler geçiyorsa, saati günün en sonuna (örn: 22:30 - 23:30 veya 23:00 - 00:00) konumlandır.
+- EĞER görevde "sabah", "ilk iş" gibi ifadeler geçiyorsa güne erken saatlerde başlat (örn: 08:30 - 09:30).
+- EĞER özel zaman belirtilmemişse mevcut boş aralıklara yerleştir.
 
 Sadece bu JSON'ı yaz:
-{"category": "Spor", "level": 1, "timeSlot": "10:30 - 10:45"}
-        `;
+{"category": "Kişisel", "level": 1, "timeSlot": "22:30 - 23:30"}
+`;
 
        const res = await fetch('/api/gemini', {
   method: 'POST',
