@@ -9,7 +9,6 @@ export default function DashboardPage() {
   const locale = (params?.locale as string) || "tr";
   const isTr = locale === "tr";
 
-  // TÜRKÇE / İNGİLİZCE DİNAMİK ÇEVİRİ SÖZLÜĞÜ
   const t = {
     overview: isTr ? "Genel Bakış" : "Overview",
     habits: isTr ? "Alışkanlıklar & AI Planlama" : "Habits & AI Schedule",
@@ -90,7 +89,6 @@ export default function DashboardPage() {
     { id: "Paz", label: isTr ? "Pazar" : "Sunday", short: isTr ? "Paz" : "Sun" },
   ];
 
-  // CANLI AKAN CİHAZ SAATİ VE TARİH BİLGİSİ
   const [currentDateTime, setCurrentDateTime] = useState<string>("");
   const [selectedDay, setSelectedDay] = useState<string>("Pzt");
 
@@ -110,7 +108,7 @@ export default function DashboardPage() {
     };
 
     updateTime();
-    const interval = setInterval(updateTime, 1000); // HER SANİYE CANLI GÜNCELLEME
+    const interval = setInterval(updateTime, 1000);
 
     const now = new Date();
     const dayMap = [6, 0, 1, 2, 3, 4, 5];
@@ -131,7 +129,6 @@ export default function DashboardPage() {
   const [updateMsg, setUpdateMsg] = useState<string>("");
   const [isAnnual, setIsAnnual] = useState<boolean>(false);
 
-  // YAN MENÜ (HAMBURGER / DRAWER) STATE
   const [isNavOpen, setIsNavOpen] = useState<boolean>(false);
 
   const [healthSync, setHealthSync] = useState<boolean>(true);
@@ -144,27 +141,22 @@ export default function DashboardPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<"overview" | "habits" | "analytics" | "group" | "settings">("overview");
 
-  // AI OTOMATİK ODAK SEVİYESİ VE ANALİZ STATE'LERİ
   const [aiEvaluatedFocus, setAiEvaluatedFocus] = useState<number | null>(null);
   const [isAiEvaluating, setIsAiEvaluating] = useState<boolean>(false);
   const [hrvScore] = useState<number>(68);
 
-  // REAL-TIME CANLI AI TIP STATE
   const [realtimeAiTip, setRealtimeAiTip] = useState<string>("");
   const [isTipLoading, setIsTipLoading] = useState<boolean>(false);
 
-  // RUTİN DÜZENLEME MODAL STATE'LERİ
   const [editingHabit, setEditingHabit] = useState<any | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editStart, setEditStart] = useState("08:00");
   const [editEnd, setEditEnd] = useState("09:00");
 
-  // MANUEL OKUL/İŞ BLOKLARI İÇİN FORM STATE'LERİ
   const [manualTitle, setManualTitle] = useState("");
   const [manualStart, setManualStart] = useState("08:00");
   const [manualEnd, setManualEnd] = useState("15:20");
 
-  // ADMIN MODAL STATE'LERİ
   const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
   const [adminPassword, setAdminPassword] = useState<string>("");
   const [selectedAdminPlan, setSelectedAdminPlan] = useState<"free" | "pro" | "plus">("pro");
@@ -235,16 +227,13 @@ export default function DashboardPage() {
   const [newHabitTitle, setNewHabitTitle] = useState("");
   const [aiScheduling, setAiScheduling] = useState<boolean>(false);
 
-  // SEÇİLİ GÜNÜN RUTİNLERİ
   const currentDayHabits = habits.filter((h) => h.day === selectedDay);
 
-  // SUPABASE VE LOCAL STORAGE SYNC
   useEffect(() => {
     const fetchUserDataAndHabits = async () => {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // İSİM İÇİN MAKSİMUM 35 KARAKTER SINIRI (ORTALAMA İSİM-SOYİSİM UZUNLUĞU)
         const fullName = (user.user_metadata?.full_name || "Kullanıcı").slice(0, 35);
         setUserName(fullName);
         setUserEmail(user.email || "demo@example.com");
@@ -310,7 +299,8 @@ Günün görev çeşitliliğini, ders/iş yükünü, dinlenme aralıklarını ve
 SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
         `;
 
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        // GÜNCELLENDİ: gemini-2.0-flash endpoint
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
@@ -328,8 +318,6 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
       } catch (err) {
         console.error("❌ [OmniSync AI Debug] AI Odak Analiz hatası:", err);
       }
-    } else {
-      console.warn("⚠️ [OmniSync AI Debug] NEXT_PUBLIC_GEMINI_API_KEY bulunamadı! Fallback hesaplama kullanılıyor.");
     }
 
     const totalLevel = dayHabits.reduce((acc, curr) => acc + (curr.level || 3), 0);
@@ -353,7 +341,9 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
       try {
         console.log("🚀 [OmniSync AI Debug] Gemini Canlı Tip İsteği Gönderiliyor...");
         const prompt = `Kullanıcının AI tarafından analiz edilmiş anlık zihinsel odak seviyesi: ${level}/5. Bu seviyedeki bir öğrenci/çalışan için tam şu an uygulanabilecek 1-2 cümlelik kişiselleştirilmiş, eyleme geçirici, özgün bir AI ritim ve odak tavsiyesi üret. Sadece tavsiye metnini yaz.`;
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        
+        // GÜNCELLENDİ: gemini-2.0-flash endpoint
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
@@ -510,11 +500,10 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     setEditingHabit(null);
   };
 
-  // MADDELERİ SIKICA DENETLEYEN ÇAKIŞMA (OVERLAP) KONTROLÜ
   const checkTimeOverlap = (testStartMin: number, testEndMin: number, dayRoutines: any[], excludeId?: number) => {
     let tStart = testStartMin;
     let tEnd = testEndMin;
-    if (tStart >= tEnd) tEnd += 1440; // Gece yarısını geçen saatler
+    if (tStart >= tEnd) tEnd += 1440;
 
     return dayRoutines.some((h) => {
       if (excludeId && h.id === excludeId) return false;
@@ -531,10 +520,9 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     });
   };
 
-  // MANUEL SABİT SAAT EKLEME (ÇAKIŞMA ENGELİ & MAX 50 KARAKTER ENTEGRELİ)
   const handleAddManualBlock = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanTitle = manualTitle.trim().slice(0, 50); // MAX 50 KARAKTER
+    const cleanTitle = manualTitle.trim().slice(0, 50);
     if (!cleanTitle) return;
 
     const maxAllowed = getPlanLimit(userPlan);
@@ -557,7 +545,6 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
       return;
     }
 
-    // ÇAKIŞMA KONTROLÜ
     const hasOverlap = checkTimeOverlap(startMin, endMin, currentDayHabits);
     if (hasOverlap) {
       alert(isTr 
@@ -611,10 +598,9 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     return `${startStr} - ${endStr}`;
   };
 
-  // AI İLE OTOMATİK GÖREV EKLEME (MAX 50 KARAKTER VE GEMİNİ DEBUG LOGLARI)
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanTitle = newHabitTitle.trim().slice(0, 50); // MAX 50 KARAKTER
+    const cleanTitle = newHabitTitle.trim().slice(0, 50);
     if (!cleanTitle) return;
 
     const maxAllowed = getPlanLimit(userPlan);
@@ -659,7 +645,8 @@ Sadece bu JSON'ı yaz:
 {"category": "Spor", "level": 1, "timeSlot": "10:30 - 10:45"}
         `;
 
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        // GÜNCELLENDİ: gemini-2.0-flash endpoint
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
@@ -687,8 +674,6 @@ Sadece bu JSON'ı yaz:
       } catch (err) {
         console.error("❌ [OmniSync AI Debug] AI Akıllı Analiz hatası:", err);
       }
-    } else {
-      console.warn("⚠️ [OmniSync AI Debug] NEXT_PUBLIC_GEMINI_API_KEY bulunamadı!");
     }
 
     if (!finalTimeSlot) {
@@ -732,8 +717,6 @@ Sadece bu JSON'ı yaz:
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row font-sans relative">
-      
-      {/* SADECE MOBİLDE GÖRÜNEN YAPIŞKAN HAMBURGER MENÜ BUTONU (md:hidden) */}
       <button
         type="button"
         onClick={() => setIsNavOpen(!isNavOpen)}
@@ -751,7 +734,6 @@ Sadece bu JSON'ı yaz:
         )}
       </button>
 
-      {/* BACKDROP OVERLAY (Sadece Mobilde) */}
       {isNavOpen && (
         <div 
           onClick={() => setIsNavOpen(false)}
@@ -759,7 +741,6 @@ Sadece bu JSON'ı yaz:
         />
       )}
 
-      {/* SIDEBAR */}
       <aside className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-slate-900/95 border-r border-slate-800/80 p-6 flex flex-col justify-between shrink-0 z-40 transition-transform duration-300 ease-in-out backdrop-blur-xl ${isNavOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}`}>
         <div>
           <div className="mb-8 flex items-center justify-between pt-2 md:pt-0">
@@ -840,7 +821,6 @@ Sadece bu JSON'ı yaz:
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
       <main className="flex-1 p-6 md:p-10 pt-16 md:pt-10 overflow-y-auto space-y-8">
         <header className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800/80 gap-4">
           <div>
@@ -852,10 +832,9 @@ Sadece bu JSON'ı yaz:
               {activeTab === "settings" && t.settings}
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              {t.welcome} <span className="text-cyan-400 font-semibold">{userName}</span>, {t.subTitle}
+              {t.welcome} <span className="text-cyan-400 font-semibold truncate max-w-[120px] inline-block align-bottom">{userName}</span>, {t.subTitle}
             </p>
             
-            {/* CANLI DİJİTAL SAAT GÖSTERGESİ */}
             {currentDateTime && (
               <div className="inline-flex items-center gap-2 px-3 py-1 mt-2 bg-slate-900/90 border border-cyan-500/30 rounded-xl shadow-lg shadow-cyan-500/5">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
@@ -866,7 +845,6 @@ Sadece bu JSON'ı yaz:
             )}
           </div>
 
-          {/* TEMİZLENMİŞ VE SADELEŞTİRİLMİŞ SAĞ ÜST ABONELİK BUTONU */}
           <button
             onClick={() => setShowUpgradeModal(true)}
             className="cursor-pointer hover:opacity-90 transition text-left shrink-0 self-start sm:self-auto"
@@ -887,7 +865,6 @@ Sadece bu JSON'ı yaz:
           </button>
         </header>
 
-        {/* OVERVIEW TAB */}
         {activeTab === "overview" && (
           <div className="space-y-6">
             {userGoal && (
@@ -950,7 +927,6 @@ Sadece bu JSON'ı yaz:
               </div>
             </div>
 
-            {/* 📊 MİNİMALİST VE İŞLEVSEL HAFTALIK RİTİM ÖZETİ */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
@@ -966,7 +942,6 @@ Sadece bu JSON'ı yaz:
                 </div>
               </div>
 
-              {/* GÜNLER SEÇİM BUTONLARI */}
               <div className="grid grid-cols-7 gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
                 {daysOfWeek.map((day) => (
                   <button
@@ -979,7 +954,6 @@ Sadece bu JSON'ı yaz:
                 ))}
               </div>
 
-              {/* PROGRESS BAR & KATEGORİ ÖZET ROZETLERİ */}
               <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 font-medium">Günün Tamamlanma Oranı ({selectedDay})</span>
@@ -988,7 +962,6 @@ Sadece bu JSON'ı yaz:
                   </span>
                 </div>
                 
-                {/* İlerleme Çubuğu */}
                 <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
                   <div 
                     className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-emerald-400 transition-all duration-500"
@@ -998,7 +971,6 @@ Sadece bu JSON'ı yaz:
                   />
                 </div>
 
-                {/* Kategori Dağılımı Rozetleri */}
                 <div className="flex flex-wrap gap-2 pt-1 text-[10px]">
                   <span className="px-2.5 py-1 bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 rounded-md font-semibold">
                     Verimlilik: {currentDayHabits.filter(h => h.category === "Verimlilik").length} Görev
@@ -1012,7 +984,6 @@ Sadece bu JSON'ı yaz:
                 </div>
               </div>
 
-              {/* MİNİMALİST ZAMAN AKIŞI (TIMELINE) */}
               <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl">
                 <h4 className="text-xs font-bold text-slate-300 mb-3 flex items-center gap-1.5">
                   🕒 Akıllı Zaman Akışı ({selectedDay})
@@ -1051,7 +1022,6 @@ Sadece bu JSON'ı yaz:
               </div>
             </div>
 
-            {/* MANUEL SABİT SAAT EKLEME FORMU (MAX 50 KARAKTER VE ÇAKIŞMA KONTROLÜ) */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
               <h3 className="text-sm font-bold text-amber-400 mb-1">🏫 Manuel Sabit Saat Ekle ({selectedDay} Günü İçin)</h3>
               <p className="text-xs text-slate-400 mb-4">Örneğin 22:30 - 07:00 arası uyku saatini veya 08:00 - 15:20 arası okul saatini ekleyin (Max 50 karakter).</p>
@@ -1062,7 +1032,7 @@ Sadece bu JSON'ı yaz:
                   placeholder="Etkinlik Adı (Max 50 kr.)"
                   value={manualTitle}
                   onChange={(e) => setManualTitle(e.target.value)}
-                  className="sm:col-span-2 px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition"
+                  className="sm:col-span-2 px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition truncate"
                 />
                 <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-3 py-1 rounded-xl">
                   <input 
@@ -1165,7 +1135,7 @@ Sadece bu JSON'ı yaz:
               <div className="space-y-6">
                 <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
                   <h3 className="text-base font-bold text-white mb-2">YOUR MEMBERSHIP</h3>
-                  <p className="text-xs text-slate-400 mb-4">{userEmail}</p>
+                  <p className="text-xs text-slate-400 mb-4 truncate">{userEmail}</p>
                   
                   <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs space-y-2 mb-4">
                     <div className="flex justify-between">
@@ -1209,7 +1179,6 @@ Sadece bu JSON'ı yaz:
           </div>
         )}
 
-        {/* HABITS TAB */}
         {activeTab === "habits" && (
           <div className="space-y-6">
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg space-y-4">
@@ -1275,7 +1244,7 @@ Sadece bu JSON'ı yaz:
                   placeholder={t.taskTitlePlaceholder}
                   value={newHabitTitle}
                   onChange={(e) => setNewHabitTitle(e.target.value)}
-                  className="flex-1 px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-cyan-500 transition"
+                  className="flex-1 px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-cyan-500 transition truncate"
                 />
                 <button
                   type="submit"
@@ -1301,7 +1270,7 @@ Sadece bu JSON'ı yaz:
                       className="p-4 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between gap-3"
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                        <div className="text-xs font-semibold text-slate-200 flex items-center gap-1.5 truncate">
                           {habit.isManual && <span className="text-amber-400 text-[10px] font-bold">[Sabit]</span>}
                           {habit.title}
                         </div>
@@ -1335,7 +1304,6 @@ Sadece bu JSON'ı yaz:
           </div>
         )}
 
-        {/* BİYOMETRİ & HRV ANALİZİ SAYFASI */}
         {activeTab === "analytics" && (
           <div className="space-y-6">
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg relative overflow-hidden">
@@ -1409,7 +1377,6 @@ Sadece bu JSON'ı yaz:
           </div>
         )}
 
-        {/* GROUP TAB */}
         {activeTab === "group" && (
           <div className="space-y-6">
             <div className="p-6 bg-slate-900/80 border border-purple-500/30 rounded-2xl shadow-xl relative overflow-hidden">
@@ -1480,7 +1447,6 @@ Sadece bu JSON'ı yaz:
           </div>
         )}
 
-        {/* SETTINGS TAB */}
         {activeTab === "settings" && (
           <div className="space-y-8 max-w-4xl">
             {updateMsg && (
@@ -1772,7 +1738,6 @@ Sadece bu JSON'ı yaz:
         )}
       </main>
 
-      {/* RUTİN DÜZENLEME MODALI */}
       {editingHabit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
@@ -1785,7 +1750,7 @@ Sadece bu JSON'ı yaz:
                   maxLength={50}
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400 truncate"
                 />
               </div>
               <div>
@@ -1827,7 +1792,6 @@ Sadece bu JSON'ı yaz:
         </div>
       )}
 
-      {/* ADMIN MODAL */}
       {isAdminOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
@@ -1893,7 +1857,6 @@ Sadece bu JSON'ı yaz:
         </div>
       )}
 
-      {/* UPGRADE MODAL */}
       {showUpgradeModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
