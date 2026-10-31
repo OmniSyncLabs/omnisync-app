@@ -657,11 +657,11 @@ Sadece bu JSON'ı yaz:
 {"category": "Kişisel", "level": 1, "timeSlot": "22:30 - 23:30"}
 `;
 
-       const res = await fetch('/api/gemini', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ promptText }),
-});
+      const res = await fetch('/api/gemini', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ promptText }),
+        });
 
         if (!res.ok) {
           console.warn(`⚠️ [OmniSync AI Debug] Gemini Planlama API isteği başarısız oldu (Status: ${res.status}). Fallback zaman aralığı devreye giriyor.`);
