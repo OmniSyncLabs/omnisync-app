@@ -299,21 +299,25 @@ Günün görev çeşitliliğini, ders/iş yükünü, dinlenme aralıklarını ve
 SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
         `;
 
-        // GÜNCELLENDİ: gemini-2.0-flash endpoint
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
-        const data = await res.json();
-        console.log("🟢 [OmniSync AI Debug] Gemini Odak Yanıtı:", data);
 
-        const scoreStr = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        const parsed = parseInt(scoreStr, 10);
-        if (!isNaN(parsed) && parsed >= 1 && parsed <= 5) {
-          setAiEvaluatedFocus(parsed);
-          setIsAiEvaluating(false);
-          return;
+        if (!res.ok) {
+          console.warn(`⚠️ [OmniSync AI Debug] Gemini Odak Analizi API isteği başarısız oldu (Status: ${res.status}). Fallback hesaplaması devreye giriyor.`);
+        } else {
+          const data = await res.json();
+          console.log("🟢 [OmniSync AI Debug] Gemini Odak Yanıtı:", data);
+
+          const scoreStr = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+          const parsed = parseInt(scoreStr, 10);
+          if (!isNaN(parsed) && parsed >= 1 && parsed <= 5) {
+            setAiEvaluatedFocus(parsed);
+            setIsAiEvaluating(false);
+            return;
+          }
         }
       } catch (err) {
         console.error("❌ [OmniSync AI Debug] AI Odak Analiz hatası:", err);
@@ -342,20 +346,24 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
         console.log("🚀 [OmniSync AI Debug] Gemini Canlı Tip İsteği Gönderiliyor...");
         const prompt = `Kullanıcının AI tarafından analiz edilmiş anlık zihinsel odak seviyesi: ${level}/5. Bu seviyedeki bir öğrenci/çalışan için tam şu an uygulanabilecek 1-2 cümlelik kişiselleştirilmiş, eyleme geçirici, özgün bir AI ritim ve odak tavsiyesi üret. Sadece tavsiye metnini yaz.`;
         
-        // GÜNCELLENDİ: gemini-2.0-flash endpoint
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
-        const data = await res.json();
-        console.log("🟢 [OmniSync AI Debug] Gemini Tip Yanıtı:", data);
 
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        if (text) {
-          setRealtimeAiTip(text);
-          setIsTipLoading(false);
-          return;
+        if (!res.ok) {
+          console.warn(`⚠️ [OmniSync AI Debug] Gemini Tip API isteği başarısız oldu (Status: ${res.status}). Fallback tip devreye giriyor.`);
+        } else {
+          const data = await res.json();
+          console.log("🟢 [OmniSync AI Debug] Gemini Tip Yanıtı:", data);
+
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+          if (text) {
+            setRealtimeAiTip(text);
+            setIsTipLoading(false);
+            return;
+          }
         }
       } catch (err) {
         console.error("❌ [OmniSync AI Debug] AI Tip alma hatası:", err);
@@ -645,30 +653,33 @@ Sadece bu JSON'ı yaz:
 {"category": "Spor", "level": 1, "timeSlot": "10:30 - 10:45"}
         `;
 
-        // GÜNCELLENDİ: gemini-2.0-flash endpoint
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
         });
 
-        const data = await res.json();
-        console.log("🟢 [OmniSync AI Debug] Gemini Planlama Yanıtı:", data);
+        if (!res.ok) {
+          console.warn(`⚠️ [OmniSync AI Debug] Gemini Planlama API isteği başarısız oldu (Status: ${res.status}). Fallback zaman aralığı devreye giriyor.`);
+        } else {
+          const data = await res.json();
+          console.log("🟢 [OmniSync AI Debug] Gemini Planlama Yanıtı:", data);
 
-        let aiResponseText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-        
-        if (aiResponseText) {
-          aiResponseText = aiResponseText.replace(/```json/g, "").replace(/```/g, "").trim();
-          const firstBrace = aiResponseText.indexOf("{");
-          const lastBrace = aiResponseText.lastIndexOf("}");
+          let aiResponseText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
           
-          if (firstBrace !== -1 && lastBrace !== -1) {
-            const cleanJson = aiResponseText.substring(firstBrace, lastBrace + 1);
-            const parsed = JSON.parse(cleanJson);
+          if (aiResponseText) {
+            aiResponseText = aiResponseText.replace(/```json/g, "").replace(/```/g, "").trim();
+            const firstBrace = aiResponseText.indexOf("{");
+            const lastBrace = aiResponseText.lastIndexOf("}");
             
-            if (parsed.timeSlot) finalTimeSlot = parsed.timeSlot.replace(/\./g, ":");
-            if (parsed.category) inferredCategory = parsed.category;
-            if (parsed.level) inferredLevel = Number(parsed.level);
+            if (firstBrace !== -1 && lastBrace !== -1) {
+              const cleanJson = aiResponseText.substring(firstBrace, lastBrace + 1);
+              const parsed = JSON.parse(cleanJson);
+              
+              if (parsed.timeSlot) finalTimeSlot = parsed.timeSlot.replace(/\./g, ":");
+              if (parsed.category) inferredCategory = parsed.category;
+              if (parsed.level) inferredLevel = Number(parsed.level);
+            }
           }
         }
       } catch (err) {
