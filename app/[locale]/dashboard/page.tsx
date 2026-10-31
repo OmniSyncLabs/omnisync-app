@@ -29,7 +29,7 @@ export default function DashboardPage() {
     addHabitTitle: isTr ? "Yapay Zeka ile Otomatik Görev Ekle" : "Add Task Auto-Scheduled by AI",
     addHabitBtn: isTr ? "Yapay Zeka Akıllı Analiz Et ve Ekle" : "Add with AI Intelligent Scheduler",
     addingAl: isTr ? "AI Görevi Yorumluyor, Kategori & Seviye Belirliyor..." : "AI Analyzing Task, Category & Difficulty...",
-    taskTitlePlaceholder: isTr ? "Görev Adı (Örn: 1.5 Saat Zor Fizik Denemesi Çöz)" : "Task Title (e.g. 1.5h Hard Physics Exam)",
+    taskTitlePlaceholder: isTr ? "Görev Adı (Max 50 Karakter)" : "Task Title (Max 50 Chars)",
     groupTitle: isTr ? "10 Kişilik Odak Grubu Takibi" : "Social Party Focus Rooms & Live Sync",
     groupSub: isTr ? "Arkadaş grubunun gün içindeki canlı durumunu, odak seviyelerini ve rutinlerini incele." : "Track your friend group's live focus status, HRV, and active routines.",
     lockedTitle: isTr ? "Bu Özellik Plus Üyeliğe Özeldir" : "Feature Locked to Plus Members",
@@ -90,29 +90,37 @@ export default function DashboardPage() {
     { id: "Paz", label: isTr ? "Pazar" : "Sunday", short: isTr ? "Paz" : "Sun" },
   ];
 
-  // CİHAZ ANLIK SAAT VE TARİH BİLGİSİ
+  // CANLI AKAN CİHAZ SAATİ VE TARİH BİLGİSİ
   const [currentDateTime, setCurrentDateTime] = useState<string>("");
   const [selectedDay, setSelectedDay] = useState<string>("Pzt");
 
   useEffect(() => {
-    const now = new Date();
-    const formatted = now.toLocaleDateString(isTr ? "tr-TR" : "en-US", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    setCurrentDateTime(formatted);
+    const updateTime = () => {
+      const now = new Date();
+      const formatted = now.toLocaleDateString(isTr ? "tr-TR" : "en-US", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      setCurrentDateTime(formatted);
+    };
 
-    // Cihazın bugünkü gününe otomatik eşitle
-    const dayMap = [6, 0, 1, 2, 3, 4, 5]; // Pazar = 0 -> Paz
+    updateTime();
+    const interval = setInterval(updateTime, 1000); // HER SANİYE CANLI GÜNCELLEME
+
+    const now = new Date();
+    const dayMap = [6, 0, 1, 2, 3, 4, 5];
     const currentDayIndex = dayMap[now.getDay()];
     if (daysOfWeek[currentDayIndex]) {
       setSelectedDay(daysOfWeek[currentDayIndex].id);
     }
-  }, []);
+
+    return () => clearInterval(interval);
+  }, [isTr]);
 
   const [userName, setUserName] = useState<string>("Kullanıcı");
   const [userEmail, setUserEmail] = useState<string>("demo@example.com");
@@ -176,6 +184,11 @@ export default function DashboardPage() {
     return timeStr.replace(/\./g, ":").trim();
   };
 
+  const parseMin = (tStr: string) => {
+    const [hh, mm] = tStr.split(":").map(Number);
+    return (hh || 0) * 60 + (mm || 0);
+  };
+
   const formatTimeMinutes = (totalMin: number) => {
     const normalizedMin = ((totalMin % 1440) + 1440) % 1440;
     const h = Math.floor(normalizedMin / 60).toString().padStart(2, "0");
@@ -231,7 +244,9 @@ export default function DashboardPage() {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setUserName(user.user_metadata?.full_name || "Kullanıcı");
+        // İSİM İÇİN MAKSİMUM 35 KARAKTER SINIRI (ORTALAMA İSİM-SOYİSİM UZUNLUĞU)
+        const fullName = (user.user_metadata?.full_name || "Kullanıcı").slice(0, 35);
+        setUserName(fullName);
         setUserEmail(user.email || "demo@example.com");
         setUserPlan(user.user_metadata?.plan || "free");
         setUserGoal(user.user_metadata?.onboarding_goal || "");
@@ -244,7 +259,8 @@ export default function DashboardPage() {
           if (savedHabits) setHabits(JSON.parse(savedHabits));
         }
       } else {
-        setUserName(localStorage.getItem("omni_user_name") || "Kullanıcı");
+        const localName = (localStorage.getItem("omni_user_name") || "Kullanıcı").slice(0, 35);
+        setUserName(localName);
         setUserEmail(localStorage.getItem("omni_user_email") || "demo@example.com");
         setUserPlan(localStorage.getItem("omni_user_plan") || "free");
         setUserAvatar(localStorage.getItem("omni_user_avatar") || "");
@@ -285,6 +301,7 @@ export default function DashboardPage() {
 
     if (apiKey) {
       try {
+        console.log("🚀 [OmniSync AI Debug] Gemini Odak Analizi İsteği Gönderiliyor...");
         const habitDescriptions = dayHabits.map(h => `${h.title} (Beyin Yükü: ${h.level}/5, Saat: ${h.suggestedTime})`).join(", ");
         const prompt = `
 Sen OmniSync uygulamasının nöro-bilişsel AI analizörüsün.
@@ -299,6 +316,8 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
           body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
         const data = await res.json();
+        console.log("🟢 [OmniSync AI Debug] Gemini Odak Yanıtı:", data);
+
         const scoreStr = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         const parsed = parseInt(scoreStr, 10);
         if (!isNaN(parsed) && parsed >= 1 && parsed <= 5) {
@@ -307,8 +326,10 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
           return;
         }
       } catch (err) {
-        console.error("AI Odak Analiz hatası:", err);
+        console.error("❌ [OmniSync AI Debug] AI Odak Analiz hatası:", err);
       }
+    } else {
+      console.warn("⚠️ [OmniSync AI Debug] NEXT_PUBLIC_GEMINI_API_KEY bulunamadı! Fallback hesaplama kullanılıyor.");
     }
 
     const totalLevel = dayHabits.reduce((acc, curr) => acc + (curr.level || 3), 0);
@@ -330,6 +351,7 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (apiKey) {
       try {
+        console.log("🚀 [OmniSync AI Debug] Gemini Canlı Tip İsteği Gönderiliyor...");
         const prompt = `Kullanıcının AI tarafından analiz edilmiş anlık zihinsel odak seviyesi: ${level}/5. Bu seviyedeki bir öğrenci/çalışan için tam şu an uygulanabilecek 1-2 cümlelik kişiselleştirilmiş, eyleme geçirici, özgün bir AI ritim ve odak tavsiyesi üret. Sadece tavsiye metnini yaz.`;
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
           method: "POST",
@@ -337,6 +359,8 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
           body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
         const data = await res.json();
+        console.log("🟢 [OmniSync AI Debug] Gemini Tip Yanıtı:", data);
+
         const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         if (text) {
           setRealtimeAiTip(text);
@@ -344,7 +368,7 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
           return;
         }
       } catch (err) {
-        console.error("AI Tip alma hatası:", err);
+        console.error("❌ [OmniSync AI Debug] AI Tip alma hatası:", err);
       }
     }
     const fallbackTips: Record<number, string> = {
@@ -480,15 +504,38 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     if (!editingHabit) return;
     const cleanTime = `${editStart} - ${editEnd}`;
     const updated = habits.map((h) =>
-      h.id === editingHabit.id ? { ...h, title: editTitle, suggestedTime: cleanTime } : h
+      h.id === editingHabit.id ? { ...h, title: editTitle.slice(0, 50), suggestedTime: cleanTime } : h
     );
     syncHabitsToCloud(updated);
     setEditingHabit(null);
   };
 
+  // MADDELERİ SIKICA DENETLEYEN ÇAKIŞMA (OVERLAP) KONTROLÜ
+  const checkTimeOverlap = (testStartMin: number, testEndMin: number, dayRoutines: any[], excludeId?: number) => {
+    let tStart = testStartMin;
+    let tEnd = testEndMin;
+    if (tStart >= tEnd) tEnd += 1440; // Gece yarısını geçen saatler
+
+    return dayRoutines.some((h) => {
+      if (excludeId && h.id === excludeId) return false;
+      const formattedSlot = h.suggestedTime.replace(/\./g, ":");
+      const match = formattedSlot.match(/(\d\d:\d\d)\s*-\s*(\d\d:\d\d)/);
+      if (!match) return false;
+
+      let hStart = parseMin(match[1]);
+      let hEnd = parseMin(match[2]);
+
+      if (hStart >= hEnd) hEnd += 1440;
+
+      return Math.max(tStart, hStart) < Math.min(tEnd, hEnd);
+    });
+  };
+
+  // MANUEL SABİT SAAT EKLEME (ÇAKIŞMA ENGELİ & MAX 50 KARAKTER ENTEGRELİ)
   const handleAddManualBlock = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualTitle.trim()) return;
+    const cleanTitle = manualTitle.trim().slice(0, 50); // MAX 50 KARAKTER
+    if (!cleanTitle) return;
 
     const maxAllowed = getPlanLimit(userPlan);
     if (currentDayHabits.length >= maxAllowed) {
@@ -502,10 +549,27 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     const cleanStart = normalizeTime(manualStart);
     const cleanEnd = normalizeTime(manualEnd);
 
+    const startMin = parseMin(cleanStart);
+    const endMin = parseMin(cleanEnd);
+
+    if (startMin === endMin) {
+      alert(isTr ? "Başlangıç ve bitiş saati aynı olamaz!" : "Start and end times cannot be equal!");
+      return;
+    }
+
+    // ÇAKIŞMA KONTROLÜ
+    const hasOverlap = checkTimeOverlap(startMin, endMin, currentDayHabits);
+    if (hasOverlap) {
+      alert(isTr 
+        ? `Seçtiğiniz saat aralığı (${cleanStart} - ${cleanEnd}) ${selectedDay} günündeki başka bir rutin ile çakışıyor! Lütfen farklı bir saat seçin.` 
+        : `The selected time slot (${cleanStart} - ${cleanEnd}) overlaps with an existing routine on ${selectedDay}! Please choose a different time.`);
+      return;
+    }
+
     const newBlock = {
       id: Date.now(),
       day: selectedDay,
-      title: manualTitle,
+      title: cleanTitle,
       category: isTr ? "Sabit Blok" : "Fixed Block",
       level: 3,
       suggestedTime: `${cleanStart} - ${cleanEnd}`,
@@ -538,31 +602,7 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
   const findAvailableSlot = (durationMin: number, isSleep: boolean) => {
     let startMin = isSleep ? 22.5 * 60 : 9 * 60;
 
-    const parseMin = (tStr: string) => {
-      const [hh, mm] = tStr.split(":").map(Number);
-      return (hh || 0) * 60 + (mm || 0);
-    };
-
-    const isOverlapping = (testStart: number, testEnd: number) => {
-      return currentDayHabits.some((h) => {
-        const formattedSlot = h.suggestedTime.replace(/\./g, ":");
-        const match = formattedSlot.match(/(\d\d:\d\d)\s*-\s*(\d\d:\d\d)/);
-        if (!match) return false;
-
-        let hStart = parseMin(match[1]);
-        let hEnd = parseMin(match[2]);
-
-        if (hStart >= hEnd) hEnd += 1440;
-
-        let tStart = testStart;
-        let tEnd = testEnd;
-        if (tStart >= tEnd) tEnd += 1440;
-
-        return Math.max(tStart, hStart) < Math.min(tEnd, hEnd);
-      });
-    };
-
-    while (isOverlapping(startMin, startMin + durationMin) && startMin < 36 * 60) {
+    while (checkTimeOverlap(startMin, startMin + durationMin, currentDayHabits) && startMin < 36 * 60) {
       startMin += 30;
     }
 
@@ -571,9 +611,11 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     return `${startStr} - ${endStr}`;
   };
 
+  // AI İLE OTOMATİK GÖREV EKLEME (MAX 50 KARAKTER VE GEMİNİ DEBUG LOGLARI)
   const handleAddHabitAl = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newHabitTitle.trim()) return;
+    const cleanTitle = newHabitTitle.trim().slice(0, 50); // MAX 50 KARAKTER
+    if (!cleanTitle) return;
 
     const maxAllowed = getPlanLimit(userPlan);
     if (currentDayHabits.length >= maxAllowed) {
@@ -586,10 +628,10 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
 
     setAiScheduling(true);
 
-    const detectedDuration = parseDurationInMinutes(newHabitTitle);
+    const detectedDuration = parseDurationInMinutes(cleanTitle);
     const existingSlots = currentDayHabits.map(h => `${h.title} (${h.suggestedTime})`).join(", ");
     
-    const lowerTitle = newHabitTitle.toLowerCase();
+    const lowerTitle = cleanTitle.toLowerCase();
     const isSleepTask = /(uyku|uyu|yatak|sleep|yatış)/i.test(lowerTitle);
     const isSportsTask = /(yürüyüş|yürüyuş|yuru|koşu|spor|fitness|gym|idman|kardiyo|cardio|squat|antrenman)/i.test(lowerTitle);
     const isHardStudyTask = /(deneme|fizik|matematik|geometri|kimya|biyoloji|sınav|sinav|test|zor)/i.test(lowerTitle);
@@ -602,19 +644,15 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
 
     if (apiKey) {
       try {
+        console.log("🚀 [OmniSync AI Debug] Gemini Planlama İsteği Gönderiliyor. Görev:", cleanTitle);
         const promptText = `
 Sen OmniSync'in nöro-bilişsel AI Ritim Mimarısın.
 Seçili gün (${selectedDay}) için mevcut dolu rutinler: [${existingSlots}].
-Gelen Görev: "${newHabitTitle}"
+Gelen Görev: "${cleanTitle}"
 
 Aşağıdaki kurallara kesin uyarak SADECE ve SADECE saf bir JSON objesi döndür:
-1. "category": Görevin türü. Seçenekler: "Verimlilik", "Spor", "Sağlık", "Kişisel". (Örn: Yürüyüş/Koşu -> "Spor", Uyku -> "Sağlık", Ders/Kodlama -> "Verimlilik")
+1. "category": Görevin türü. Seçenekler: "Verimlilik", "Spor", "Sağlık", "Kişisel".
 2. "level": Zihinsel yük seviyesi (1-5 arası tam sayı). 
-   - 1: Uyku, Yürüyüş, Dinlenme, Mola, Hafif Spor
-   - 2: Kitap Okuma, Kelime Ezberi
-   - 3: Rutin İşler, Konu Tekrarı
-   - 4: Soru Çözümü, Kodlama
-   - 5: Zor Ders Denemesi (Fizik, Mat), Ağır Sınav Seansı
 3. "timeSlot": ÇAKIŞMAYACAK saat aralığı (Örn: "14:00 - 15:30").
 
 Sadece bu JSON'ı yaz:
@@ -628,6 +666,8 @@ Sadece bu JSON'ı yaz:
         });
 
         const data = await res.json();
+        console.log("🟢 [OmniSync AI Debug] Gemini Planlama Yanıtı:", data);
+
         let aiResponseText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
         
         if (aiResponseText) {
@@ -645,8 +685,10 @@ Sadece bu JSON'ı yaz:
           }
         }
       } catch (err) {
-        console.error("AI Akıllı Analiz hatası:", err);
+        console.error("❌ [OmniSync AI Debug] AI Akıllı Analiz hatası:", err);
       }
+    } else {
+      console.warn("⚠️ [OmniSync AI Debug] NEXT_PUBLIC_GEMINI_API_KEY bulunamadı!");
     }
 
     if (!finalTimeSlot) {
@@ -657,7 +699,7 @@ Sadece bu JSON'ı yaz:
     const newHabitObj = {
       id: Date.now(),
       day: selectedDay,
-      title: newHabitTitle,
+      title: cleanTitle,
       category: inferredCategory,
       level: inferredLevel,
       suggestedTime: finalTimeSlot,
@@ -691,11 +733,11 @@ Sadece bu JSON'ı yaz:
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row font-sans relative">
       
-      {/* YAPIŞKAN HAMBURGER MENÜ BUTONU */}
+      {/* SADECE MOBİLDE GÖRÜNEN YAPIŞKAN HAMBURGER MENÜ BUTONU (md:hidden) */}
       <button
         type="button"
         onClick={() => setIsNavOpen(!isNavOpen)}
-        className="fixed top-4 left-4 z-50 p-3 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-cyan-400 rounded-xl shadow-2xl backdrop-blur-md transition-all flex items-center justify-center cursor-pointer group"
+        className="md:hidden fixed top-4 left-4 z-50 p-3 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-cyan-400 rounded-xl shadow-2xl backdrop-blur-md transition-all flex items-center justify-center cursor-pointer group"
         title="Sekme Menüsü"
       >
         {isNavOpen ? (
@@ -709,7 +751,7 @@ Sadece bu JSON'ı yaz:
         )}
       </button>
 
-      {/* BACKDROP OVERLAY */}
+      {/* BACKDROP OVERLAY (Sadece Mobilde) */}
       {isNavOpen && (
         <div 
           onClick={() => setIsNavOpen(false)}
@@ -719,8 +761,8 @@ Sadece bu JSON'ı yaz:
 
       {/* SIDEBAR */}
       <aside className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-slate-900/95 border-r border-slate-800/80 p-6 flex flex-col justify-between shrink-0 z-40 transition-transform duration-300 ease-in-out backdrop-blur-xl ${isNavOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}`}>
-        <div className="pt-12 md:pt-0">
-          <div className="mb-8 flex items-center justify-between">
+        <div>
+          <div className="mb-8 flex items-center justify-between pt-2 md:pt-0">
             <div>
               <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 bg-clip-text text-transparent">
                 OmniSync
@@ -785,7 +827,7 @@ Sadece bu JSON'ı yaz:
               <span className="absolute bottom-0 right-0 w-3 h-3 bg-cyan-400 border-2 border-slate-900 rounded-full text-[8px] flex items-center justify-center text-slate-950 font-bold">+</span>
             </label>
             <div className="overflow-hidden">
-              <div className="text-xs font-bold text-white truncate">{userName}</div>
+              <div className="text-xs font-bold text-white truncate max-w-[150px]">{userName}</div>
               <div className="text-[10px] text-slate-400 truncate">{userEmail}</div>
             </div>
           </div>
@@ -799,7 +841,7 @@ Sadece bu JSON'ı yaz:
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 p-6 md:p-10 pl-16 md:pl-10 overflow-y-auto space-y-8">
+      <main className="flex-1 p-6 md:p-10 pt-16 md:pt-10 overflow-y-auto space-y-8">
         <header className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800/80 gap-4">
           <div>
             <h2 className="text-2xl font-bold text-white tracking-tight">
@@ -811,24 +853,35 @@ Sadece bu JSON'ı yaz:
             </h2>
             <p className="text-xs text-slate-400 mt-1">
               {t.welcome} <span className="text-cyan-400 font-semibold">{userName}</span>, {t.subTitle}
-              {currentDateTime && <span className="block text-[11px] text-amber-400 font-mono mt-1">🗓️ Cihaz Zamanı: {currentDateTime}</span>}
             </p>
+            
+            {/* CANLI DİJİTAL SAAT GÖSTERGESİ */}
+            {currentDateTime && (
+              <div className="inline-flex items-center gap-2 px-3 py-1 mt-2 bg-slate-900/90 border border-cyan-500/30 rounded-xl shadow-lg shadow-cyan-500/5">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
+                <span className="text-[11px] font-mono font-bold text-cyan-300 tracking-wider">
+                  ⏱️ {currentDateTime}
+                </span>
+              </div>
+            )}
           </div>
+
+          {/* TEMİZLENMİŞ VE SADELEŞTİRİLMİŞ SAĞ ÜST ABONELİK BUTONU */}
           <button
             onClick={() => setShowUpgradeModal(true)}
-            className="cursor-pointer hover:opacity-90 transition text-left"
+            className="cursor-pointer hover:opacity-90 transition text-left shrink-0 self-start sm:self-auto"
           >
             {userPlan === "plus" ? (
-              <span className="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-full shadow-lg shadow-purple-500/20 flex items-center gap-1.5 border border-purple-400/30">
-                Plus Member ({currentDayHabits.length}/{getPlanLimit(userPlan)} Günlük)
+              <span className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-500/20 flex items-center gap-1.5 border border-purple-400/30">
+                ✨ Plus Member
               </span>
             ) : userPlan === "pro" ? (
-              <span className="px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 font-bold text-xs rounded-full shadow-lg shadow-cyan-500/10 flex items-center gap-1.5">
-                Pro Member ({currentDayHabits.length}/{getPlanLimit(userPlan)} Günlük)
+              <span className="px-4 py-2 bg-cyan-500/10 border border-cyan-500/40 text-cyan-400 font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/10 flex items-center gap-1.5">
+                ⚡ Pro Member
               </span>
             ) : (
-              <span className="px-4 py-1.5 bg-slate-800 border border-slate-700 text-slate-400 font-medium text-xs rounded-full flex items-center gap-1">
-                Basic ($0) ({currentDayHabits.length}/{getPlanLimit(userPlan)} Günlük)
+              <span className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs rounded-xl flex items-center gap-1 hover:border-slate-600">
+                🌱 Basic ($0)
               </span>
             )}
           </button>
@@ -998,13 +1051,15 @@ Sadece bu JSON'ı yaz:
               </div>
             </div>
 
+            {/* MANUEL SABİT SAAT EKLEME FORMU (MAX 50 KARAKTER VE ÇAKIŞMA KONTROLÜ) */}
             <div className="p-6 bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-lg">
               <h3 className="text-sm font-bold text-amber-400 mb-1">🏫 Manuel Sabit Saat Ekle ({selectedDay} Günü İçin)</h3>
-              <p className="text-xs text-slate-400 mb-4">Örneğin 22:30 - 07:00 arası uyku saatini veya 08:00 - 15:20 arası okul saatini ekleyin.</p>
+              <p className="text-xs text-slate-400 mb-4">Örneğin 22:30 - 07:00 arası uyku saatini veya 08:00 - 15:20 arası okul saatini ekleyin (Max 50 karakter).</p>
               <form onSubmit={handleAddManualBlock} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <input
                   type="text"
-                  placeholder="Etkinlik Adı (Örn: Gece Uykusu / Okul)"
+                  maxLength={50}
+                  placeholder="Etkinlik Adı (Max 50 kr.)"
                   value={manualTitle}
                   onChange={(e) => setManualTitle(e.target.value)}
                   className="sm:col-span-2 px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition"
@@ -1216,6 +1271,7 @@ Sadece bu JSON'ı yaz:
               <form onSubmit={handleAddHabitAl} className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="text"
+                  maxLength={50}
                   placeholder={t.taskTitlePlaceholder}
                   value={newHabitTitle}
                   onChange={(e) => setNewHabitTitle(e.target.value)}
@@ -1723,9 +1779,10 @@ Sadece bu JSON'ı yaz:
             <h3 className="text-lg font-bold text-white">✏️ Rutini Düzenle</h3>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Görev Adı</label>
+                <label className="block text-xs text-slate-400 mb-1">Görev Adı (Max 50 kr.)</label>
                 <input
                   type="text"
+                  maxLength={50}
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400"
