@@ -637,6 +637,7 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
     if (apiKey) {
+      console.log("🔑 [OmniSync Key Test]:", apiKey ? `Key Var: ${apiKey.substring(0, 6)}...` : "Key YOK (Undefined)");
       try {
         console.log("🚀 [OmniSync AI Debug] Gemini Planlama İsteği Gönderiliyor. Görev:", cleanTitle);
         const promptText = `
