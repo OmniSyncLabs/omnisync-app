@@ -12,9 +12,9 @@ export async function generateGeminiPlan(promptText: string) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // SDK otomatik olarak doğru URL ve API rotasını çağırır
+    // Model adı güncel v2 serisine güncellendi
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       contents: promptText,
     });
 
