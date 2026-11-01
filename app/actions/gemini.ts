@@ -1,5 +1,7 @@
 'use server';
 
+import { GoogleGenAI } from '@google/genai';
+
 export async function generateGeminiPlan(promptText: string) {
   try {
     const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -8,32 +10,31 @@ export async function generateGeminiPlan(promptText: string) {
       throw new Error('GEMINI_API_KEY bulunamadı.');
     }
 
-    // Google API doğrudan model endpoint formatı
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: promptText }],
+    // Resmi SDK başlatma
+    const ai = new GoogleGenAI({ apiKey });
+
+    // SDK üzerinden doğrudan istek
+    const response = await ai.models.generateContent({
+      model: 'gemini-1.5-flash',
+      contents: promptText,
+    });
+
+    return {
+      success: true,
+      data: {
+        candidates: [
+          {
+            content: {
+              parts: [{ text: response.text }],
             },
-          ],
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      return { success: false, error: `API Yanıt Hatası: ${response.status} - ${errorData}` };
-    }
-
-    const data = await response.json();
-    return { success: true, data };
+          },
+        ],
+      },
+    };
   } catch (error: any) {
-    return { success: false, error: error.message || 'Bilinmeyen bir hata oluştu.' };
+    return {
+      success: false,
+      error: error.message || 'Gemini bağlantı hatası.',
+    };
   }
 }
