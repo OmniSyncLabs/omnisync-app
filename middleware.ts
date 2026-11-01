@@ -6,6 +6,7 @@ export default createMiddleware({
 });
 
 export const config = {
-  // api, _next ve statik dosyaları next-intl yönlendirmesinden muaf tutar
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)', '/([a-z]{2})/:path*']
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 };

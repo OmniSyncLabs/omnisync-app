@@ -657,7 +657,7 @@ Sadece bu JSON'ı yaz:
 {"category": "Kişisel", "level": 1, "timeSlot": "22:30 - 23:30"}
 `;
 
-      const res = await fetch('/api/gemini', {
+      const res = await fetch(`${window.location.origin}/api/gemini`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ promptText }),
