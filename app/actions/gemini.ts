@@ -11,38 +11,47 @@ export async function generateGeminiPlan(promptText: string) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  // Ana Model ve Yoğunluk Anında Yedek Model Listesi
-  const modelsToTry = ['gemini-3.8-flash', 'gemini-1.5-flash'];
+  // Yoğunluk anında sırayla denenecek modeller
+  const modelsToTry = [
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
+    'gemini-2.0-flash-exp'
+  ];
 
+  // Her model için maksimum 3 defa otomatik tekrar deneme (Retry)
   for (const modelName of modelsToTry) {
-    try {
-      const response = await ai.models.generateContent({
-        model: modelName,
-        contents: promptText,
-      });
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: promptText,
+        });
 
-      if (response.text) {
-        return {
-          success: true,
-          data: {
-            candidates: [
-              {
-                content: {
-                  parts: [{ text: response.text }],
+        if (response.text) {
+          return {
+            success: true,
+            data: {
+              candidates: [
+                {
+                  content: {
+                    parts: [{ text: response.text }],
+                  },
                 },
-              },
-            ],
-          },
-        };
+              ],
+            },
+          };
+        }
+      } catch (error: any) {
+        // 503 veya Yoğunluk hatası alındığında 1.5 saniye bekleyip tekrar dene
+        if (attempt < 3) {
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+        }
       }
-    } catch (error: any) {
-      // Eğer 503 (yoğunluk) hatasıysa diğer modele geçmeyi dene
-      console.warn(`${modelName} yanıt veremedi, yedek modele geçiliyor...`);
     }
   }
 
   return {
     success: false,
-    error: 'Google AI sunucuları şu an çok yoğun (503). Lütfen birkaç saniye sonra tekrar deneyin.',
+    error: 'Google AI sunucuları şu an aşırı yoğun. Lütfen 10-15 saniye sonra tekrar deneyin.',
   };
 }
