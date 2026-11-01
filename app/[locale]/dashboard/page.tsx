@@ -624,7 +624,6 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     setAiScheduling(true);
 
     const detectedDuration = parseDurationInMinutes(cleanTitle);
-    const existingSlots = currentDayHabits.map(h => `${h.title} (${h.suggestedTime})`).join(", ");
     
     const lowerTitle = cleanTitle.toLowerCase();
     const isSleepTask = /(uyku|uyu|yatak|sleep|yatış)/i.test(lowerTitle);
@@ -635,56 +634,37 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     let inferredLevel = isSleepTask ? 1 : isSportsTask ? 1 : isHardStudyTask ? 5 : 3;
 
     let finalTimeSlot = "";
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    let generatedTaskTip = "";
 
-    if (apiKey) {
-      console.log("🔑 [OmniSync Key Test]:", apiKey ? `Key Var: ${apiKey.substring(0, 6)}...` : "Key YOK (Undefined)");
-      try {
-        console.log("🚀 [OmniSync AI Debug] Gemini Planlama İsteği Gönderiliyor. Görev:", cleanTitle);
-       const promptText = `
-Sen OmniSync'in nöro-bilişsel AI Ritim Mimarısın.
-Seçili gün (${selectedDay}) için mevcut dolu rutinler: [${existingSlots}].
-Gelen Görev: "${cleanTitle}"
+    try {
+      console.log("🚀 [OmniSync AI Debug] Gemini Planlama İsteği Gönderiliyor. Görev:", cleanTitle);
 
-Aşağıdaki kurallara kesin uyarak SADECE ve SADECE saf bir JSON objesi döndür:
-1. "category": Görevin türü. Seçenekler: "Verimlilik", "Spor", "Sağlık", "Kişisel".
-2. "level": Zihinsel yük seviyesi (1-5 arası tam sayı).
-3. "timeSlot": ÇAKIŞMAYACAK saat aralığı (Örn: "14:00 - 15:30").
-- EĞER görevde "yatmadan önce", "gece", "akşam" gibi ifadeler geçiyorsa, saati günün en sonuna (örn: 22:30 - 23:30 veya 23:00 - 00:00) konumlandır.
-- EĞER görevde "sabah", "ilk iş" gibi ifadeler geçiyorsa güne erken saatlerde başlat (örn: 08:30 - 09:30).
-- EĞER özel zaman belirtilmemişse mevcut boş aralıklara yerleştir.
+     // Server Action çağrısı
+      const result: any = await generateGeminiPlan(cleanTitle, userPlan);
 
-Sadece bu JSON'ı yaz:
-{"category": "Kişisel", "level": 1, "timeSlot": "22:30 - 23:30"}
-`;
+      if (!result?.success) {
+        console.warn("⚡ [OmniSync AI Debug] Gemini Planlama hatası:", result?.error || "Bilinmeyen hata");
+      } else if (result?.data) {
+        console.log("🟢 [OmniSync AI Debug] Gemini Planlama Yanıtı:", result.data);
 
-      // Server Action çağrısı (fetch ve 404 olayını tamamen devreden çıkarır)
-    const result = await generateGeminiPlan(promptText);
+        // Parantezler eklendi ve güvenli hale getirildi
+        if (result.data.timeSlot) {
+          finalTimeSlot = result.data.timeSlot.replace(/\./g, ":");
+        }
 
-    if (!result.success) {
-      console.warn("⚡ [OmniSync AI Debug] Gemini Planlama hatası:", result.error);
-    } else {
-      console.log("🟢 [OmniSync AI Debug] Gemini Planlama Yanıtı:", result.data);
-
-      let aiResponseText = result.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-          if (aiResponseText) {
-            aiResponseText = aiResponseText.replace(/```json/g, "").replace(/```/g, "").trim();
-            const firstBrace = aiResponseText.indexOf("{");
-            const lastBrace = aiResponseText.lastIndexOf("}");
-            
-            if (firstBrace !== -1 && lastBrace !== -1) {
-              const cleanJson = aiResponseText.substring(firstBrace, lastBrace + 1);
-              const parsed = JSON.parse(cleanJson);
-              
-              if (parsed.timeSlot) finalTimeSlot = parsed.timeSlot.replace(/\./g, ":");
-              if (parsed.category) inferredCategory = parsed.category;
-              if (parsed.level) inferredLevel = Number(parsed.level);
-            }
+        if (result.data.effortLevel) {
+          const lvlMatch = result.data.effortLevel.match(/\d+/);
+          if (lvlMatch) {
+            inferredLevel = Number(lvlMatch[0]);
           }
         }
-      } catch (err) {
-        console.error("❌ [OmniSync AI Debug] AI Akıllı Analiz hatası:", err);
+
+        if (result.data.taskTip) {
+          generatedTaskTip = result.data.taskTip;
+        }
       }
+    } catch (err) {
+      console.error("❌ [OmniSync AI Debug] AI Akıllı Analiz hatası:", err);
     }
 
     if (!finalTimeSlot) {
@@ -699,6 +679,7 @@ Sadece bu JSON'ı yaz:
       category: inferredCategory,
       level: inferredLevel,
       suggestedTime: finalTimeSlot,
+      taskTip: generatedTaskTip,
       completed: false,
       isManual: false,
     };
@@ -1012,20 +993,37 @@ Sadece bu JSON'ı yaz:
                       .map((habit) => (
                         <div 
                           key={habit.id} 
-                          className={`p-3 rounded-lg border flex items-center justify-between text-xs transition ${habit.completed ? "bg-slate-900/40 border-slate-800 opacity-60" : "bg-slate-900/90 border-slate-800"}`}
+                          className={`p-3 rounded-lg border flex flex-col gap-2 text-xs transition ${habit.completed ? "bg-slate-900/40 border-slate-800 opacity-60" : "bg-slate-900/90 border-slate-800"}`}
                         >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <span className="font-mono font-bold text-amber-400 text-[11px] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 shrink-0">
-                              {habit.suggestedTime}
-                            </span>
-                            <span className={`font-semibold truncate ${habit.completed ? "line-through text-slate-500" : "text-slate-200"}`}>
-                              {habit.isManual && <span className="text-amber-400 mr-1">[Sabit]</span>}
-                              {habit.title}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className="font-mono font-bold text-amber-400 text-[11px] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 shrink-0">
+                                {habit.suggestedTime}
+                              </span>
+                              <span className={`font-semibold truncate ${habit.completed ? "line-through text-slate-500" : "text-slate-200"}`}>
+                                {habit.isManual && <span className="text-amber-400 mr-1">[Sabit]</span>}
+                                {habit.title}
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 shrink-0 ml-2">
+                              Sev. {habit.level}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 shrink-0 ml-2">
-                            Sev. {habit.level}
-                          </span>
+
+                          {/* Pro/Plus Kullanıcıları İçin AI Task-Tip Kartı */}
+                          {habit.taskTip && (
+                            <div className="p-2.5 rounded-lg bg-indigo-950/60 border border-indigo-500/30 flex items-start gap-2">
+                              <span className="text-xs">💡</span>
+                              <div>
+                                <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-wider block">
+                                  AI Task-Tip
+                                </span>
+                                <p className="text-[11px] text-slate-300 mt-0.5 leading-snug">
+                                  {habit.taskTip}
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                   </div>
@@ -1086,57 +1084,74 @@ Sadece bu JSON'ı yaz:
                     {currentDayHabits.map((habit) => (
                       <div
                         key={habit.id}
-                        className={`p-4 rounded-xl border transition flex items-center justify-between ${habit.completed ? "bg-slate-950/60 border-emerald-500/30 text-slate-400" : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-200"}`}
+                        className={`p-4 rounded-xl border transition flex flex-col gap-3 ${habit.completed ? "bg-slate-950/60 border-emerald-500/30 text-slate-400" : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-200"}`}
                       >
-                        <div 
-                          onClick={() => toggleHabit(habit.id)}
-                          className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
-                        >
-                          <div className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold border shrink-0 ${habit.completed ? "bg-emerald-500 border-emerald-400 text-slate-950" : "border-slate-700 bg-slate-900 text-transparent"}`}>
-                            ✓
+                        <div className="flex items-center justify-between">
+                          <div 
+                            onClick={() => toggleHabit(habit.id)}
+                            className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
+                          >
+                            <div className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold border shrink-0 ${habit.completed ? "bg-emerald-500 border-emerald-400 text-slate-950" : "border-slate-700 bg-slate-900 text-transparent"}`}>
+                              ✓
+                            </div>
+                            <div className="min-w-0">
+                              <div className={`text-xs font-semibold truncate flex items-center gap-1.5 ${habit.completed ? "line-through text-slate-500" : ""}`}>
+                                {habit.isManual && <span className="text-amber-400 text-[10px] font-bold">[Sabit]</span>}
+                                {habit.title}
+                              </div>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded">
+                                  {habit.category}
+                                </span>
+                                <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 font-bold">
+                                  Beyin Yükü: Sev. {habit.level}
+                                </span>
+                                <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-mono font-bold">
+                                  Saat: {habit.suggestedTime}
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <div className={`text-xs font-semibold truncate flex items-center gap-1.5 ${habit.completed ? "line-through text-slate-500" : ""}`}>
-                              {habit.isManual && <span className="text-amber-400 text-[10px] font-bold">[Sabit]</span>}
-                              {habit.title}
-                            </div>
-                            <div className="flex flex-wrap gap-2 mt-1">
-                              <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded">
-                                {habit.category}
-                              </span>
-                              <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 font-bold">
-                                Beyin Yükü: Sev. {habit.level}
-                              </span>
-                              <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-mono font-bold">
-                                Saat: {habit.suggestedTime}
-                              </span>
-                            </div>
+                          <div className="flex items-center gap-2 shrink-0 ml-2">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditModal(habit);
+                              }}
+                              title="Düzenle"
+                              className="px-2.5 py-1 bg-slate-800 hover:bg-cyan-500/20 text-cyan-400 border border-slate-700 rounded-lg text-xs font-bold transition cursor-pointer"
+                            >
+                              ✏️ Düzenle
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteHabit(habit.id);
+                              }}
+                              title="Rutini Sil"
+                              className="text-slate-500 hover:text-red-400 p-1 rounded-lg hover:bg-red-500/10 transition cursor-pointer"
+                            >
+                              🗑️
+                            </button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0 ml-2">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditModal(habit);
-                            }}
-                            title="Düzenle"
-                            className="px-2.5 py-1 bg-slate-800 hover:bg-cyan-500/20 text-cyan-400 border border-slate-700 rounded-lg text-xs font-bold transition cursor-pointer"
-                          >
-                            ✏️ Düzenle
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteHabit(habit.id);
-                            }}
-                            title="Rutini Sil"
-                            className="text-slate-500 hover:text-red-400 p-1 rounded-lg hover:bg-red-500/10 transition cursor-pointer"
-                          >
-                            🗑️
-                          </button>
-                        </div>
+
+                        {/* Pro/Plus Kullanıcıları İçin AI Task-Tip Kartı */}
+                        {habit.taskTip && (
+                          <div className="p-3 rounded-lg bg-indigo-950/60 border border-indigo-500/30 flex items-start gap-2.5">
+                            <span className="text-sm">💡</span>
+                            <div>
+                              <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">
+                                AI Task-Tip
+                              </span>
+                              <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                                {habit.taskTip}
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1278,35 +1293,52 @@ Sadece bu JSON'ı yaz:
                   {currentDayHabits.map((habit) => (
                     <div
                       key={habit.id}
-                      className="p-4 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between gap-3"
+                      className="p-4 rounded-xl border border-slate-800 bg-slate-950 flex flex-col gap-3"
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs font-semibold text-slate-200 flex items-center gap-1.5 truncate">
-                          {habit.isManual && <span className="text-amber-400 text-[10px] font-bold">[Sabit]</span>}
-                          {habit.title}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-semibold text-slate-200 flex items-center gap-1.5 truncate">
+                            {habit.isManual && <span className="text-amber-400 text-[10px] font-bold">[Sabit]</span>}
+                            {habit.title}
+                          </div>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded">{habit.category}</span>
+                            <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded font-bold">Beyin Yükü: Sev. {habit.level}</span>
+                            <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-mono font-bold">Saat: {habit.suggestedTime}</span>
+                          </div>
                         </div>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded">{habit.category}</span>
-                          <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded font-bold">Beyin Yükü: Sev. {habit.level}</span>
-                          <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-mono font-bold">Saat: {habit.suggestedTime}</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(habit)}
+                            className="px-2.5 py-1.5 bg-slate-800 hover:bg-cyan-500/20 text-cyan-400 border border-slate-700 font-bold rounded-lg text-xs transition cursor-pointer"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteHabit(habit.id)}
+                            className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold rounded-lg text-xs transition cursor-pointer"
+                          >
+                            {isTr ? "Sil" : "Delete"}
+                          </button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openEditModal(habit)}
-                          className="px-2.5 py-1.5 bg-slate-800 hover:bg-cyan-500/20 text-cyan-400 border border-slate-700 font-bold rounded-lg text-xs transition cursor-pointer"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => deleteHabit(habit.id)}
-                          className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold rounded-lg text-xs transition cursor-pointer"
-                        >
-                          {isTr ? "Sil" : "Delete"}
-                        </button>
-                      </div>
+
+                      {/* Pro/Plus Kullanıcıları İçin AI Task-Tip Kartı */}
+                      {habit.taskTip && (
+                        <div className="p-3 rounded-lg bg-indigo-950/60 border border-indigo-500/30 flex items-start gap-2.5">
+                          <span className="text-sm">💡</span>
+                          <div>
+                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">
+                              AI Task-Tip
+                            </span>
+                            <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                              {habit.taskTip}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
