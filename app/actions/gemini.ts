@@ -8,7 +8,7 @@ export async function generateGeminiPlan(promptText: string) {
       throw new Error('GEMINI_API_KEY bulunamadı.');
     }
 
-    // Google API stabil v1 sürümü ve doğrudan model endpoint'i
+    // Google API doğrudan model endpoint formatı
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
