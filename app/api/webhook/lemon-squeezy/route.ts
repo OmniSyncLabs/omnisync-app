@@ -31,23 +31,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'User ID bulunamadı' }, { status: 200 });
     }
 
-    // 3. Ödeme yapıldıysa kullanıcının durumunu Supabase'de Pro yap
-    if (eventName === 'order_created' || eventName === 'subscription_created') {
+    // 3. Paketin Adına Göre Plan Tespiti (Pro mu Plus mı?)
+    const variantName = payload.data?.attributes?.first_order_item?.variant_name || 
+                        payload.data?.attributes?.variant_name || '';
+    
+    let targetPlan = 'pro';
+    if (variantName.toLowerCase().includes('plus')) {
+      targetPlan = 'plus';
+    }
+
+    // 4. Ödeme Yapıldıysa Veya Abonelik Başladıysa Planı Güncelle
+    if (eventName === 'order_created' || eventName === 'subscription_created' || eventName === 'subscription_updated') {
+      // Supabase Profiles Tablosu Güncellemesi
       await supabase
-        .from('profiles') // Supabase'deki profil tablonun adı
-        .update({ is_pro: true })
+        .from('profiles')
+        .update({ plan: targetPlan, is_pro: true })
         .eq('id', userId);
+
+      // Supabase Auth Metadata Güncellemesi
+      await supabase.auth.admin.updateUserById(userId, {
+        user_metadata: { plan: targetPlan }
+      });
     } 
-    // Abonelik iptal edildiyse Pro durumunu kaldır
+    // Abonelik İptal Edildiyse Veya Süresi Bittiyse
     else if (eventName === 'subscription_cancelled' || eventName === 'subscription_expired') {
       await supabase
         .from('profiles')
-        .update({ is_pro: false })
+        .update({ plan: 'free', is_pro: false })
         .eq('id', userId);
+
+      await supabase.auth.admin.updateUserById(userId, {
+        user_metadata: { plan: 'free' }
+      });
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Webhook hatası:', error);
     return NextResponse.json({ error: 'Sunucu hatası' }, { status: 500 });
   }
