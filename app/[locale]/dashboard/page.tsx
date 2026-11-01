@@ -1,4 +1,5 @@
 "use client";
+import { generateGeminiPlan } from '@/app/actions/gemini';
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter, useParams } from "next/navigation";
@@ -657,19 +658,15 @@ Sadece bu JSON'ı yaz:
 {"category": "Kişisel", "level": 1, "timeSlot": "22:30 - 23:30"}
 `;
 
-      const res = await fetch(`${window.location.origin}/api/gemini`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ promptText }),
-});
-        if (!res.ok) {
-          console.warn(`⚠️ [OmniSync AI Debug] Gemini Planlama API isteği başarısız oldu (Status: ${res.status}). Fallback zaman aralığı devreye giriyor.`);
-        } else {
-          const data = await res.json();
-          console.log("🟢 [OmniSync AI Debug] Gemini Planlama Yanıtı:", data);
+      // Server Action çağrısı (fetch ve 404 olayını tamamen devreden çıkarır)
+    const result = await generateGeminiPlan(promptText);
 
-          let aiResponseText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-          
+    if (!result.success) {
+      console.warn("⚡ [OmniSync AI Debug] Gemini Planlama hatası:", result.error);
+    } else {
+      console.log("🟢 [OmniSync AI Debug] Gemini Planlama Yanıtı:", result.data);
+
+      let aiResponseText = result.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
           if (aiResponseText) {
             aiResponseText = aiResponseText.replace(/```json/g, "").replace(/```/g, "").trim();
             const firstBrace = aiResponseText.indexOf("{");
