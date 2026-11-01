@@ -614,9 +614,11 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
 
     const maxAllowed = getPlanLimit(userPlan);
     if (currentDayHabits.length >= maxAllowed) {
-      alert(isTr 
-        ? `${selectedDay} günü için ${userPlan.toUpperCase()} planında en fazla ${maxAllowed} adet rutin ekleyebilirsiniz.` 
-        : `Maximum ${maxAllowed} routines allowed per day for ${userPlan.toUpperCase()} plan.`);
+      alert(
+        isTr
+          ? `${selectedDay} günü için ${userPlan.toUpperCase()} planında en fazla ${maxAllowed} adet rutin ekleyebilirsiniz.`
+          : `Maximum ${maxAllowed} routines allowed per day for ${userPlan.toUpperCase()} plan.`
+      );
       setShowUpgradeModal(true);
       return;
     }
@@ -624,7 +626,6 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     setAiScheduling(true);
 
     const detectedDuration = parseDurationInMinutes(cleanTitle);
-    
     const lowerTitle = cleanTitle.toLowerCase();
     const isSleepTask = /(uyku|uyu|yatak|sleep|yatış)/i.test(lowerTitle);
     const isSportsTask = /(yürüyüş|yürüyuş|yuru|koşu|spor|fitness|gym|idman|kardiyo|cardio|squat|antrenman)/i.test(lowerTitle);
@@ -639,54 +640,49 @@ SADECE RAKAM YAZ (Örn: 4). Başka hiçbir kelime veya açıklama yazma.
     try {
       console.log("🚀 [OmniSync AI Debug] Gemini Planlama İsteği Gönderiliyor. Görev:", cleanTitle);
 
-     // Server Action çağrısı
       const result: any = await generateGeminiPlan(cleanTitle, userPlan);
 
       if (!result?.success) {
-        console.warn("⚡ [OmniSync AI Debug] Gemini Planlama hatası:", result?.error || "Bilinmeyen hata");
+        console.warn("⚡ [OmniSync AI Debug] Gemini Planlama hatası:", result?.error);
       } else if (result?.data) {
         console.log("🟢 [OmniSync AI Debug] Gemini Planlama Yanıtı:", result.data);
 
-        // Parantezler eklendi ve güvenli hale getirildi
         if (result.data.timeSlot) {
           finalTimeSlot = result.data.timeSlot.replace(/\./g, ":");
         }
-
         if (result.data.effortLevel) {
           const lvlMatch = result.data.effortLevel.match(/\d+/);
-          if (lvlMatch) {
-            inferredLevel = Number(lvlMatch[0]);
-          }
+          if (lvlMatch) inferredLevel = Number(lvlMatch[0]);
         }
-
         if (result.data.taskTip) {
           generatedTaskTip = result.data.taskTip;
         }
       }
     } catch (err) {
       console.error("❌ [OmniSync AI Debug] AI Akıllı Analiz hatası:", err);
+    } finally {
+      // İstek ister başarılı ister hatalı/zaman aşımlı olsun, butonun kilitli kalmasını engeller
+      if (!finalTimeSlot) {
+        const durationMinutes = detectedDuration || (isSleepTask ? 480 : 60);
+        finalTimeSlot = findAvailableSlot(durationMinutes, isSleepTask);
+      }
+
+      const newHabitObj = {
+        id: Date.now(),
+        day: selectedDay,
+        title: cleanTitle,
+        category: inferredCategory,
+        level: inferredLevel,
+        suggestedTime: finalTimeSlot,
+        taskTip: generatedTaskTip,
+        completed: false,
+        isManual: false,
+      };
+
+      syncHabitsToCloud([...habits, newHabitObj]);
+      setNewHabitTitle("");
+      setAiScheduling(false);
     }
-
-    if (!finalTimeSlot) {
-      const durationMinutes = detectedDuration || (isSleepTask ? 480 : 60);
-      finalTimeSlot = findAvailableSlot(durationMinutes, isSleepTask);
-    }
-
-    const newHabitObj = {
-      id: Date.now(),
-      day: selectedDay,
-      title: cleanTitle,
-      category: inferredCategory,
-      level: inferredLevel,
-      suggestedTime: finalTimeSlot,
-      taskTip: generatedTaskTip,
-      completed: false,
-      isManual: false,
-    };
-
-    syncHabitsToCloud([...habits, newHabitObj]);
-    setNewHabitTitle("");
-    setAiScheduling(false);
   };
 
   if (loading) {
