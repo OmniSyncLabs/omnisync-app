@@ -12,9 +12,9 @@ export async function generateGeminiPlan(promptText: string) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Model adı güncel v2 serisine güncellendi
+    // API'nin açıkça talep ettiği güncel model
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3.8-flash',
       contents: promptText,
     });
 
