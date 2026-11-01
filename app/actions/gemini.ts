@@ -5,10 +5,10 @@ export async function generateGeminiPlan(promptText: string) {
     const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     
     if (!apiKey) {
-      throw new Error('GEMINI_API_KEY bulunamadı.');
+      throw new Error('GEMINI_API_KEY ortam değişkeni bulunamadı.');
     }
 
-    // URL güncellendi: models/gemini-1.5-flash eklendi
+    // Google REST API v1beta güncel endpoint formatı
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
